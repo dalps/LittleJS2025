@@ -8,12 +8,24 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
+import { Microbe, tileSize } from "./entities/microbe";
 const { vec2, rgb } = LJS;
+
+export const spriteAtlas: Record<string, LJS.TileInfo> = {};
+let microbe: Microbe;
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
   // called once after the engine starts up
   // setup the game
+
+  const gameTile = (i: number, size = tileSize) => LJS.tile(i, size);
+
+  const startPos = vec2(.5, .5);
+
+  microbe = new Microbe(startPos);
+
+  spriteAtlas["player"] = gameTile(0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,7 +50,7 @@ function gameRender() {
 function gameRenderPost() {
   // called after objects are rendered
   // draw effects or hud that appear above all objects
-  LJS.drawTextScreen("Hello World!", LJS.mainCanvasSize.scale(0.5), 80);
+  // LJS.drawTextScreen("Hello World!", LJS.mainCanvasSize.scale(0.5), 80);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,5 +61,5 @@ LJS.engineInit(
   gameUpdatePost,
   gameRender,
   gameRenderPost,
-  ["tiles.png"]
+  ["frames.png"]
 );
