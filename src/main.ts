@@ -9,6 +9,7 @@
 // import LittleJS module
 import * as LJS from "littlejsengine";
 import { Microbe, tileSize } from "./entities/microbe";
+import { Player } from "./entities/player";
 const { vec2, rgb } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
@@ -23,9 +24,9 @@ function gameInit() {
 
   const startPos = vec2(.5, .5);
 
-  microbe = new Microbe(startPos);
+  microbe = new Player(startPos);
 
-  spriteAtlas["player"] = gameTile(0);
+  spriteAtlas["swim"] = gameTile(0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
