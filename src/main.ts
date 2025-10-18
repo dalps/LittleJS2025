@@ -22,9 +22,11 @@ function gameInit() {
 
   const gameTile = (i: number, size = tileSize) => LJS.tile(i, size);
 
-  const startPos = vec2(.5, .5);
+  const startPos = vec2(0.5, 0.5);
 
   microbe = new Player(startPos);
+  // LJS.setCanvasFixedSize(vec2(1000));
+  // LJS.setCanvasPixelated(false);
 
   spriteAtlas["swim"] = gameTile(0);
 }

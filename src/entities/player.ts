@@ -15,6 +15,13 @@ export class Player extends Microbe {
       this.swim();
     }
 
+    if (LJS.keyIsDown("KeyD")) {
+      this.angleVelocity = 0.1;
+    }
+    if (LJS.keyIsDown("KeyA")) {
+      this.angleVelocity = -0.1;
+    }
+
     super.update();
   }
 }
