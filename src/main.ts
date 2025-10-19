@@ -10,25 +10,26 @@
 import * as LJS from "littlejsengine";
 import { Microbe, tileSize } from "./entities/microbe";
 import { Player } from "./entities/player";
-const { vec2, rgb } = LJS;
+const { vec2, rgb, tile } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
-let microbe: Microbe;
+let player: Microbe;
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
-  // called once after the engine starts up
-  // setup the game
-
-  const gameTile = (i: number, size = tileSize) => LJS.tile(i, size);
-
-  const startPos = vec2(0.5, 0.5);
-
-  microbe = new Player(startPos);
   // LJS.setCanvasFixedSize(vec2(1000));
   // LJS.setCanvasPixelated(false);
 
-  spriteAtlas["swim"] = gameTile(0);
+  // init textures
+  spriteAtlas["swim"] = tile(0, tileSize);
+  spriteAtlas["idle"] = tile(10, tileSize); // tile(15, vec2(200,200));
+  spriteAtlas["bubble"] = tile(0, tileSize, 1);
+
+  const startPos = vec2(0.5, 0.5);
+
+  player = new Player(startPos);
+
+  player.idle();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,5 +65,5 @@ LJS.engineInit(
   gameUpdatePost,
   gameRender,
   gameRenderPost,
-  ["frames.png"]
+  ["frames.png", "objects.png"]
 );
