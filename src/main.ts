@@ -4,12 +4,15 @@
 import * as LJS from "littlejsengine";
 import { Microbe, tileSize } from "./entities/microbe";
 import { Player } from "./entities/player";
+import { AutoMicrobe } from "./entities/microbe_auto";
 const { vec2, rgb, tile, time } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 let player: Microbe;
 
 let bubbles = [];
+let autoMicrobes = [];
+
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
   // LJS.setCanvasFixedSize(vec2(1000));
@@ -27,7 +30,12 @@ function gameInit() {
   player.idle();
 
   for (let i = 0; i < 100; i++) {
-    const size = vec2(1).scale(LJS.rand(1,5));
+    const pos = LJS.randInCircle(100, 10);
+    autoMicrobes.push(new AutoMicrobe(pos));
+  }
+
+  for (let i = 0; i < 100; i++) {
+    const size = vec2(1).scale(LJS.rand(1, 5));
     const pos = LJS.randInCircle(100, 10);
     bubbles.push({ size, pos });
   }
