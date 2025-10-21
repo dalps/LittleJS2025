@@ -51,18 +51,19 @@ export class Microbe extends LJS.EngineObject {
 
   render(): void {
     // update animation
-    this.tileInfo = spriteAtlas[this.animationName].frame(this.animationFrame);
     const { duration, loop, delta } = animations[this.animationName];
+    this.tileInfo = spriteAtlas[this.animationName].frame(this.animationFrame);
 
     if (this.animationTimer.elapsed()) {
       this.animationFrame++;
-      if (loop) this.animationFrame %= duration;
       this.animationTimer.set(delta);
     }
 
     if (this.animationFrame >= duration) {
       this.bubbleEmitter.emitRate = 0;
       this.animationName = "idle";
+
+      if (loop) this.animationFrame %= duration;
     }
 
     super.render();

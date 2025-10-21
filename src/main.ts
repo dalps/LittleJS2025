@@ -1,20 +1,15 @@
-/*
-    Little JS Hello World Demo
-    - Just prints 'Hello World!'
-    - A good starting point for new projects
-*/
-
 "use strict";
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
 import { Microbe, tileSize } from "./entities/microbe";
 import { Player } from "./entities/player";
-const { vec2, rgb, tile } = LJS;
+const { vec2, rgb, tile, time } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 let player: Microbe;
 
+let bubbles = [];
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
   // LJS.setCanvasFixedSize(vec2(1000));
@@ -30,10 +25,17 @@ function gameInit() {
   player = new Player(startPos);
 
   player.idle();
+
+  for (let i = 0; i < 100; i++) {
+    const size = vec2(1).scale(LJS.rand(1,5));
+    const pos = LJS.randInCircle(100, 10);
+    bubbles.push({ size, pos });
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameUpdate() {
+  LJS.setCameraPos(player.pos);
   // called every frame at 60 frames per second
   // handle input and update the game state
 }
@@ -48,6 +50,9 @@ function gameUpdatePost() {
 function gameRender() {
   // called before objects are rendered
   // draw any background effects that appear behind objects
+  bubbles.forEach(({ pos, size }) =>
+    LJS.drawTile(pos, size, spriteAtlas["bubble"])
+  );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
