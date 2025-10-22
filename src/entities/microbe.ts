@@ -41,8 +41,7 @@ export class Microbe extends LJS.EngineObject {
     this.beat.onbeat(this.onbeat.bind(this));
   }
 
-  onbeat(b: BeatCount) {
-    console.log(b);
+  onbeat(_b: BeatCount) {
     this.idle();
   }
 
@@ -59,7 +58,11 @@ export class Microbe extends LJS.EngineObject {
 
   swim() {
     this.playAnim("swim");
-    sfx.swim.play(this.pos);
+
+    const volume =
+      LJS.cameraPos.subtract(this.pos).length() / LJS.cameraPos.length();
+
+    sfx.bubble3.play(this.pos, 0.2);
 
     this.applyForce(vec2(0, 0.1).rotate(this.angle));
     this.bubbleEmitter.emitRate = 10;

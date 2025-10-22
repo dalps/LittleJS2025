@@ -6,6 +6,7 @@ import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import { AutoMicrobe } from "./entities/microbe_auto";
 import { Beat } from "./beat";
+import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
@@ -34,16 +35,20 @@ function gameInit() {
 
   player.idle();
 
-  globalBeat = new Beat(60, 4, (n) => console.log(`global beat ${n}`));
+  globalBeat = new Beat(120, 4, 1);
+
+  globalBeat.onbeat(([b]) => {
+    sfx.tic.play(undefined, 0.5, b === 0 ? 2 : 1);
+  });
 
   for (let i = 0; i < 100; i++) {
-    const pos = LJS.randInCircle(100, 10);
+    const pos = LJS.randInCircle(100, 0);
     autoMicrobes.push(new AutoMicrobe(pos));
   }
 
   for (let i = 0; i < 100; i++) {
     const size = vec2(1).scale(LJS.rand(1, 5));
-    const pos = LJS.randInCircle(100, 10);
+    const pos = LJS.randInCircle(100, 0);
     bubbles.push({ size, pos });
   }
 }

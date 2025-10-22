@@ -33,14 +33,14 @@ const swimPatterns = [
 ];
 
 export class AutoMicrobe extends Microbe {
-  currentPattern: number = LJS.randInt(0, swimPatterns.length);
+  pattern: number = LJS.randInt(0, swimPatterns.length);
 
   constructor(pos: LJS.Vector2) {
     super(pos);
   }
 
   override onbeat([beat, sub]: BeatCount) {
-    const note = swimPatterns.at(this.currentPattern)?.at(beat)?.at(sub);
+    const note = swimPatterns.at(this.pattern)?.at(beat)?.at(sub);
 
     if (note) {
       this.angle += 45 * DEG2RAD;
