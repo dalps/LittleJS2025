@@ -12,7 +12,7 @@ export class Animation {
     public name: string,
     public duration: number,
     private delta: number,
-    tileInfo?: LJS.TileInfo
+    public priority: number
   ) {
     this.timer = new Timer(delta);
     this.tileInfo ||= spriteAtlas[this.name];

@@ -6,7 +6,7 @@ import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
 export class Microbe extends LJS.EngineObject {
-  animations: Record<"idle" | "swim", Animation>;
+  animations: Record<"idle" | "swim" | "bump", Animation>;
   beat = new Beat(60, 4, 2);
 
   moveInput: LJS.Vector2 = vec2(0, 0);
@@ -19,14 +19,17 @@ export class Microbe extends LJS.EngineObject {
     super(pos);
 
     this.animations = {
-      swim: new Animation("swim", 10, 1 / 30),
-      idle: new Animation("idle", 5, 1 / 12),
+      swim: new Animation("swim", 10, 1 / 30, 1),
+      idle: new Animation("idle", 5, 1 / 12, 0),
+      bump: new Animation("bump", 14, 1 / 30, 2),
     };
 
-    this.size = vec2(5);
+    this.size = vec2(2);
+    this.drawSize = vec2(5);
     this.mass = 0.2;
     this.damping = 0.89;
     this.angleDamping = 0.89;
+    this.restitution = 5;
 
     this.bubbleEmitter = new LJS.ParticleEmitter(this.pos);
     this.addChild(this.bubbleEmitter);
@@ -39,6 +42,17 @@ export class Microbe extends LJS.EngineObject {
     // this.bubbleEmitter.particleDestroyCallback = () => sfx.bubble2.play(this.pos);
 
     this.beat.onbeat(this.onbeat.bind(this));
+
+    this.setCollision();
+  }
+
+  collideWithObject(o: LJS.EngineObject): boolean {
+    if (!(o instanceof Microbe)) return true;
+
+    sfx.boo.play(this.pos);
+    this.playAnim("bump");
+
+    return true;
   }
 
   onbeat(_b: BeatCount) {
@@ -73,16 +87,15 @@ export class Microbe extends LJS.EngineObject {
     this.bubbleEmitter.emitRate = 0;
   }
 
-  private playAnim(name: keyof typeof this.animations) {
-    // prioritize swim animation
-    if (
-      name !== "swim" &&
-      this.currentAnim === "swim" &&
-      !this.animations.swim.done()
-    )
+  private playAnim(desiredAnim: keyof typeof this.animations) {
+    // exit early if higher priority is playing
+    const current = this.animations[this.currentAnim];
+    const desired = this.animations[desiredAnim];
+
+    if (current.priority > desired.priority && !this.animations.bump.done())
       return;
 
-    this.currentAnim = name;
-    this.animations[name].play();
+    this.currentAnim = desiredAnim;
+    desired.play();
   }
 }

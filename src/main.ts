@@ -25,8 +25,10 @@ function gameInit() {
   // LJS.setCanvasPixelated(false);
 
   // init textures
+
   spriteAtlas["swim"] = tile(0, tileSize);
-  spriteAtlas["idle"] = tile(10, tileSize); // tile(15, vec2(200,200));
+  spriteAtlas["idle"] = tile(vec2(0, 1), tileSize); // tile(15, vec2(200,200));
+  spriteAtlas["bump"] = tile(vec2(0, 2), tileSize);
   spriteAtlas["bubble"] = tile(0, tileSize, 1);
 
   const startPos = vec2(0.5, 0.5);
