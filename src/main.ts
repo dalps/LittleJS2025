@@ -2,9 +2,10 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import { Microbe, tileSize } from "./entities/microbe";
+import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import { AutoMicrobe } from "./entities/microbe_auto";
+import { Beat } from "./beat";
 const { vec2, rgb, tile, time } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
@@ -12,6 +13,10 @@ let player: Microbe;
 
 let bubbles = [];
 let autoMicrobes = [];
+let globalBeat: Beat;
+
+export const bpm = 60;
+export const tileSize = vec2(100);
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
@@ -29,6 +34,8 @@ function gameInit() {
 
   player.idle();
 
+  globalBeat = new Beat(60, 4, (n) => console.log(`global beat ${n}`));
+
   for (let i = 0; i < 100; i++) {
     const pos = LJS.randInCircle(100, 10);
     autoMicrobes.push(new AutoMicrobe(pos));
@@ -43,9 +50,10 @@ function gameInit() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameUpdate() {
+  // update the beat timer
+  globalBeat.update();
+
   LJS.setCameraPos(player.pos);
-  // called every frame at 60 frames per second
-  // handle input and update the game state
 }
 
 ///////////////////////////////////////////////////////////////////////////////

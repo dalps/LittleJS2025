@@ -44,7 +44,6 @@ export class Animation {
   }
 
   get frame() {
-    console.log(this.currentFrame);
     return this.tileInfo.frame(this.currentFrame % this.duration);
   }
 }

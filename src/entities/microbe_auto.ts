@@ -1,6 +1,7 @@
-import { DEG2RAD } from "../mathUtils";
-import { bpm, Microbe } from "./microbe";
 import * as LJS from "littlejsengine";
+import { DEG2RAD } from "../mathUtils";
+import { Microbe } from "./microbe";
+import type { BeatCount } from "../beat";
 const { vec2, rgb } = LJS;
 
 const swimPatterns = [
@@ -13,42 +14,19 @@ const swimPatterns = [
 
 export class AutoMicrobe extends Microbe {
   currentPattern: number = 3;
-  animTimer = new LJS.Timer(0); // swim every second
 
-  constructor(pos) {
+  constructor(pos: LJS.Vector2) {
     super(pos);
   }
 
-  update(): void {
-    if (this.animTimer.elapsed()) {
-      const b = swimPatterns[this.currentPattern][this.currentBeat];
+  override onbeat([beat]: BeatCount) {
+    const b = swimPatterns[this.currentPattern][beat];
 
-      if (b > 0) {
-        this.angle += 45 * DEG2RAD;
-        this.swim();
-        this.animTimer.set(1 / b);
-      } else {
-        this.idle();
-        this.animTimer.set(1 / 2);
-      }
+    if (b > 0) {
+      this.angle += 45 * DEG2RAD;
+      this.swim();
+    } else {
+      this.idle();
     }
-
-    if (this.beatTimer.elapsed()) {
-      this.currentBeat++;
-
-      if (this.currentBeat === 4) {
-        this.currentBeat = 0;
-        // this.currentPattern = (this.currentPattern + 1) % swimPatterns.length;
-        console.log(swimPatterns[this.currentPattern]);
-      }
-
-      this.beatTimer.set(60 / bpm);
-    }
-
-    // if (this.curresadntBeat === 4) {
-    //   this.currentPattern = LJS.randInt(0, swimPatterns.length);
-    // }
-
-    super.update();
   }
 }

@@ -1,19 +1,13 @@
 import * as LJS from "littlejsengine";
+import { Animation } from "../animation";
+import { Beat, type BeatCount } from "../beat";
 import { spriteAtlas } from "../main";
 import { sfx } from "../sfx";
-import { Animation } from "../animation";
 const { vec2, rgb } = LJS;
-const rgba = (r: number, g: number, b: number, a: number | undefined) =>
-  rgb(r / 255, g / 255, b / 255, a);
-
-export const tileSize = vec2(100);
-export const bpm = 60;
 
 export class Microbe extends LJS.EngineObject {
   animations: Record<"idle" | "swim", Animation>;
-
-  beatTimer = new LJS.Timer(60 / bpm); // swim every second
-  currentBeat: number = 0;
+  beat = new Beat(60, 4, 2);
 
   moveInput: LJS.Vector2 = vec2(0, 0);
   angle = 0;
@@ -43,20 +37,24 @@ export class Microbe extends LJS.EngineObject {
     this.bubbleEmitter.tileInfo = spriteAtlas["bubble"];
     this.bubbleEmitter.emitConeAngle = 30;
     // this.bubbleEmitter.particleDestroyCallback = () => sfx.bubble2.play(this.pos);
+
+    this.beat.onbeat(this.onbeat.bind(this));
   }
 
-  render(): void {
+  onbeat(b: BeatCount) {
+    console.log(b);
+    this.playAnim("idle");
+  }
+
+  update(): void {
+    super.update();
+
     const anim = this.animations[this.currentAnim];
 
     anim.update();
     this.tileInfo = anim.frame;
 
-    if (this.beatTimer.elapsed()) {
-      this.playAnim("idle");
-      this.beatTimer.set(60 / bpm / 2);
-    }
-
-    super.render();
+    this.beat.update();
   }
 
   swim() {
