@@ -43,7 +43,7 @@ export class Microbe extends LJS.EngineObject {
 
   onbeat(b: BeatCount) {
     console.log(b);
-    this.playAnim("idle");
+    this.idle();
   }
 
   update(): void {
@@ -67,9 +67,10 @@ export class Microbe extends LJS.EngineObject {
 
   idle() {
     this.playAnim("idle");
+    this.bubbleEmitter.emitRate = 0;
   }
 
-  playAnim(name: keyof typeof this.animations) {
+  private playAnim(name: keyof typeof this.animations) {
     // prioritize swim animation
     if (
       name !== "swim" &&

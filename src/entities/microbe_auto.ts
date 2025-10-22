@@ -4,25 +4,45 @@ import { Microbe } from "./microbe";
 import type { BeatCount } from "../beat";
 const { vec2, rgb } = LJS;
 
+// prettier-ignore
 const swimPatterns = [
-  [1, 1, 1, 1],
-  [3, 3, 1, 1],
-  [1, 1, 0, 3],
-  [2, 0, 2, 0],
-  [1, 1, 3, 1],
+  [
+    [1, ],
+    [1, ],
+    [1, ],
+    [1, ],
+  ],
+  [
+    [ , ],
+    [1,1],
+    [ , ],
+    [1,1],
+  ],
+  [
+    [ ,1],
+    [ ,1],
+    [ ,1],
+    [ ,1],
+  ],
+  [
+    [ ,1],
+    [1,1],
+    [ , ],
+    [ , ],
+  ],
 ];
 
 export class AutoMicrobe extends Microbe {
-  currentPattern: number = 3;
+  currentPattern: number = LJS.randInt(0, swimPatterns.length);
 
   constructor(pos: LJS.Vector2) {
     super(pos);
   }
 
-  override onbeat([beat]: BeatCount) {
-    const b = swimPatterns[this.currentPattern][beat];
+  override onbeat([beat, sub]: BeatCount) {
+    const note = swimPatterns.at(this.currentPattern)?.at(beat)?.at(sub);
 
-    if (b > 0) {
+    if (note) {
       this.angle += 45 * DEG2RAD;
       this.swim();
     } else {
