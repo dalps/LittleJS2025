@@ -71,6 +71,8 @@ export class Microbe extends LJS.EngineObject {
   }
 
   swim() {
+    if (this.animations.bump.isPlaying()) return;
+
     this.playAnim("swim");
 
     const volume =
@@ -88,12 +90,11 @@ export class Microbe extends LJS.EngineObject {
   }
 
   private playAnim(desiredAnim: keyof typeof this.animations) {
-    // exit early if higher priority is playing
+    // exit early if higher priority animation is playing
     const current = this.animations[this.currentAnim];
     const desired = this.animations[desiredAnim];
 
-    if (current.priority > desired.priority && !this.animations.bump.done())
-      return;
+    if (current.priority > desired.priority && current.isPlaying()) return;
 
     this.currentAnim = desiredAnim;
     desired.play();

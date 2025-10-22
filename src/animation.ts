@@ -43,6 +43,10 @@ export class Animation {
     return this.repeats > 0;
   }
 
+  isPlaying() {
+    return this.currentFrame !== 0;
+  }
+
   get frame() {
     return this.tileInfo.frame(this.currentFrame % this.duration);
   }
