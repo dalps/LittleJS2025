@@ -13,22 +13,24 @@ const swimPatterns = [
 
 export class AutoMicrobe extends Microbe {
   currentPattern: number = 3;
-  swimTimer = new LJS.Timer(0); // swim every second
+  animTimer = new LJS.Timer(0); // swim every second
 
   constructor(pos) {
     super(pos);
   }
 
   update(): void {
-    if (this.swimTimer.elapsed()) {
+    if (this.animTimer.elapsed()) {
       const b = swimPatterns[this.currentPattern][this.currentBeat];
 
       if (b > 0) {
         this.angle += 45 * DEG2RAD;
         this.swim();
+        this.animTimer.set(1 / b);
+      } else {
+        this.idle();
+        this.animTimer.set(1 / 2);
       }
-
-      this.swimTimer.set(b > 0 ? 1 / b : 1);
     }
 
     if (this.beatTimer.elapsed()) {
@@ -43,7 +45,7 @@ export class AutoMicrobe extends Microbe {
       this.beatTimer.set(60 / bpm);
     }
 
-    // if (this.currentBeat === 4) {
+    // if (this.curresadntBeat === 4) {
     //   this.currentPattern = LJS.randInt(0, swimPatterns.length);
     // }
 

@@ -17,7 +17,7 @@ export class Microbe extends LJS.EngineObject {
 
   moveInput: LJS.Vector2 = vec2(0, 0);
   angle = 0;
-  animationName: keyof typeof this.animations = "idle";
+  currentAnim: keyof typeof this.animations = "idle";
 
   bubbleEmitter: LJS.ParticleEmitter;
 
@@ -46,7 +46,7 @@ export class Microbe extends LJS.EngineObject {
   }
 
   render(): void {
-    const anim = this.animations[this.animationName];
+    const anim = this.animations[this.currentAnim];
 
     anim.update();
     this.tileInfo = anim.frame;
@@ -73,9 +73,14 @@ export class Microbe extends LJS.EngineObject {
 
   playAnim(name: keyof typeof this.animations) {
     // prioritize swim animation
-    if (this.animationName === "swim" && !this.animations.swim.done()) return;
+    if (
+      name !== "swim" &&
+      this.currentAnim === "swim" &&
+      !this.animations.swim.done()
+    )
+      return;
 
-    this.animationName = name;
+    this.currentAnim = name;
     this.animations[name].play();
   }
 }
