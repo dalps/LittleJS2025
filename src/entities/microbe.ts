@@ -6,8 +6,13 @@ import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
 export class Microbe extends LJS.EngineObject {
-  animations: Record<"idle" | "swim" | "bump", Animation>;
   beat = new Beat(60, 4, 2);
+
+  animations = {
+    swim: new Animation("swim", 10, 1 / 30, 1),
+    idle: new Animation("idle", 5, 1 / 12, 0),
+    bump: new Animation("bump", 12, 1 / 30, 2),
+  };
 
   moveInput: LJS.Vector2 = vec2(0, 0);
   angle = 0;
@@ -18,18 +23,13 @@ export class Microbe extends LJS.EngineObject {
   constructor(pos: LJS.Vector2) {
     super(pos);
 
-    this.animations = {
-      swim: new Animation("swim", 10, 1 / 30, 1),
-      idle: new Animation("idle", 5, 1 / 12, 0),
-      bump: new Animation("bump", 12, 1 / 30, 2),
-    };
-
     this.size = vec2(1.5);
     this.drawSize = vec2(5);
     this.mass = 0.2;
     this.damping = 0.89;
     this.angleDamping = 0.89;
     this.restitution = 5;
+    this.color = LJS.randColor();
 
     this.bubbleEmitter = new LJS.ParticleEmitter(this.pos);
     this.addChild(this.bubbleEmitter);
@@ -62,12 +62,34 @@ export class Microbe extends LJS.EngineObject {
   update(): void {
     super.update();
 
-    const anim = this.animations[this.currentAnim];
+    this.beat.update();
+  }
+
+  render(): void {
+    const name = this.currentAnim;
+    const anim = this.animations[name];
 
     anim.update();
-    this.tileInfo = anim.frame;
+    this.tileInfo = anim.getFrame(spriteAtlas[name]);
+    const tummyTileInfo = anim.getFrame(spriteAtlas[`${name}_tummy`]);
 
-    this.beat.update();
+    LJS.drawTile(
+      this.pos,
+      this.drawSize,
+      this.tileInfo,
+      undefined,
+      this.angle,
+      this.mirror
+    );
+
+    LJS.drawTile(
+      this.pos,
+      this.drawSize,
+      tummyTileInfo,
+      this.color,
+      this.angle,
+      this.mirror
+    );
   }
 
   swim() {

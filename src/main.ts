@@ -14,7 +14,7 @@ let player: Microbe;
 
 let bubbles = [];
 let autoMicrobes = [];
-let globalBeat: Beat;
+export let globalBeat: Beat;
 
 export const bpm = 60;
 export const tileSize = vec2(100);
@@ -25,11 +25,13 @@ function gameInit() {
   // LJS.setCanvasPixelated(false);
 
   // init textures
+  ["swim", "idle", "bump"].forEach((animKey, idx) => {
+    spriteAtlas[animKey] = tile(vec2(0, idx), tileSize);
 
-  spriteAtlas["swim"] = tile(0, tileSize);
-  spriteAtlas["idle"] = tile(vec2(0, 1), tileSize); // tile(15, vec2(200,200));
-  spriteAtlas["bump"] = tile(vec2(0, 2), tileSize);
-  spriteAtlas["bubble"] = tile(0, tileSize, 1);
+    spriteAtlas[`${animKey}_tummy`] = tile(vec2(0, idx), tileSize, 1);
+  });
+
+  spriteAtlas["bubble"] = tile(0, tileSize, 2);
 
   const startPos = vec2(0.5, 0.5);
 
@@ -37,7 +39,7 @@ function gameInit() {
 
   player.idle();
 
-  globalBeat = new Beat(120, 4, 1);
+  globalBeat = new Beat(60, 4, 1);
 
   globalBeat.onbeat(([b]) => {
     sfx.tic.play(undefined, 0.5, b === 0 ? 2 : 1);
@@ -93,5 +95,5 @@ LJS.engineInit(
   gameUpdatePost,
   gameRender,
   gameRenderPost,
-  ["frames.png", "objects.png"]
+  ["frames.png", "frames_tummy.png", "objects.png"]
 );

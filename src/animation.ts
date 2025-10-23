@@ -3,10 +3,9 @@ import { spriteAtlas } from "./main";
 const { vec2, rgb, Timer } = LJS;
 
 export class Animation {
-  currentFrame = 0;
-  timer: LJS.Timer;
-  repeats = 0;
-  tileInfo: LJS.TileInfo;
+  private currentFrame = 0;
+  private timer: LJS.Timer;
+  private repeats = 0;
 
   constructor(
     public name: string,
@@ -15,7 +14,6 @@ export class Animation {
     public priority: number
   ) {
     this.timer = new Timer(delta);
-    this.tileInfo ||= spriteAtlas[this.name];
   }
 
   update() {
@@ -47,7 +45,10 @@ export class Animation {
     return this.currentFrame !== 0;
   }
 
-  get frame() {
-    return this.tileInfo.frame(this.currentFrame % this.duration);
+  /**
+   * Look up the tile for the current frame in the given texture.
+   */
+  getFrame(tileInfo: LJS.TileInfo) {
+    return tileInfo.frame(this.currentFrame % this.duration);
   }
 }
