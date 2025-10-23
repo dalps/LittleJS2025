@@ -21,10 +21,10 @@ export class Microbe extends LJS.EngineObject {
     this.animations = {
       swim: new Animation("swim", 10, 1 / 30, 1),
       idle: new Animation("idle", 5, 1 / 12, 0),
-      bump: new Animation("bump", 14, 1 / 30, 2),
+      bump: new Animation("bump", 12, 1 / 30, 2),
     };
 
-    this.size = vec2(2);
+    this.size = vec2(1.5);
     this.drawSize = vec2(5);
     this.mass = 0.2;
     this.damping = 0.89;
