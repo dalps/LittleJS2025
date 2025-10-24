@@ -21,6 +21,10 @@ export class Beat extends LJS.Timer {
     this.listeners.push(f);
   }
 
+  get count(): BeatCount {
+    return [this.beatCount, this.subCount];
+  }
+
   update() {
     if (this.elapsed()) {
       this.set(this.delta);

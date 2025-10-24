@@ -10,12 +10,20 @@ import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
-let player: Microbe;
+let player: Player;
 
 let bubbles = [];
 let autoMicrobes = [];
 export let globalBeat: Beat;
-
+let matrixParticles: LJS.ParticleEmitter;
+export const font = "Averia Sans Libre";
+export const spacingBeat = 2;
+export const metronomeY = 10;
+export const radiusBeat = 0.5;
+export const radiusSubBeat = 0.3;
+export const metronomeColor = LJS.rgb(1, 1, 0, 0.5);
+export let spacingSubBeat: number;
+export let metronomePos: LJS.Vector2;
 export const bpm = 60;
 export const tileSize = vec2(100);
 
@@ -43,10 +51,20 @@ function gameInit() {
   player.idle();
 
   globalBeat = new Beat(60, 4, 2);
+  spacingSubBeat = spacingBeat / (globalBeat.subs || 1);
+  metronomePos = vec2(
+    (spacingBeat * globalBeat.beats - spacingSubBeat) * 0.5,
+    metronomeY
+  );
 
   globalBeat.onbeat(([b, s]) => {
-    sfx.tic.play(undefined, 0.5, s === 0 ? 2 : 1);
+    sfx.tic.play(undefined, 0.5, s === 0 ? (b === 0 ? 2 : 1.5) : 1);
   });
+
+  // prettier-ignore
+  matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
+
+  player.addChild(matrixParticles);
 
   for (let i = 0; i < 100; i++) {
     const pos = LJS.randInCircle(100, 0);
@@ -83,32 +101,12 @@ function gameRender() {
   );
 }
 
-const FONT = "Averia Sans Libre";
 ///////////////////////////////////////////////////////////////////////////////
 function gameRenderPost() {
   // called after objects are rendered
   // draw effects or hud that appear above all objects
 
-  const rBeat = 0.5;
-  const rSub = 0.3;
-  const mBeat = 3;
-  const mSub = mBeat / globalBeat.subs;
-  const lineWidth = 0.1;
-  const color = LJS.rgb(1, 1, 0, 0.5);
-
-  // LJS.drawCircle(
-  //   LJS.cameraPos.add(vec2(globalBeat.beatCount * mBeat, -10)),
-  //   rBeat,
-  //   LJS.YELLOW
-  // );
-
-  // LJS.drawCircle(
-  //   LJS.cameraPos
-  //     .add(vec2(globalBeat.beatCount * mBeat, -10))
-  //     .add(vec2(globalBeat.subCount * mSub, 0)),
-  //   rSub,
-  //   LJS.YELLOW
-  // );
+  const startPos = LJS.cameraPos.subtract(metronomePos);
 
   LJS.drawText(
     "The mitochondrion is the partyhouse of the cell",
@@ -118,13 +116,13 @@ function gameRenderPost() {
     undefined,
     undefined,
     "center",
-    FONT
+    font
   );
 
   for (
-    let i = 0, pi = LJS.cameraPos.subtract(vec2(0, 10));
+    let i = 0, pi = startPos;
     i < globalBeat.beats;
-    i++, pi = pi.add(vec2(mBeat, 0))
+    i++, pi = pi.add(vec2(spacingBeat, 0))
   ) {
     // LJS.drawCircle(pi, rBeat, color);
     LJS.drawText(
@@ -137,17 +135,31 @@ function gameRenderPost() {
       0.1,
       LJS.WHITE,
       "center",
-      FONT
+      font
     );
 
     for (
-      let j = 0, pj = pi.add(vec2(mSub, 0));
+      let j = 0, pj = pi.add(vec2(spacingSubBeat, 0));
       j < globalBeat.subs - 1;
-      j++, pj = pj.add(vec2(mSub, 0))
+      j++, pj = pj.add(vec2(spacingSubBeat, 0))
     ) {
-      LJS.drawCircle(pj, rSub, i === globalBeat.beatCount && j + 1 === globalBeat.subCount ? LJS.YELLOW : color);
+      LJS.drawCircle(
+        pj,
+        radiusSubBeat,
+        i === globalBeat.beatCount && j + 1 === globalBeat.subCount
+          ? LJS.YELLOW
+          : metronomeColor
+      );
     }
   }
+
+  // LJS.drawCircle(
+  //   LJS.cameraPos
+  //     .add(vec2(globalBeat.beatCount * mBeat, -10))
+  //     .add(vec2(globalBeat.subCount * mSub, 0)),
+  //   rSub,
+  //   LJS.YELLOW
+  // );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

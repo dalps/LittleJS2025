@@ -2,6 +2,7 @@ import * as LJS from "littlejsengine";
 import { DEG2RAD } from "../mathUtils";
 import { Microbe } from "./microbe";
 import type { BeatCount } from "../beat";
+import { globalBeat } from "../main";
 const { vec2, rgb } = LJS;
 
 // prettier-ignore
@@ -32,6 +33,7 @@ const swimPatterns = [
   ],
 ];
 
+/** A microbe that swims automatically to a beat */
 export class AutoMicrobe extends Microbe {
   pattern: number = LJS.randInt(0, swimPatterns.length);
 
