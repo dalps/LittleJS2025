@@ -23,8 +23,6 @@ export class Beat extends LJS.Timer {
 
   update() {
     if (this.elapsed()) {
-      this.listeners.forEach((l) => l([this.beatCount, this.subCount]));
-
       this.set(this.delta);
 
       this.subCount++;
@@ -35,6 +33,13 @@ export class Beat extends LJS.Timer {
       }
 
       this.subCount %= this.subs;
+
+      this.listeners.forEach((f) => f([this.beatCount, this.subCount]));
     }
+  }
+
+  sync(that: Beat) {
+    this.beatCount = that.beatCount;
+    // this.subCount = that.subCount = 0;
   }
 }
