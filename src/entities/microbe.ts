@@ -1,8 +1,9 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
 import { Beat, type BeatCount } from "../beat";
-import { spriteAtlas } from "../main";
+import { spriteAtlas, tileSize } from "../main";
 import { sfx } from "../sfx";
+import { particle } from "../mathUtils";
 const { vec2, rgb } = LJS;
 
 export class Microbe extends LJS.EngineObject {
@@ -50,6 +51,11 @@ export class Microbe extends LJS.EngineObject {
     if (!(o instanceof Microbe)) return true;
 
     sfx.boo.play(this.pos);
+    particle(this.pos, {
+      tileInfo: LJS.tile(5, tileSize, 2),
+      lifeTime: 0.2,
+      sizeEnd: 3,
+    });
     this.playAnim("bump");
 
     return true;
