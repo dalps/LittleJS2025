@@ -6,6 +6,7 @@ export class Animation {
   private currentFrame = 0;
   private timer: LJS.Timer;
   private repeats = 0;
+  private playing = false;
 
   constructor(
     public name: string,
@@ -24,6 +25,7 @@ export class Animation {
 
       if (this.currentFrame === this.duration) {
         this.repeats++;
+        this.playing = false;
         this.currentFrame = 0;
       }
 
@@ -34,6 +36,7 @@ export class Animation {
   play() {
     this.currentFrame = 0;
     this.repeats = 0;
+    this.playing = true;
     this.timer.set(this.delta);
   }
 
@@ -42,7 +45,7 @@ export class Animation {
   }
 
   isPlaying() {
-    return this.currentFrame !== 0;
+    return this.playing;
   }
 
   /**

@@ -107,18 +107,23 @@ export class Microbe extends LJS.EngineObject {
   }
 
   idle() {
-    this.playAnim("idle");
     this.bubbleEmitter.emitRate = 0;
+    return this.playAnim("idle");
   }
 
+  /** Play an animation by its name.
+   * Fails if an animation with higher priority is already playing,
+   * in which case this function returns false. */
   private playAnim(desiredAnim: keyof typeof this.animations) {
-    // exit early if higher priority animation is playing
     const current = this.animations[this.currentAnim];
     const desired = this.animations[desiredAnim];
 
-    if (current.priority > desired.priority && current.isPlaying()) return;
+    if (current.priority > desired.priority && current.isPlaying())
+      return false;
 
     this.currentAnim = desiredAnim;
     desired.play();
+
+    return true;
   }
 }
