@@ -1,13 +1,14 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
 import { Beat, type BeatCount } from "../beat";
-import { spriteAtlas, tileSize } from "../main";
+import { angleDelta, spriteAtlas, tileSize } from "../main";
 import { sfx } from "../sfx";
-import { particle } from "../mathUtils";
+import { DEG2RAD, particle } from "../mathUtils";
 const { vec2, rgb } = LJS;
 
 export class Microbe extends LJS.EngineObject {
   beat = new Beat(60, 4, 2);
+  center: LJS.Vector2;
 
   animations = {
     swim: new Animation("swim", 10, 1 / 30, 1),
@@ -21,15 +22,16 @@ export class Microbe extends LJS.EngineObject {
 
   bubbleEmitter: LJS.ParticleEmitter;
 
-  constructor(pos: LJS.Vector2) {
+  constructor(public phi: number, public dist: number) {
+    const pos = vec2(1, 0).setAngle(phi, dist);
     super(pos);
 
     this.size = vec2(1.5);
     this.drawSize = vec2(5);
-    this.mass = 0.2;
-    this.damping = 0.89;
-    this.angleDamping = 0.89;
-    this.restitution = 5;
+    this.mass = 1;
+    this.damping = 0.8;
+    // this.angleDamping = 0.89;
+    // this.restitution = 2;
     this.color = LJS.randColor();
 
     this.bubbleEmitter = new LJS.ParticleEmitter(this.pos);
@@ -50,15 +52,9 @@ export class Microbe extends LJS.EngineObject {
   collideWithObject(o: LJS.EngineObject): boolean {
     if (!(o instanceof Microbe)) return true;
 
-    sfx.boo.play(this.pos);
-    particle(this.pos, {
-      tileInfo: LJS.tile(5, tileSize, 2),
-      lifeTime: 0.2,
-      sizeEnd: 3,
-    });
-    this.playAnim("bump");
+    this.bump(o);
 
-    return true;
+    return false;
   }
 
   onbeat(_b: BeatCount) {
@@ -67,6 +63,13 @@ export class Microbe extends LJS.EngineObject {
 
   update(): void {
     super.update();
+
+    const speed = this.velocity.length() * Math.sign(this.velocity.x);
+    this.phi += speed * 0.1;
+    this.dist += speed * 0.01;
+
+    this.angle = this.phi + 90 * DEG2RAD;
+    this.pos.setAngle(this.phi, this.dist);
 
     this.beat.update();
   }
@@ -98,7 +101,22 @@ export class Microbe extends LJS.EngineObject {
     );
   }
 
+  bump(other: Microbe) {
+    this.playAnim("bump");
+
+    sfx.boo.play(this.pos);
+
+    particle(this.pos, {
+      tileInfo: LJS.tile(5, tileSize, 2),
+      lifeTime: 0.2,
+      sizeEnd: 3,
+    });
+
+    this.applyForce(vec2(other.phi > this.phi ? -1 : 1, 0));
+  }
+
   swim() {
+    // can't swim during recoil
     if (this.animations.bump.isPlaying()) return;
 
     this.playAnim("swim");
@@ -108,7 +126,7 @@ export class Microbe extends LJS.EngineObject {
 
     sfx.bubble3.play(this.pos, 0.2);
 
-    this.applyForce(vec2(0, 0.1).rotate(this.angle));
+    this.applyForce(vec2(1, 0));
     this.bubbleEmitter.emitRate = 10;
   }
 

@@ -20,7 +20,7 @@ export class BeatRipple extends LJS.Particle {
       .subtract(metronomePos)
       .add(vec2(spacingBeat * globalBeat.beatCount + timing, 0));
 
-    // https://www.desmos.com/calculator/ln6rtzn9kb
+    
     const acc = accuracy(timing);
 
     const lifeTime = 0.5;

@@ -7,6 +7,7 @@ import { Player } from "./entities/player";
 import { AutoMicrobe } from "./entities/microbe_auto";
 import { Beat } from "./beat";
 import { sfx } from "./sfx";
+import { DEG2RAD } from "./mathUtils";
 const { vec2, rgb, tile, time } = LJS;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
@@ -26,6 +27,7 @@ export let spacingSubBeat: number;
 export let metronomePos: LJS.Vector2;
 export const bpm = 60;
 export const tileSize = vec2(100);
+export const angleDelta = 35 * DEG2RAD;
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
@@ -46,7 +48,11 @@ function gameInit() {
 
   const startPos = vec2(0.5, 0.5);
 
-  player = new Player(startPos);
+  const startDist = 5;
+
+  autoMicrobes.push(new AutoMicrobe(angleDelta, startDist));
+  player = new Player(angleDelta * 2, startDist);
+  autoMicrobes.push(new AutoMicrobe(angleDelta * 3, startDist));
 
   player.idle();
 
@@ -65,11 +71,6 @@ function gameInit() {
   matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
 
   player.addChild(matrixParticles);
-
-  for (let i = 0; i < 100; i++) {
-    const pos = LJS.randInCircle(100, 0);
-    autoMicrobes.push(new AutoMicrobe(pos));
-  }
 
   for (let i = 0; i < 100; i++) {
     const size = vec2(1).scale(LJS.rand(1, 5));

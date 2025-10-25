@@ -9,13 +9,15 @@ const { vec2, rgb } = LJS;
 export class Player extends Microbe {
   timing: number = 0;
 
-  constructor(pos: LJS.Vector2) {
-    super(pos);
+  constructor(phi, dist) {
+    super(phi, dist);
   }
 
   update(): void {
     // this.moveInput =
     //   LJS.mouseIsDown(0) || LJS.keyIsDown("Space") ? vec2(1, 0) : vec2(0, 0);
+
+    // console.log(this.phi, this.dist);
 
     if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
       this.timing = globalBeat.getPercent(); // this is the distance from the current beat / subbeat

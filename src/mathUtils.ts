@@ -11,6 +11,7 @@ export const rgba = (r: number, g: number, b: number, a: number | undefined) =>
 export const setAlpha = (c: LJS.Color, a: number) =>
   c.copy().set(c.r, c.g, c.b, a);
 
+// https://www.desmos.com/calculator/ln6rtzn9kb
 export const accuracy = (t: number) => Math.sin(t * Math.PI) ** 0.5;
 
 export const particle = (
