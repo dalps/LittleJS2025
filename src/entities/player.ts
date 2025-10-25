@@ -52,14 +52,11 @@ export class Player extends Microbe {
 
   constructor(phi, dist) {
     super(phi, dist);
-  }
 
-  onbeat([beat, sub, bar]: BeatCount) {
-    const note = metronomePatterns
-      .at(bar > 0 ? 1 : 0)
-      ?.at(beat)
-      ?.at(sub);
-    note && this.idle();
+    this.beat.onpattern(metronomePatterns, (note) => {
+      console.log(note);
+      note && this.idle();
+    });
   }
 
   bump(other: Microbe): void {

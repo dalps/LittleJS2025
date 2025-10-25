@@ -2,7 +2,15 @@ import * as LJS from "littlejsengine";
 const { vec2, rgb } = LJS;
 
 export type BeatCount = [number, number, number];
-type BeatListener = ([beat, sub]: BeatCount) => void;
+export type BeatListener = ([beat, sub]: BeatCount) => void;
+
+export type Pattern<T> = (T | undefined)[][][]; // bar, beat, sub-beat
+export type PatternListener<T> = (note: T | undefined) => void;
+export enum BarSequencing {
+  Loop,
+  HoldLast,
+  End,
+}
 
 export class Beat extends LJS.Timer {
   delta: number;
@@ -20,6 +28,31 @@ export class Beat extends LJS.Timer {
 
   onbeat(f: BeatListener) {
     this.listeners.push(f);
+  }
+
+  onpattern<T>(
+    ptn: Pattern<T>,
+    listener: PatternListener<T>,
+    sequencing = BarSequencing.HoldLast
+  ) {
+    let nBars = ptn.length;
+    let barPicker: (b: number) => number;
+
+    switch (sequencing) {
+      case BarSequencing.Loop:
+        barPicker = (bar) => bar % nBars;
+        break;
+      case BarSequencing.HoldLast:
+        barPicker = (bar) => Math.min(bar, nBars - 1);
+        break;
+      case BarSequencing.End:
+        barPicker = (bar) => bar;
+        break;
+    }
+
+    this.listeners.push(([beat, sub, bar]) =>
+      listener(ptn.at(barPicker(bar))?.at(beat)?.at(sub))
+    );
   }
 
   get count(): BeatCount {

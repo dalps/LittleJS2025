@@ -79,14 +79,9 @@ function gameInit() {
     metronomeY
   );
 
-  globalBeat.onbeat(([beat, sub, bar]) => {
-    const note = metronomePatterns
-      .at(bar > 0 ? 1 : 0)
-      ?.at(beat)
-      ?.at(sub);
-
-    sfx.tic.play(undefined, note ? 0.5 : 0, note);
-  });
+  globalBeat.onpattern(metronomePatterns, (note) =>
+    sfx.tic.play(undefined, note ? 0.5 : 0, note)
+  );
 
   // prettier-ignore
   matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
