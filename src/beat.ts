@@ -1,11 +1,12 @@
 import * as LJS from "littlejsengine";
 const { vec2, rgb } = LJS;
 
-export type BeatCount = [number, number];
+export type BeatCount = [number, number, number];
 type BeatListener = ([beat, sub]: BeatCount) => void;
 
 export class Beat extends LJS.Timer {
   delta: number;
+  barCount = 0;
   subCount = 0;
   beatCount = 0;
   listeners: BeatListener[] = [];
@@ -22,7 +23,7 @@ export class Beat extends LJS.Timer {
   }
 
   get count(): BeatCount {
-    return [this.beatCount, this.subCount];
+    return [this.beatCount, this.subCount, this.barCount];
   }
 
   update() {
@@ -33,12 +34,15 @@ export class Beat extends LJS.Timer {
 
       if (this.subCount === this.subs) {
         this.beatCount++;
+
+        if (this.beatCount === this.beats) this.barCount++;
+
         this.beatCount %= this.beats;
       }
 
       this.subCount %= this.subs;
 
-      this.listeners.forEach((f) => f([this.beatCount, this.subCount]));
+      this.listeners.forEach((f) => f(this.count));
     }
   }
 

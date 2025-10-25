@@ -57,7 +57,7 @@ export class Microbe extends LJS.EngineObject {
     return false;
   }
 
-  onbeat(_b: BeatCount) {
+  onbeat(_: BeatCount) {
     this.idle();
   }
 

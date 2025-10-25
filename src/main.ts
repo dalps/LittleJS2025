@@ -29,6 +29,22 @@ export const bpm = 60;
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
 
+// prettier-ignore
+export const metronomePatterns = [
+  [
+    [2,    ],
+    [2,    ],
+    [2,   1],
+    [2,   1],
+  ],
+  [
+    [2  , 1],
+    [1.5, 1],
+    [1.5, 1],
+    [1.5, 1],
+  ],
+];
+
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
   // LJS.setCanvasFixedSize(vec2(1000));
@@ -63,8 +79,13 @@ function gameInit() {
     metronomeY
   );
 
-  globalBeat.onbeat(([b, s]) => {
-    sfx.tic.play(undefined, 0.5, s === 0 ? (b === 0 ? 2 : 1.5) : 1);
+  globalBeat.onbeat(([beat, sub, bar]) => {
+    const note = metronomePatterns
+      .at(bar > 0 ? 1 : 0)
+      ?.at(beat)
+      ?.at(sub);
+
+    sfx.tic.play(undefined, note ? 0.5 : 0, note);
   });
 
   // prettier-ignore

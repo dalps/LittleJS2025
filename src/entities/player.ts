@@ -1,8 +1,9 @@
 import * as LJS from "littlejsengine";
 import { Microbe } from "./microbe";
-import { globalBeat, tileSize } from "../main";
+import { globalBeat, metronomePatterns, tileSize } from "../main";
 import { accuracy, DEG2RAD, particle, setAlpha } from "../mathUtils";
 import { BeatRipple } from "./ripple";
+import type { BeatCount } from "../beat";
 
 const { vec2, rgb } = LJS;
 
@@ -51,6 +52,14 @@ export class Player extends Microbe {
 
   constructor(phi, dist) {
     super(phi, dist);
+  }
+
+  onbeat([beat, sub, bar]: BeatCount) {
+    const note = metronomePatterns
+      .at(bar > 0 ? 1 : 0)
+      ?.at(beat)
+      ?.at(sub);
+    note && this.idle();
   }
 
   bump(other: Microbe): void {
