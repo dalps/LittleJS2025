@@ -13,7 +13,7 @@ export class Microbe extends LJS.EngineObject {
   animations = {
     swim: new Animation("swim", 10, 1 / 30, 1),
     idle: new Animation("idle", 5, 1 / 12, 0),
-    bump: new Animation("bump", 12, 1 / 30, 2),
+    bump: new Animation("bump", 12, 1 / 30, 1),
   };
 
   moveInput: LJS.Vector2 = vec2(0, 0);
@@ -66,7 +66,7 @@ export class Microbe extends LJS.EngineObject {
 
     const speed = this.velocity.length() * Math.sign(this.velocity.x);
     this.phi += speed * 0.1;
-    this.dist += speed * 0.01;
+    // this.dist += speed * 0.01;
 
     this.angle = this.phi + 90 * DEG2RAD;
     this.pos.setAngle(this.phi, this.dist);
@@ -111,13 +111,11 @@ export class Microbe extends LJS.EngineObject {
       lifeTime: 0.2,
       sizeEnd: 3,
     });
-
-    this.applyForce(vec2(other.phi > this.phi ? -1 : 1, 0));
   }
 
   swim() {
     // can't swim during recoil
-    if (this.animations.bump.isPlaying()) return;
+    // if (this.animations.bump.isPlaying()) return;
 
     this.playAnim("swim");
 
@@ -125,7 +123,8 @@ export class Microbe extends LJS.EngineObject {
       LJS.cameraPos.subtract(this.pos).length() / LJS.cameraPos.length();
 
     sfx.bubble3.play(this.pos, 0.2);
-
+    
+    // move forward
     this.applyForce(vec2(1, 0));
     this.bubbleEmitter.emitRate = 10;
   }

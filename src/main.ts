@@ -109,16 +109,16 @@ function gameRenderPost() {
 
   const startPos = LJS.cameraPos.subtract(metronomePos);
 
-  LJS.drawText(
-    "The mitochondrion is the partyhouse of the cell",
-    vec2(0.5, 0.5),
-    1,
-    LJS.WHITE,
-    undefined,
-    undefined,
-    "center",
-    font
-  );
+  // LJS.drawText(
+  //   "The mitochondrion is the partyhouse of the cell",
+  //   vec2(0.5, 0.5),
+  //   1,
+  //   LJS.WHITE,
+  //   undefined,
+  //   undefined,
+  //   "center",
+  //   font
+  // );
 
   for (
     let i = 0, pi = startPos;

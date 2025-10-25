@@ -53,6 +53,12 @@ export class Player extends Microbe {
     super(phi, dist);
   }
 
+  bump(other: Microbe): void {
+    super.bump(other);
+
+    this.applyForce(vec2(other.phi > this.phi ? -0.5 : 1, 0));
+  }
+
   update(): void {
     // this.moveInput =
     //   LJS.mouseIsDown(0) || LJS.keyIsDown("Space") ? vec2(1, 0) : vec2(0, 0);
