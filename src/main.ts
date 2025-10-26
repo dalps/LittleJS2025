@@ -66,6 +66,8 @@ function gameInit() {
 
   const startDist = 5;
 
+  LJS.setTouchInputEnable(true);
+  
   autoMicrobes.push(new AutoMicrobe(angleDelta, startDist));
   player = new Player(angleDelta * 2, startDist);
   autoMicrobes.push(new AutoMicrobe(angleDelta * 3, startDist));

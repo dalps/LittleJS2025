@@ -1,49 +1,61 @@
 import * as LJS from "littlejsengine";
-import { Microbe } from "./microbe";
 import { globalBeat, metronomePatterns, tileSize } from "../main";
-import { accuracy, DEG2RAD, particle, setAlpha } from "../mathUtils";
+import { accuracy, MyParticle, setAlpha } from "../mathUtils";
+import { Microbe } from "./microbe";
 import { BeatRipple } from "./ripple";
-import type { BeatCount } from "../beat";
 
 const { vec2, rgb } = LJS;
 
 export const perfectThreshold = 0.1;
 export const goodThreshold = 0.6;
 
+export class FireworkParticle extends LJS.Particle {}
 export const firework = (
   pos: LJS.Vector2,
   n = 5,
   color?: LJS.Color,
   size = 0.7,
-  speed = 1
+  speed = 1,
+  spin = 0
 ) => {
-  const r1 = 1;
-  const r2 = 0.25;
+  const lifeTime = 1;
+  const r1 = 0.5;
+  const r2 = 0.5;
+  const size1 = 0.35;
+  const size2 = 0.85;
+  const mkSizeFunc = (maxSize: number) => (t: number) =>
+    Math.sin(t * Math.PI) * maxSize;
+  const tileInfo = LJS.tile(vec2(13, 0), tileSize, 2);
 
   for (let i = 0, phi = 0; i < n; i++, phi += (Math.PI * 2) / n) {
-    const c = color ?? LJS.randColor();
+    const colorStart =
+      color ?? LJS.randColor().add(new LJS.Color(0.1, 0.1, 0.1));
 
-    const p1 = particle(pos.add(vec2().setAngle(phi, r1)), {
-      tileInfo: LJS.tile(vec2(13, 0), tileSize, 2),
-      colorStart: c,
-      colorEnd: setAlpha(c, 0),
-      sizeStart: size / 2,
-      sizeEnd: size / 2,
+    new MyParticle(pos.add(vec2(1, 0).setAngle(phi, r1)), {
+      tileInfo,
+      lifeTime,
+      colorStart,
+      colorEnd: colorStart,
+      sizeStart: size1,
+      sizeEnd: size1,
+      velocity: vec2(1, 0).setAngle(phi, speed * 0.5),
+      angleVelocity: speed * 2,
+      spin,
+      sizeFunc: mkSizeFunc(size1),
     });
 
-    const p2 = particle(pos.add(vec2().setAngle(phi, r2)), {
-      tileInfo: LJS.tile(vec2(13, 0), tileSize, 2),
-      colorStart: c,
-      colorEnd: setAlpha(c, 0),
-      sizeStart: size,
-      sizeEnd: size,
+    new MyParticle(pos.add(vec2(1, 0).setAngle(phi, r2)), {
+      tileInfo,
+      lifeTime,
+      colorStart,
+      colorEnd: colorStart,
+      sizeStart: size2,
+      sizeEnd: size2,
+      velocity: vec2(1, 0).setAngle(phi, speed * 2),
+      angleVelocity: speed * 2,
+      spin,
+      sizeFunc: mkSizeFunc(size2),
     });
-
-    p1.velocity = vec2(1, 0).setAngle(phi, speed * 0.1);
-    p2.velocity = vec2(1, 0).setAngle(phi, speed);
-
-    p1.angleVelocity = speed;
-    p2.angleVelocity = speed;
   }
 };
 
@@ -54,7 +66,6 @@ export class Player extends Microbe {
     super(phi, dist);
 
     this.beat.onpattern(metronomePatterns, (note) => {
-      console.log(note);
       note && this.idle();
     });
   }
@@ -77,14 +88,15 @@ export class Player extends Microbe {
 
       new BeatRipple(this.timing, globalBeat.count);
 
+      const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
       const acc = accuracy(this.timing);
-      const nStars = Math.round(LJS.lerp(3, 15, 1 - acc));
+      const nStars = Math.round(LJS.lerp(7, 15, 1 - acc));
       const speed = LJS.lerp(0.01, 0.1, 1 - acc);
 
       if (acc < perfectThreshold) {
-        firework(this.pos, nStars, undefined, undefined, speed);
+        firework(pos, nStars, undefined, undefined, speed, 0.05);
       } else if (acc < goodThreshold) {
-        firework(this.pos, nStars, LJS.YELLOW, undefined, speed);
+        firework(pos, nStars, LJS.YELLOW, undefined, speed);
       }
     }
 
