@@ -62,14 +62,18 @@ export class Microbe extends LJS.EngineObject {
   update(): void {
     super.update();
 
-    const speed = this.velocity.length() * Math.sign(this.velocity.x);
+    this.beat.update();
+  }
+
+  updatePhysics(): void {
+    super.updatePhysics(); // let the engine update the velocity
+
+    const speed = this.velocity.x;
     this.phi += speed * 0.1;
-    // this.dist += speed * 0.01;
+    this.dist += speed * 0.01;
 
     this.angle = this.phi + 90 * DEG2RAD;
     this.pos.setAngle(this.phi, this.dist);
-
-    this.beat.update();
   }
 
   render(): void {
