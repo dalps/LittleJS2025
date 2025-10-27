@@ -6,12 +6,17 @@ import { BeatRipple } from "./ripple";
 
 const { vec2, rgb } = LJS;
 
-export const perfectThreshold = 0.1;
-export const goodThreshold = 0.6;
+export const perfectThreshold = 0.5;
+export const goodThreshold = 1;
 
-export class FireworkParticle extends LJS.Particle {}
+function randColor() {
+  const opts = [LJS.YELLOW, LJS.RED, LJS.CYAN, LJS.PURPLE];
+  return opts.at(LJS.randInt(0, opts.length - 1));
+}
+
 export const firework = (
   pos: LJS.Vector2,
+  acc = 0,
   n = 5,
   color?: LJS.Color,
   size = 0.7,
@@ -19,10 +24,10 @@ export const firework = (
   spin = 0
 ) => {
   const lifeTime = 1;
-  const r1 = 0.5;
-  const r2 = 0.5;
+  const r1 = 0.25;
+  const r2 = 0.25;
   const size1 = 0.35;
-  const size2 = 0.85;
+  const size2 = LJS.lerp(0.5, 1, 1 - acc);
   const mkSizeFunc = (maxSize: number) => (t: number) =>
     Math.sin(t * Math.PI) * maxSize;
   const tileInfo = LJS.tile(vec2(13, 0), tileSize, 2);
@@ -42,6 +47,8 @@ export const firework = (
       angleVelocity: speed * 2,
       spin,
       sizeFunc: mkSizeFunc(size1),
+      additive: true,
+      trailScale: 1,
     });
 
     new MyParticle(pos.add(vec2(1, 0).setAngle(phi, r2)), {
@@ -55,6 +62,8 @@ export const firework = (
       angleVelocity: speed * 2,
       spin,
       sizeFunc: mkSizeFunc(size2),
+      additive: true,
+      trailScale: 1,
     });
   }
 };
@@ -90,13 +99,12 @@ export class Player extends Microbe {
 
       const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
       const acc = accuracy(this.timing);
-      const nStars = Math.round(LJS.lerp(7, 15, 1 - acc));
-      const speed = LJS.lerp(0.01, 0.1, 1 - acc);
+      const speed = LJS.lerp(0.005, 0.05, 1 - acc);
 
       if (acc < perfectThreshold) {
-        firework(pos, nStars, undefined, undefined, speed, 0.05);
+        firework(pos, acc, 10, undefined, undefined, speed, 0.05);
       } else if (acc < goodThreshold) {
-        firework(pos, nStars, LJS.YELLOW, undefined, speed);
+        firework(pos, acc, 8, LJS.YELLOW, undefined, speed);
       }
     }
 

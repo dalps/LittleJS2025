@@ -16,6 +16,14 @@ export const accuracy = (t: number) => Math.sin(t * Math.PI) ** 0.5;
 
 export class MyParticle extends LJS.Particle {
   spin: number;
+  trailRate: number;
+  trailTimer: LJS.Timer;
+  trail: {
+    pos: LJS.Vector2;
+    size: LJS.Vector2;
+    angle: number;
+    color: LJS.Color;
+  }[] = [];
   sizeFunc: (t: number) => number;
 
   constructor(
@@ -48,6 +56,7 @@ export class MyParticle extends LJS.Particle {
       angleVelocity = 0,
       spin = 0,
       sizeFunc = (t: number) => t,
+      trailRate = 1 / 3,
     } = {}
   ) {
     super(
@@ -71,10 +80,28 @@ export class MyParticle extends LJS.Particle {
     this.angleVelocity = angleVelocity;
     this.spin = spin;
     this.sizeFunc = sizeFunc;
+
+    this.trailRate = trailRate;
+
+    if (trailRate) this.trailTimer = new LJS.Timer(this.trailRate);
   }
 
   update(): void {
     super.update();
+
+    if (this.trailRate && this.trailTimer.elapsed()) {
+      const trailColor = this.color.copy();
+      trailColor.a = 0.5;
+
+      this.trail.push({
+        pos: this.pos.copy(),
+        angle: this.angle,
+        size: this.size.copy(),
+        color: trailColor,
+      });
+
+      this.trailTimer.set(this.trailRate);
+    }
 
     if (this.spin) this.velocity = this.velocity.rotate(this.spin);
   }
@@ -86,7 +113,7 @@ export class MyParticle extends LJS.Particle {
         ? LJS.min((LJS.time - this.spawnTime) / this.lifeTime, 1)
         : 1;
     const radius = this.sizeFunc(t); // p2 * this.sizeStart + p1 * this.sizeEnd;
-    const size = vec2(radius);
+    this.size = vec2(radius);
     this.color.lerp(this.colorEnd, t);
 
     // fade alpha
@@ -98,33 +125,20 @@ export class MyParticle extends LJS.Particle {
     this.additive && LJS.setBlendMode(true);
 
     // update the position and angle for drawing
-    let pos = this.pos,
-      angle = this.angle;
-    if (this.localSpaceEmitter) {
-      // in local space of emitter
-      const a = this.localSpaceEmitter.angle;
-      const c = Math.cos(a),
-        s = Math.sin(a);
-      pos = this.localSpaceEmitter.pos.add(
-        vec2(pos.x * c - pos.y * s, pos.x * s + pos.y * c)
-      );
-      angle += this.localSpaceEmitter.angle;
-    }
-    if (this.trailScale) {
-      // trail style particles
-      const direction = this.localSpaceEmitter
-        ? this.velocity.rotate(-this.localSpaceEmitter.angle)
-        : this.velocity;
-      const speed = direction.length();
-      if (speed) {
-        // stretch in direction of motion
-        const trailLength = speed * this.trailScale;
-        size.y = Math.max(size.x, trailLength);
-        angle = Math.atan2(direction.x, direction.y);
-        LJS.drawTile(pos, size, this.tileInfo, this.color, angle, this.mirror);
-      }
-    } else
-      LJS.drawTile(pos, size, this.tileInfo, this.color, angle, this.mirror);
+    this.trail.forEach(({ pos, angle, size, color }) => {
+      color.a *= 0.98;
+      LJS.drawTile(pos, size, this.tileInfo, color, angle, this.mirror);
+    });
+
+    LJS.drawTile(
+      this.pos,
+      this.size,
+      this.tileInfo,
+      this.color,
+      this.angle,
+      this.mirror
+    );
+
     this.additive && LJS.setBlendMode();
   }
 }
