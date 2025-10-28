@@ -7,28 +7,36 @@ import { AutoMicrobe } from "./entities/microbe_auto";
 import { Player } from "./entities/player";
 import { DEG2RAD } from "./mathUtils";
 import { Metronome } from "./metronome";
-import { createTitleUI, titleMenu } from "./ui";
+import { createTitleUI } from "./ui";
 const { vec2, rgb, tile, time } = LJS;
 
-export const spriteAtlas: Record<string, LJS.TileInfo> = {};
-let player: Player;
-
-let bubbles = [];
-let autoMicrobes = [];
+enum GameState {
+  Loading,
+  AwaitClick,
+  Title,
+}
 
 export let globalBeat: Beat;
 export let metronome: Metronome;
+export let titleSong: LJS.SoundWave;
+export let musicInstance: LJS.SoundInstance;
+export let gameState: GameState = GameState.Loading;
 
-let matrixParticles: LJS.ParticleEmitter;
+export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
+export let center: LJS.Vector2;
 
-///////////////////////////////////////////////////////////////////////////////
-function gameInit() {
-  // LJS.setCanvasFixedSize(vec2(1000));
-  // LJS.setCanvasPixelated(false);
+let matrixParticles: LJS.ParticleEmitter;
+let musicVolume = 1;
+let musicLoaded = false;
+let percentLoaded = 0;
+let player: Player;
+let bubbles = [];
+let autoMicrobes = [];
 
+function loadAssets() {
   // init textures
   ["swim", "idle", "bump"].forEach((animKey, idx) => {
     spriteAtlas[animKey] = tile(vec2(0, idx), tileSize);
@@ -37,18 +45,43 @@ function gameInit() {
   });
 
   spriteAtlas["bubble"] = tile(0, tileSize, 2);
+  titleSong = new LJS.SoundWave("/songs/paarynas-allrite.mp3");
 
+  center = LJS.mainCanvasSize.scale(0.5);
+}
+
+// After loading finishes, await the user's click. This is essential to play
+// music in the title screen
+function awaitClick() {
+  gameState = GameState.AwaitClick;
+
+  const clickToPlay = new LJS.UIButton(
+    LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
+    vec2(1000, 90),
+    "Click to start"
+  );
+  clickToPlay.textColor = LJS.WHITE;
+
+  clickToPlay.onClick = () => {
+    clickToPlay.destroy();
+    titleScreen();
+  };
+}
+
+function titleScreen() {
+  gameState = GameState.Title;
   createTitleUI();
 
-  const startDist = 5;
+  globalBeat = new Beat(128, 4, 1);
 
-  globalBeat = new Beat(60, 4, 2);
+  musicInstance = titleSong.playMusic(musicVolume);
+
   const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.1));
-
   metronome = new Metronome(metronomePos, globalBeat);
 
   LJS.setTouchInputEnable(true);
 
+  const startDist = 5;
   autoMicrobes.push(new AutoMicrobe(angleDelta, startDist));
   player = new AutoMicrobe(angleDelta * 2, startDist);
   autoMicrobes.push(player);
@@ -68,8 +101,32 @@ function gameInit() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+function gameInit() {
+  new LJS.UISystemPlugin();
+
+  LJS.setFontDefault(font);
+  LJS.uiSystem.defaultFont = font;
+
+  loadAssets();
+
+  // new LJS.UIText(
+  //   LJS.mainCanvasSize.scale(0.5),
+  //   vec2(1000, 50),
+  //   "Click to start"
+  // );
+}
+
+///////////////////////////////////////////////////////////////////////////////
 function gameUpdate() {
-  LJS.setCameraPos(player.pos);
+  switch (gameState) {
+    case GameState.Loading:
+      if (titleSong.isLoaded()) awaitClick();
+      break;
+    case GameState.Title:
+      LJS.setCameraPos(player.pos);
+      break;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,9 +139,24 @@ function gameUpdatePost() {
 function gameRender() {
   // called before objects are rendered
   // draw any background effects that appear behind objects
-  bubbles.forEach(({ pos, size }) =>
-    LJS.drawTile(pos, size, spriteAtlas["bubble"])
-  );
+  switch (gameState) {
+    case GameState.Loading: {
+      const loadedPercent = (titleSong.loadedPercent * 100) | 0;
+      LJS.drawTextScreen(
+        `Loading music: ${loadedPercent}%`,
+        LJS.mainCanvasSize.scale(0.5),
+        50,
+        LJS.WHITE
+      );
+      break;
+    }
+
+    case GameState.Title:
+      bubbles.forEach(({ pos, size }) =>
+        LJS.drawTile(pos, size, spriteAtlas["bubble"])
+      );
+      break;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

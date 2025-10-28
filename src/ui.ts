@@ -8,11 +8,6 @@ export let colorPickerBtn: LJS.UIObject;
 export let playerColor: LJS.Color;
 
 export function createTitleUI() {
-  new LJS.UISystemPlugin();
-
-  LJS.setFontDefault(font);
-  LJS.uiSystem.defaultFont = font;
-
   titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
 
   createColorPickerUI();
