@@ -1,8 +1,8 @@
 import * as LJS from "littlejsengine";
-import { globalBeat, metronomePatterns, tileSize } from "../main";
-import { accuracy, MyParticle, setAlpha } from "../mathUtils";
+import { metronome, tileSize } from "../main";
+import { accuracy, MyParticle } from "../mathUtils";
 import { Microbe } from "./microbe";
-import { BeatRipple } from "./ripple";
+import { defaultMetronomePattern } from "../metronome";
 
 const { vec2, rgb } = LJS;
 
@@ -69,12 +69,10 @@ export const firework = (
 };
 
 export class Player extends Microbe {
-  timing: number = 0;
-
   constructor(phi, dist) {
     super(phi, dist);
 
-    this.beat.onpattern(metronomePatterns, (note) => {
+    this.beat.onpattern(defaultMetronomePattern, (note) => {
       note && this.idle();
     });
   }
@@ -92,14 +90,13 @@ export class Player extends Microbe {
     // console.log(this.phi, this.dist);
 
     if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
-      this.timing = globalBeat.getPercent(); // this is the distance from the current beat / subbeat
-      this.swim();
-
-      new BeatRipple(this.timing, globalBeat.count);
+      const timing = metronome.click();
+      const acc = accuracy(timing);
 
       const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
-      const acc = accuracy(this.timing);
       const speed = LJS.lerp(0.005, 0.05, 1 - acc);
+
+      this.swim();
 
       if (acc < perfectThreshold) {
         firework(pos, acc, 10, undefined, undefined, speed, 0.05);

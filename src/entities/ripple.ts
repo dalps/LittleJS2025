@@ -1,26 +1,24 @@
 import * as LJS from "littlejsengine";
-import type { BeatCount } from "../beat";
+import type { Beat } from "../beat";
 import {
-  globalBeat,
-  metronomePos,
-  spacingBeat,
-  spacingSubBeat,
-  tileSize,
+  tileSize
 } from "../main";
 import { accuracy, setAlpha } from "../mathUtils";
 const { vec2, rgb, tile } = LJS;
 
 export class BeatRipple extends LJS.Particle {
+  offset = 0;
+
   constructor(
+    pos: LJS.Vector2,
+    spacingBeat: number,
+    spacingSubBeat: number,
     public timing: number,
-    public count: BeatCount,
+    public beat: Beat,
     tileInfo?: LJS.TileInfo
   ) {
-    const startPos = LJS.cameraPos
-      .subtract(metronomePos)
-      .add(vec2(spacingBeat * globalBeat.beatCount + timing, 0));
+    const startPos = pos.add(vec2(spacingBeat * beat.beatCount + timing, 0));
 
-    
     const acc = accuracy(timing);
 
     const lifeTime = 0.5;
@@ -41,18 +39,18 @@ export class BeatRipple extends LJS.Particle {
       true,
       0
     );
+
+    const [b, sub] = beat.count;
+    this.offset =
+      (b + 1 === this.beat.beats &&
+      sub + 1 === this.beat.subs &&
+      this.timing > 0.5
+        ? -spacingSubBeat
+        : spacingBeat * b + spacingSubBeat * sub) + this.timing;
   }
 
   update(): void {
-    const [beat, sub] = this.count;
-    const x =
-      (beat + 1 === globalBeat.beats &&
-      sub + 1 === globalBeat.subs &&
-      this.timing > 0.5
-        ? -spacingSubBeat
-        : spacingBeat * beat + spacingSubBeat * sub) + this.timing;
-
-    this.pos = LJS.cameraPos.subtract(metronomePos).add(vec2(x, 0));
+    this.pos = this.pos.add(vec2(this.offset, 0));
 
     super.update();
   }
