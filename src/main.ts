@@ -8,6 +8,7 @@ import { Player } from "./entities/player";
 import { DEG2RAD } from "./mathUtils";
 import { Metronome } from "./metronome";
 import { createTitleUI } from "./ui";
+import { songs } from "./music";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -21,6 +22,7 @@ export let metronome: Metronome;
 export let titleSong: LJS.SoundWave;
 export let musicInstance: LJS.SoundInstance;
 export let gameState: GameState = GameState.Loading;
+export let currentSong: keyof typeof songs = "stardustMemories";
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 export const font = "Averia Sans Libre";
@@ -36,6 +38,10 @@ let player: Player;
 let bubbles = [];
 let autoMicrobes = [];
 
+export function LOG(msg: string, timePrecision = 10) {
+  console.log(`${LJS.audioContext.currentTime.toFixed(timePrecision)} ${msg}`);
+}
+
 function loadAssets() {
   // init textures
   ["swim", "idle", "bump"].forEach((animKey, idx) => {
@@ -45,7 +51,7 @@ function loadAssets() {
   });
 
   spriteAtlas["bubble"] = tile(0, tileSize, 2);
-  titleSong = new LJS.SoundWave("/songs/paarynas-allrite.mp3");
+  titleSong = new LJS.SoundWave(songs[currentSong].filename);
 
   center = LJS.mainCanvasSize.scale(0.5);
 }
@@ -72,9 +78,31 @@ function titleScreen() {
   gameState = GameState.Title;
   createTitleUI();
 
-  globalBeat = new Beat(102, 4, 1);
+  const playBtn = new LJS.UIButton(
+    LJS.mainCanvasSize.multiply(vec2(0.4, 0.8)),
+    vec2(200, 100),
+    "Play"
+  );
+  const stopBtn = new LJS.UIButton(
+    LJS.mainCanvasSize.multiply(vec2(0.6, 0.8)),
+    vec2(200, 100),
+    "Stop"
+  );
 
-  musicInstance = titleSong.playMusic(musicVolume);
+  playBtn.onClick = () => {
+    LOG(`playing music`);
+    musicInstance = titleSong.playMusic(musicVolume);
+
+    LOG(`starting metronome at ${musicInstance.startTime}`);
+    globalBeat.play(musicInstance.startTime);
+  };
+
+  stopBtn.onClick = () => {
+    musicInstance?.stop();
+    globalBeat.stop();
+  };
+
+  globalBeat = new Beat(songs[currentSong].bpm, 4, 1);
 
   const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.1));
   metronome = new Metronome(metronomePos, globalBeat);
@@ -123,7 +151,6 @@ function gameUpdate() {
       if (titleSong.isLoaded()) awaitClick();
       break;
     case GameState.Title:
-      globalBeat.update()
       LJS.setCameraPos(player.pos);
       break;
   }
@@ -137,7 +164,6 @@ function gameUpdatePost() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameRender() {
-  globalBeat && globalBeat.update();
   // called before objects are rendered
   // draw any background effects that appear behind objects
   switch (gameState) {

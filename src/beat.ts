@@ -1,5 +1,9 @@
+// Based on Chris Wilson's implementation
+//    https://github.com/cwilso/metronome
+
 import * as LJS from "littlejsengine";
 import { accuracy } from "./mathUtils";
+import BeatWorker from "./beatWorker?worker";
 const { vec2, rgb } = LJS;
 
 export type BeatCount = [number, number, number];
@@ -13,18 +17,53 @@ export enum BarSequencing {
   End,
 }
 
-export class Beat extends LJS.Timer {
-  delta: number;
+export class Beat {
   barCount = 0;
   subCount = 0;
   beatCount = 0;
+
+  lookahead = 25.0; // How frequently to call scheduling function
+  scheduleAheadTime = 0.1; // How far ahead to schedule audio / animation
+  nextNoteTime = 0.0;
+
   listeners: BeatListener[] = [];
 
-  constructor(public bpm = 60, public beats = 4, public subs = 1) {
-    let delta = bpm && subs ? 60 / (bpm * subs) : 1;
+  timerWorker?: Worker; // The Web Worker used to fire timer messages
 
-    super(delta, true);
-    this.delta = delta;
+  delta: number;
+
+  constructor(public bpm = 60, public beats = 4, public subs = 1) {
+    this.delta = bpm && subs ? 60 / (bpm * subs) : 1;
+
+    this.timerWorker = new BeatWorker();
+
+    this.timerWorker.onmessage = (e: MessageEvent) => {
+      if (e.data === "tick") this.scheduler();
+    };
+
+    this.timerWorker.postMessage({ interval: this.lookahead });
+  }
+
+  private get time() {
+    return LJS.audioContext.currentTime;
+  }
+
+  private get elapsed() {
+    return this.nextNoteTime - this.time;
+  }
+
+  private scheduler() {
+    while (this.nextNoteTime < this.time + this.scheduleAheadTime) {
+      // schedule future events
+      this.listeners.forEach((fn) => setTimeout(fn, this.elapsed, this.count));
+
+      // increase note counters
+      this.nextNote();
+    }
+  }
+
+  getPercent() {
+    return LJS.percent(this.elapsed, 0, this.delta);
   }
 
   getAccuracy() {
@@ -64,29 +103,28 @@ export class Beat extends LJS.Timer {
     return [this.beatCount, this.subCount, this.barCount];
   }
 
-  update() {
-    if (this.elapsed()) {
-      console.log(this.getGlobalTime(), this.setTime, this.time, LJS.time);
-      this.set(this.delta);
-
-      this.subCount++;
-
-      if (this.subCount === this.subs) {
-        this.beatCount++;
-
-        if (this.beatCount === this.beats) this.barCount++;
-
-        this.beatCount %= this.beats;
-      }
-
-      this.subCount %= this.subs;
-
-      this.listeners.forEach((f) => f(this.count));
-    }
+  play(startTime = 0) {
+    this.timerWorker?.postMessage("start");
+    this.nextNoteTime = startTime;
   }
 
-  sync(that: Beat) {
-    this.beatCount = that.beatCount;
-    // this.subCount = that.subCount = 0;
+  stop() {
+    this.timerWorker?.postMessage("stop");
+    this.barCount = this.beatCount = this.subCount = 0;
+  }
+
+  private nextNote() {
+    console.log(this.nextNoteTime);
+    this.nextNoteTime += this.delta;
+
+    this.subCount++;
+    if (this.subCount === this.subs) {
+      this.beatCount++;
+
+      if (this.beatCount === this.beats) this.barCount++;
+
+      this.beatCount %= this.beats;
+    }
+    this.subCount %= this.subs;
   }
 }
