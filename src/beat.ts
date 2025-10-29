@@ -1,4 +1,5 @@
 import * as LJS from "littlejsengine";
+import { accuracy } from "./mathUtils";
 const { vec2, rgb } = LJS;
 
 export type BeatCount = [number, number, number];
@@ -20,10 +21,14 @@ export class Beat extends LJS.Timer {
   listeners: BeatListener[] = [];
 
   constructor(public bpm = 60, public beats = 4, public subs = 1) {
-    let delta = bpm && subs ? 60 / bpm / subs : 1;
+    let delta = bpm && subs ? 60 / (bpm * subs) : 1;
 
-    super(delta);
+    super(delta, true);
     this.delta = delta;
+  }
+
+  getAccuracy() {
+    return accuracy(this.getPercent());
   }
 
   onbeat(f: BeatListener) {
@@ -61,6 +66,7 @@ export class Beat extends LJS.Timer {
 
   update() {
     if (this.elapsed()) {
+      console.log(this.getGlobalTime(), this.setTime, this.time, LJS.time);
       this.set(this.delta);
 
       this.subCount++;

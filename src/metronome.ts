@@ -13,21 +13,13 @@ const radiusBeat = 20;
 const radiusSubBeat = 10;
 export const metronomeColor = LJS.rgb(1, 1, 0, 0.5);
 
-export const bpm = 60;
-
 // prettier-ignore
 export const defaultMetronomePattern = [
   [
-    [2,    ],
-    [2,    ],
-    [2,   1],
-    [1,   1],
-  ],
-  [
-    [2  , 1],
-    [1.5, 1],
-    [1.5, 1],
-    [1.5, 1],
+    [1,],
+    [1,],
+    [1,],
+    [1,],
   ],
 ];
 
@@ -65,10 +57,6 @@ export class Metronome extends LJS.UIObject {
     );
 
     return timing;
-  }
-
-  update() {
-    this.beat.update();
   }
 
   render() {

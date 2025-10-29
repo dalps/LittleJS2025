@@ -1,5 +1,5 @@
 import * as LJS from "littlejsengine";
-import { metronome, tileSize } from "../main";
+import { globalBeat, metronome, tileSize } from "../main";
 import { accuracy, MyParticle } from "../mathUtils";
 import { Microbe } from "./microbe";
 import { defaultMetronomePattern } from "../metronome";
@@ -69,8 +69,8 @@ export const firework = (
 };
 
 export class Player extends Microbe {
-  constructor(phi, dist) {
-    super(phi, dist);
+  constructor(pos: LJS.Vector2, beat = globalBeat) {
+    super(pos, beat);
 
     this.beat.onpattern(defaultMetronomePattern, (note) => {
       note && this.idle();
@@ -84,11 +84,6 @@ export class Player extends Microbe {
   }
 
   update(): void {
-    // this.moveInput =
-    //   LJS.mouseIsDown(0) || LJS.keyIsDown("Space") ? vec2(1, 0) : vec2(0, 0);
-
-    // console.log(this.phi, this.dist);
-
     if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
       const timing = metronome.click();
       const acc = accuracy(timing);

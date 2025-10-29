@@ -72,7 +72,7 @@ function titleScreen() {
   gameState = GameState.Title;
   createTitleUI();
 
-  globalBeat = new Beat(128, 4, 1);
+  globalBeat = new Beat(102, 4, 1);
 
   musicInstance = titleSong.playMusic(musicVolume);
 
@@ -82,11 +82,10 @@ function titleScreen() {
   LJS.setTouchInputEnable(true);
 
   const startDist = 5;
-  autoMicrobes.push(new AutoMicrobe(angleDelta, startDist));
-  player = new AutoMicrobe(angleDelta * 2, startDist);
+  autoMicrobes.push(new AutoMicrobe(vec2(angleDelta, startDist)));
+  player = new AutoMicrobe(vec2(angleDelta * 2, startDist));
   autoMicrobes.push(player);
-  autoMicrobes.push(new AutoMicrobe(angleDelta * 3, startDist));
-  player.idle();
+  autoMicrobes.push(new AutoMicrobe(vec2(angleDelta * 3, startDist)));
 
   // prettier-ignore
   matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
@@ -124,6 +123,7 @@ function gameUpdate() {
       if (titleSong.isLoaded()) awaitClick();
       break;
     case GameState.Title:
+      globalBeat.update()
       LJS.setCameraPos(player.pos);
       break;
   }
@@ -137,6 +137,7 @@ function gameUpdatePost() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameRender() {
+  globalBeat && globalBeat.update();
   // called before objects are rendered
   // draw any background effects that appear behind objects
   switch (gameState) {

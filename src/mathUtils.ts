@@ -14,6 +14,10 @@ export const setAlpha = (c: LJS.Color, a: number) =>
 // https://www.desmos.com/calculator/ln6rtzn9kb
 export const accuracy = (t: number) => Math.sin(t * Math.PI) ** 0.5;
 
+export const repeat = <T>(value: T, n: number): T[] => Array(n).fill(value);
+
+export const polar2cart = (p: LJS.Vector2) => vec2().setAngle(p.x, p.y);
+
 export class MyParticle extends LJS.Particle {
   spin: number;
   trailRate: number;

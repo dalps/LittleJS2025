@@ -1,64 +1,44 @@
 import * as LJS from "littlejsengine";
-import type { BeatCount } from "../beat";
+import { globalBeat } from "../main";
 import { Microbe } from "./microbe";
+import { repeat } from "../mathUtils";
+import { BarSequencing } from "../beat";
 const { vec2, rgb } = LJS;
 
 // prettier-ignore
-export const swimPatterns = [
-  [
-    [0, ],
-    [0, ],
-    [0,0],
-    [0,0],
-  ],
-  [
-    [1,0],
-    [1,0],
-    [1,0],
-    [1,1],
-  ],
-  [
-    [ ,0],
-    [1,1],
-    [ ,0],
-    [1,1],
-  ],
-  [
-    [ ,1],
-    [ ,1],
-    [ ,1],
-    [ ,1],
-  ],
-  [
-    [ ,1],
-    [1,1],
-    [ ,0],
-    [ ,0],
-  ],
+const p1 = [
+  [0, ],
+  [0, ],
+  [0, ],
+  [0, ],
 ];
+
+// prettier-ignore
+const p2 = [
+  [0, ],
+  [1, ],
+  [0, ],
+  [1, ],
+];
+
+export const swimPatterns = [
+  repeat(p1, 4),
+  repeat(p2, 16),
+  repeat(p1, 4),
+  repeat(p2, 16),
+].flat();
 
 /** A microbe that swims automatically to a beat */
 export class AutoMicrobe extends Microbe {
-  constructor(phi, dist) {
-    super(phi, dist);
+  swimCallbacks = [this.idle, this.swim];
 
-    this.beat.onpattern(swimPatterns.slice(0, 2), this.onpattern.bind(this));
-  }
+  constructor(pos: LJS.Vector2, beat = globalBeat) {
+    super(pos, beat);
 
-  onpattern(note?: number) {
-    // 1 bar count-in
-    switch (note) {
-      case 1:
-        this.swim();
-
-        break;
-
-      case 0:
-        this.idle();
-        break;
-
-      default:
-        break;
-    }
+    this.beat.onpattern(
+      swimPatterns,
+      (note) => note !== undefined && this.swimCallbacks.at(note)?.call(this),
+      BarSequencing.Loop
+    );
   }
 }

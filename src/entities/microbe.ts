@@ -1,30 +1,40 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
 import { Beat, type BeatCount } from "../beat";
-import { spriteAtlas, tileSize } from "../main";
-import { DEG2RAD, MyParticle } from "../mathUtils";
+import { globalBeat, spriteAtlas, tileSize } from "../main";
+import { DEG2RAD, MyParticle, polar2cart } from "../mathUtils";
 import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
 export class Microbe extends LJS.EngineObject {
-  beat = new Beat(60, 4, 2);
-  center: LJS.Vector2;
-
+  center: LJS.Vector2 = vec2();
   animations = {
     swim: new Animation("swim", 10, 1 / 30, 1),
     idle: new Animation("idle", 5, 1 / 12, 0),
     bump: new Animation("bump", 12, 1 / 30, 1),
   };
 
-  moveInput: LJS.Vector2 = vec2(0, 0);
-  angle = 0;
   currentAnim: keyof typeof this.animations = "idle";
-
   bubbleEmitter: LJS.ParticleEmitter;
 
-  constructor(public phi: number, public dist: number) {
-    const pos = vec2(1, 0).setAngle(phi, dist);
-    super(pos);
+  get phi() {
+    return this.polarPos.x;
+  }
+
+  get dist() {
+    return this.polarPos.y;
+  }
+
+  set phi(v) {
+    this.polarPos.x = v;
+  }
+
+  set dist(v) {
+    this.polarPos.y = v;
+  }
+
+  constructor(public polarPos: LJS.Vector2, public beat = globalBeat) {
+    super(polar2cart(polarPos));
 
     this.size = vec2(1.5);
     this.drawSize = vec2(5);
@@ -59,21 +69,12 @@ export class Microbe extends LJS.EngineObject {
 
   onbeat(_: BeatCount) {}
 
-  update(): void {
-    super.update();
-
-    this.beat.update();
-  }
-
   updatePhysics(): void {
     super.updatePhysics(); // let the engine update the velocity
 
-    const speed = this.velocity.x;
-    this.phi += speed * 0.1;
-    this.dist += speed * 0.01;
-
+    this.polarPos = this.polarPos.add(this.velocity);
+    this.pos = polar2cart(this.polarPos);
     this.angle = this.phi + 90 * DEG2RAD;
-    this.pos.setAngle(this.phi, this.dist);
   }
 
   render(): void {
@@ -127,7 +128,7 @@ export class Microbe extends LJS.EngineObject {
     sfx.bubble3.play(this.pos, 0.2);
 
     // move forward
-    this.applyForce(vec2(1, 0));
+    this.applyForce(vec2(0.1, 0.01));
     this.bubbleEmitter.emitRate = 10;
   }
 
