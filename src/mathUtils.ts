@@ -16,6 +16,22 @@ export const accuracy = (t: number) => Math.sin(t * Math.PI) ** 0.5;
 
 export const repeat = <T>(value: T, n: number): T[] => Array(n).fill(value);
 
+export function formatTime(t: number, timePrecision = 3) {
+  const [min, sec, mil] = [t / 60, Math.trunc(t) % 60, t - Math.trunc(t)];
+
+  return `${min.toFixed(0).padStart(2, "0")}:${sec
+    .toFixed(0)
+    .padStart(2, "0")}:${mil
+    .toFixed(timePrecision)
+    .substring(2)
+    .padStart(3, "0")}`;
+}
+
+export function LOG(msg: string) {
+  const t = LJS.audioContext.currentTime;
+  console.log(`[${formatTime(t)}] ${msg}`);
+}
+
 export const polar2cart = (p: LJS.Vector2) => vec2().setAngle(p.x, p.y);
 
 export class MyParticle extends LJS.Particle {

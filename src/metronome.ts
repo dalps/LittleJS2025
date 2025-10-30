@@ -1,8 +1,9 @@
 import * as LJS from "littlejsengine";
-import type { Beat, Pattern } from "./beat";
+import type { Beat } from "./beat";
+import { BeatRipple } from "./entities/ripple";
 import { font } from "./main";
 import { sfx } from "./sfx";
-import { BeatRipple } from "./entities/ripple";
+import { LOG } from "./mathUtils";
 const { vec2, rgb } = LJS;
 
 export const spacingBeat = 75;
@@ -16,9 +17,9 @@ export const metronomeColor = LJS.rgb(1, 1, 0, 0.5);
 // prettier-ignore
 export const defaultMetronomePattern = [
   [
+    [2,],
     [1,],
-    [1,],
-    [1,],
+    [2,],
     [1,],
   ],
 ];
@@ -40,9 +41,10 @@ export class Metronome extends LJS.UIObject {
       vec2((spacingBeat * beat.beats - this.spacingSubBeat) * 0.5, 0)
     );
 
-    beat.onpattern(pattern, (note) =>
-      sfx.tic.play(undefined, note ? 0.5 : 0, note)
-    );
+    beat.onpattern(pattern, (note) => {
+      LOG("[metronome] tic");
+      sfx.tic.play(undefined, note ? 0.5 : 0, note);
+    });
   }
 
   click(): number {

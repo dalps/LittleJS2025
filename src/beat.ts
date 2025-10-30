@@ -2,7 +2,7 @@
 //    https://github.com/cwilso/metronome
 
 import * as LJS from "littlejsengine";
-import { accuracy } from "./mathUtils";
+import { accuracy, formatTime, LOG } from "./mathUtils";
 import BeatWorker from "./beatWorker?worker";
 const { vec2, rgb } = LJS;
 
@@ -22,8 +22,15 @@ export class Beat {
   subCount = 0;
   beatCount = 0;
 
-  lookahead = 25.0; // How frequently to call scheduling function
-  scheduleAheadTime = 0.1; // How far ahead to schedule audio / animation
+  /**
+   * How frequently to call scheduling function
+   */
+  lookahead = 25.0;
+
+  /**
+   * How far ahead to schedule audio / animation
+   */
+  scheduleAheadTime = 0.5;
   nextNoteTime = 0.0;
 
   listeners: BeatListener[] = [];
@@ -31,6 +38,7 @@ export class Beat {
   timerWorker?: Worker; // The Web Worker used to fire timer messages
 
   delta: number;
+  private _isPlaying: boolean = false;
 
   constructor(public bpm = 60, public beats = 4, public subs = 1) {
     this.delta = bpm && subs ? 60 / (bpm * subs) : 1;
@@ -53,13 +61,53 @@ export class Beat {
   }
 
   private scheduler() {
+    let notesScheduled = 0;
+    let timeAdvanced = this.nextNoteTime;
+
     while (this.nextNoteTime < this.time + this.scheduleAheadTime) {
+      LOG(
+        `${formatTime(this.nextNoteTime)} < ${formatTime(
+          this.time
+        )} + ${formatTime(this.scheduleAheadTime)}`
+      );
+
       // schedule future events
-      this.listeners.forEach((fn) => setTimeout(fn, this.elapsed, this.count));
+      if (this.elapsed > 0)
+        for (let [idx, fn] of this.listeners.entries()) {
+          LOG(`Scheduling listener ${idx} in ${formatTime(this.elapsed)} time`);
+          setTimeout(
+            function (c) {
+              LOG(`Invoking listener ${idx}`);
+              fn(c);
+            },
+            this.elapsed,
+            this.count
+          );
+        }
 
       // increase note counters
       this.nextNote();
+      notesScheduled++;
     }
+
+    console.log(`Scheduled ${notesScheduled} notes.
+nextNoteTime ${formatTime(timeAdvanced)} -> ${formatTime(
+      this.nextNoteTime
+    )} (advanced by ${formatTime(this.nextNoteTime - timeAdvanced)})`);
+  }
+
+  private nextNote() {
+    this.nextNoteTime += this.delta;
+
+    this.subCount++;
+    if (this.subCount === this.subs) {
+      this.beatCount++;
+
+      if (this.beatCount === this.beats) this.barCount++;
+
+      this.beatCount %= this.beats;
+    }
+    this.subCount %= this.subs;
   }
 
   getPercent() {
@@ -103,28 +151,21 @@ export class Beat {
     return [this.beatCount, this.subCount, this.barCount];
   }
 
+  isPlaying() {
+    return this._isPlaying;
+  }
+
   play(startTime = 0) {
+    if (this.isPlaying()) return;
+
     this.timerWorker?.postMessage("start");
-    this.nextNoteTime = startTime;
+    this.barCount = this.beatCount = this.subCount = 0;
+    this.nextNoteTime = LJS.audioContext.currentTime;
+    this._isPlaying = true;
   }
 
   stop() {
     this.timerWorker?.postMessage("stop");
-    this.barCount = this.beatCount = this.subCount = 0;
-  }
-
-  private nextNote() {
-    console.log(this.nextNoteTime);
-    this.nextNoteTime += this.delta;
-
-    this.subCount++;
-    if (this.subCount === this.subs) {
-      this.beatCount++;
-
-      if (this.beatCount === this.beats) this.barCount++;
-
-      this.beatCount %= this.beats;
-    }
-    this.subCount %= this.subs;
+    this._isPlaying = false;
   }
 }

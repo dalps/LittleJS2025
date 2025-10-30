@@ -5,7 +5,7 @@ import * as LJS from "littlejsengine";
 import { Beat } from "./beat";
 import { AutoMicrobe } from "./entities/microbe_auto";
 import { Player } from "./entities/player";
-import { DEG2RAD } from "./mathUtils";
+import { DEG2RAD, formatTime, LOG } from "./mathUtils";
 import { Metronome } from "./metronome";
 import { createTitleUI } from "./ui";
 import { songs } from "./music";
@@ -37,10 +37,6 @@ let percentLoaded = 0;
 let player: Player;
 let bubbles = [];
 let autoMicrobes = [];
-
-export function LOG(msg: string, timePrecision = 10) {
-  console.log(`${LJS.audioContext.currentTime.toFixed(timePrecision)} ${msg}`);
-}
 
 function loadAssets() {
   // init textures
@@ -90,11 +86,12 @@ function titleScreen() {
   );
 
   playBtn.onClick = () => {
+    if (musicInstance?.isPlaying()) return;
+
     LOG(`playing music`);
     musicInstance = titleSong.playMusic(musicVolume);
-
-    LOG(`starting metronome at ${musicInstance.startTime}`);
-    globalBeat.play(musicInstance.startTime);
+    LOG(`starting metronome`);
+    globalBeat.play();
   };
 
   stopBtn.onClick = () => {

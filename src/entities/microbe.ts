@@ -6,6 +6,8 @@ import { DEG2RAD, MyParticle, polar2cart } from "../mathUtils";
 import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
+const swimAccel = vec2(0.1, 0.01);
+
 export class Microbe extends LJS.EngineObject {
   center: LJS.Vector2 = vec2();
   animations = {
@@ -128,7 +130,7 @@ export class Microbe extends LJS.EngineObject {
     sfx.bubble3.play(this.pos, 0.2);
 
     // move forward
-    this.applyForce(vec2(0.1, 0.01));
+    this.applyForce(swimAccel);
     this.bubbleEmitter.emitRate = 10;
   }
 
