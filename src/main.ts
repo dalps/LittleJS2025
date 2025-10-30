@@ -74,24 +74,22 @@ function titleScreen() {
   gameState = GameState.Title;
   createTitleUI();
 
+  const btnSize = vec2(200, 50);
+
   const playBtn = new LJS.UIButton(
-    LJS.mainCanvasSize.multiply(vec2(0.4, 0.8)),
-    vec2(200, 100),
+    LJS.mainCanvasSize.multiply(vec2(0.4, 0.9)),
+    btnSize,
     "Play"
   );
   const stopBtn = new LJS.UIButton(
-    LJS.mainCanvasSize.multiply(vec2(0.6, 0.8)),
-    vec2(200, 100),
+    LJS.mainCanvasSize.multiply(vec2(0.6, 0.9)),
+    btnSize,
     "Stop"
   );
 
   playBtn.onClick = () => {
     if (musicInstance?.isPlaying()) return;
-
-    LOG(`playing music`);
-    musicInstance = titleSong.playMusic(musicVolume);
-    LOG(`starting metronome`);
-    globalBeat.play();
+    musicInstance = globalBeat.play(titleSong)!;
   };
 
   stopBtn.onClick = () => {

@@ -15,16 +15,24 @@ const p1 = [
 
 // prettier-ignore
 const p2 = [
+  [1, ],
   [0, ],
   [1, ],
   [0, ],
+];
+
+// prettier-ignore
+const p3 = [
+  [1, ],
+  [0, ],
+  [1, ],
   [1, ],
 ];
 
 export const swimPatterns = [
   repeat(p1, 4),
   repeat(p2, 16),
-  repeat(p1, 4),
+  repeat([p2, p3], 4).flat(),
   repeat(p2, 16),
 ].flat();
 
