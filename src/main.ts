@@ -8,6 +8,7 @@ import { Player } from "./entities/player";
 import { DEG2RAD, rgba } from "./mathUtils";
 import { Metronome } from "./metronome";
 import { songs } from "./music";
+import { Ease, Tween } from "./tween";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -36,6 +37,8 @@ let percentLoaded = 0;
 let player: Player;
 let bubbles = [];
 let autoMicrobes = [];
+
+let textColor = rgba(0, 0, 0, 1);
 
 function loadAssets() {
   // init textures
@@ -85,6 +88,7 @@ function titleScreen() {
     btnSize,
     "Stop"
   );
+  playBtn.color = textColor;
 
   playBtn.onClick = () => {
     if (musicInstance?.isPlaying()) return;
@@ -132,13 +136,16 @@ function titleScreen() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
 function gameInit() {
   new LJS.UISystemPlugin();
   // new LJS.PostProcessPlugin(tvShader);
 
   LJS.setFontDefault(font);
   LJS.uiSystem.defaultFont = font;
+
+  // bgLayer = new LJS.CanvasLayer(vec2(), LJS.mainCanvasSize, 0, 0);
+
+  new Tween((t) => (textColor.r = t), 0, 1, 100).then(Tween.PingPong(4)).setEase(Ease.BOUNCE);
 
   loadAssets();
   titleScreen();
@@ -188,9 +195,7 @@ function gameRender() {
     case GameState.Title:
       const t = LJS.timeReal * 0.3;
       LJS.drawTile(
-        LJS.cameraPos.scale(0.7).add(
-          vec2(-LJS.cos(t), LJS.sin(-t))
-        ),
+        LJS.cameraPos.scale(0.7).add(vec2(-LJS.cos(t), LJS.sin(-t))),
         LJS.mainCanvasSize.scale(0.1),
         tile(vec2(), vec2(512), 3),
         rgba(
@@ -217,10 +222,12 @@ function gameRender() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameRenderPost() {
+  // called after objects are rendered
+  // draw effects or hud that appear above all objects
   LJS.drawTile(
-    LJS.cameraPos.scale(0.9).add(
-      vec2(LJS.cos(LJS.timeReal * 0.1), LJS.sin(LJS.timeReal * 0.1))
-    ),
+    LJS.cameraPos
+      .scale(0.9)
+      .add(vec2(LJS.cos(LJS.timeReal * 0.1), LJS.sin(LJS.timeReal * 0.1))),
     LJS.mainCanvasSize.scale(0.1),
     tile(vec2(), vec2(512), 3),
     rgba(
@@ -238,8 +245,6 @@ function gameRenderPost() {
       LJS.lerp(0.02, 0.05, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
     )
   );
-  // called after objects are rendered
-  // draw effects or hud that appear above all objects
   // LJS.drawText(
   //   "The mitochondrion is the partyhouse of the cell",
   //   vec2(0.5, 0.5),
