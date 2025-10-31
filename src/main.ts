@@ -21,7 +21,7 @@ export let globalBeat: Beat;
 export let metronome: Metronome;
 export let titleSong: LJS.SoundWave;
 export let musicInstance: LJS.SoundInstance;
-export let gameState: GameState = GameState.Loading;
+export let gameState: GameState = GameState.Title;
 export let currentSong: keyof typeof songs = "stardustMemories";
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
@@ -72,7 +72,7 @@ function awaitClick() {
 
 function titleScreen() {
   gameState = GameState.Title;
-  createTitleUI();
+  // createTitleUI();
 
   const btnSize = vec2(200, 50);
 
@@ -89,7 +89,7 @@ function titleScreen() {
 
   playBtn.onClick = () => {
     if (musicInstance?.isPlaying()) return;
-    musicInstance = globalBeat.play(titleSong)!;
+    globalBeat.play();
   };
 
   stopBtn.onClick = () => {
@@ -103,12 +103,14 @@ function titleScreen() {
   metronome = new Metronome(metronomePos, globalBeat);
 
   LJS.setTouchInputEnable(true);
+  LJS.setSoundVolume(0);
 
   const startDist = 5;
-  autoMicrobes.push(new AutoMicrobe(vec2(angleDelta, startDist)));
-  player = new AutoMicrobe(vec2(angleDelta * 2, startDist));
+  const leader = new AutoMicrobe(vec2(angleDelta * 3, startDist));
+  autoMicrobes.push(leader);
+  player = new AutoMicrobe(vec2(angleDelta * 2, startDist), leader, 1);
   autoMicrobes.push(player);
-  autoMicrobes.push(new AutoMicrobe(vec2(angleDelta * 3, startDist)));
+  autoMicrobes.push(new AutoMicrobe(vec2(angleDelta, startDist), leader, 2));
 
   // prettier-ignore
   matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
@@ -131,6 +133,7 @@ function gameInit() {
   LJS.uiSystem.defaultFont = font;
 
   loadAssets();
+  titleScreen();
 
   // new LJS.UIText(
   //   LJS.mainCanvasSize.scale(0.5),
@@ -146,6 +149,7 @@ function gameUpdate() {
       if (titleSong.isLoaded()) awaitClick();
       break;
     case GameState.Title:
+      // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
       LJS.setCameraPos(player.pos);
       break;
   }

@@ -15,10 +15,10 @@ const p1 = [
 
 // prettier-ignore
 const p2 = [
+  [2, ],
   [1, ],
-  [0, ],
   [1, ],
-  [0, ],
+  [1, ],
 ];
 
 // prettier-ignore
@@ -29,23 +29,28 @@ const p3 = [
   [1, ],
 ];
 
-export const swimPatterns = [
-  repeat(p1, 4),
-  repeat(p2, 16),
-  repeat([p2, p3], 4).flat(),
-  repeat(p2, 16),
+export const choreography = [
+  repeat([p2, p3, p3, p3], 4).flat(),
+  // repeat(p2, 16),
+  // repeat([p2, p3], 4).flat(),
+  // repeat(p2, 16),
 ].flat();
 
 /** A microbe that swims automatically to a beat */
 export class AutoMicrobe extends Microbe {
-  swimCallbacks = [this.idle, this.swim];
+  actions = [this.idle, this.swim, () => (this.newCenter(), this.swim())];
 
-  constructor(pos: LJS.Vector2, beat = globalBeat) {
-    super(pos, beat);
+  constructor(
+    pos: LJS.Vector2,
+    leader?: Microbe | undefined,
+    number = 0,
+    beat = globalBeat
+  ) {
+    super(pos, leader, number, beat);
 
     this.beat.onpattern(
-      swimPatterns,
-      (note) => note !== undefined && this.swimCallbacks.at(note)?.call(this),
+      choreography,
+      (note) => note !== undefined && this.actions.at(note)?.call(this),
       BarSequencing.Loop
     );
   }

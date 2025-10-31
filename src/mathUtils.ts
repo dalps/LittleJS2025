@@ -32,7 +32,11 @@ export function LOG(msg: string) {
   console.log(`[${formatTime(t)}] ${msg}`);
 }
 
-export const polar2cart = (p: LJS.Vector2) => vec2().setAngle(p.x, p.y);
+export const lerpVec2 = (start: LJS.Vector2, end: LJS.Vector2, value: number) =>
+  start.add(end.subtract(start).scale(value));
+
+export const polar2cart = (p: LJS.Vector2, c = vec2()) =>
+  c.add(vec2().setAngle(p.x, p.y));
 
 export class MyParticle extends LJS.Particle {
   spin: number;

@@ -1,15 +1,17 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
-import { Beat, type BeatCount } from "../beat";
+import { type BeatCount } from "../beat";
 import { globalBeat, spriteAtlas, tileSize } from "../main";
-import { DEG2RAD, MyParticle, polar2cart } from "../mathUtils";
+import { DEG2RAD, lerpVec2, LOG, MyParticle, polar2cart } from "../mathUtils";
 import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
-const swimAccel = vec2(0.1, 0.01);
+const swimAccel = vec2(0.2, 0.1);
 
 export class Microbe extends LJS.EngineObject {
-  center: LJS.Vector2 = vec2();
+  orbitCenter: LJS.Vector2 = vec2();
+  direction = 1; // counterclockwise
+
   animations = {
     swim: new Animation("swim", 10, 1 / 30, 1),
     idle: new Animation("idle", 5, 1 / 12, 0),
@@ -18,6 +20,9 @@ export class Microbe extends LJS.EngineObject {
 
   currentAnim: keyof typeof this.animations = "idle";
   bubbleEmitter: LJS.ParticleEmitter;
+
+  turnSignal = 0;
+  turnPhi;
 
   get phi() {
     return this.polarPos.x;
@@ -35,7 +40,29 @@ export class Microbe extends LJS.EngineObject {
     this.polarPos.y = v;
   }
 
-  constructor(public polarPos: LJS.Vector2, public beat = globalBeat) {
+  newCenter() {
+    if (this.isLeader()) {
+      this.orbitCenter = lerpVec2(this.orbitCenter, this.pos, 2);
+      this.direction *= -1;
+      this.turnPhi = this.phi -= Math.PI;
+      this.turnSignal = 0;
+
+      LOG(
+        `Changing center of leader at angle turnPhi: ${this.turnPhi} ${this.phi}`
+      );
+    }
+  }
+
+  isLeader() {
+    return this.leader === undefined;
+  }
+
+  constructor(
+    public polarPos: LJS.Vector2,
+    public leader?: Microbe,
+    public number = 0,
+    public beat = globalBeat
+  ) {
     super(polar2cart(polarPos));
 
     this.size = vec2(1.5);
@@ -45,6 +72,7 @@ export class Microbe extends LJS.EngineObject {
     // this.angleDamping = 0.89;
     // this.restitution = 2;
     this.color = LJS.randColor();
+    this.turnPhi = this.phi;
 
     this.bubbleEmitter = new LJS.ParticleEmitter(this.pos);
     this.addChild(this.bubbleEmitter);
@@ -75,8 +103,12 @@ export class Microbe extends LJS.EngineObject {
     super.updatePhysics(); // let the engine update the velocity
 
     this.polarPos = this.polarPos.add(this.velocity);
-    this.pos = polar2cart(this.polarPos);
-    this.angle = this.phi + 90 * DEG2RAD;
+
+    // smooth out radius differences
+    this.leader && (this.dist = LJS.lerp(this.dist, this.leader.dist, 0.01));
+
+    this.pos = polar2cart(this.polarPos, this.orbitCenter);
+    this.angle = this.phi + this.direction * 90 * DEG2RAD;
   }
 
   render(): void {
@@ -87,6 +119,11 @@ export class Microbe extends LJS.EngineObject {
     this.tileInfo = anim.getFrame(spriteAtlas[name]);
     const tummyTileInfo = anim.getFrame(spriteAtlas[`${name}_tummy`]);
 
+    // if (this.isLeader())
+    //   LJS.drawCircle(lerpVec2(this.orbitCenter, this.pos, 0.5), 1, LJS.YELLOW);
+
+    // LJS.drawLine(this.orbitCenter, this.pos, 0.1, LJS.BLUE);
+    // LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
     LJS.drawTile(
       this.pos,
       this.drawSize,
@@ -121,6 +158,7 @@ export class Microbe extends LJS.EngineObject {
   swim() {
     // can't swim during recoil
     // if (this.animations.bump.isPlaying()) return;
+    // LOG("swim");
 
     this.playAnim("swim");
 
@@ -130,11 +168,26 @@ export class Microbe extends LJS.EngineObject {
     sfx.bubble3.play(this.pos, 0.2);
 
     // move forward
-    this.applyForce(swimAccel);
+    if (this.leader) {
+      if (this.leader.turnSignal === this.number + 1) {
+        this.orbitCenter = this.leader.orbitCenter;
+        this.direction = this.leader.direction;
+        console.log(this.leader.turnPhi);
+        this.phi = this.leader.turnPhi;
+        // const v1 = this.leader.pos.subtract(this.leader.orbitCenter);
+        // const v2 = this.pos.subtract(this.leader.orbitCenter);
+        // this.phi = Math.acos(v1.dot(v2) / (v1.length() * v2.length()));
+        // this.dist = v2.length();
+      }
+    } else this.turnSignal++;
+
+    this.applyForce(swimAccel.scale(this.direction));
+
     this.bubbleEmitter.emitRate = 10;
   }
 
   idle() {
+    // LOG("idle");
     this.bubbleEmitter.emitRate = 0;
     return this.playAnim("idle");
   }

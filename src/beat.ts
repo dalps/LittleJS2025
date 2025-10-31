@@ -7,7 +7,7 @@ import BeatWorker from "./beatWorker?worker";
 const { vec2, rgb } = LJS;
 
 export type BeatCount = [number, number, number];
-export type BeatListener = ([beat, sub]: BeatCount) => void;
+export type BeatListener = ([beat, sub, bar]: BeatCount) => void;
 
 export type Pattern<T> = (T | undefined)[][][]; // bar, beat, sub-beat
 export type PatternListener<T> = (note: T | undefined) => void;
