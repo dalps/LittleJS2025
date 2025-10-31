@@ -6,6 +6,7 @@ export let titleMenu: LJS.UIObject;
 export let colorPickerMenu: LJS.UIObject;
 export let colorPickerBtn: LJS.UIObject;
 export let playerColor: LJS.Color;
+export let startBtn: LJS.UIButton;
 
 export function createTitleUI() {
   titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
@@ -31,12 +32,7 @@ export function createTitleUI() {
 
   title.addChild(subtitle);
 
-  let startBtn = new LJS.UIButton(
-    vec2(0, 200),
-    vec2(200, 50),
-    "Start",
-    LJS.CYAN
-  );
+  startBtn = new LJS.UIButton(vec2(0, 200), vec2(200, 50), "Start", LJS.CYAN);
 
   colorPickerBtn = new LJS.UIButton(vec2(100 + 60, 200), vec2(50, 50));
 

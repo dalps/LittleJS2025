@@ -69,8 +69,13 @@ export const firework = (
 };
 
 export class Player extends Microbe {
-  constructor(pos: LJS.Vector2, beat = globalBeat) {
-    super(pos, beat);
+  constructor(
+    pos: LJS.Vector2,
+    leader: Microbe,
+    number = 1,
+    beat = globalBeat,
+  ) {
+    super(pos, leader, number, beat);
 
     this.beat.onpattern(defaultMetronomePattern, (note) => {
       note && this.idle();
@@ -101,5 +106,11 @@ export class Player extends Microbe {
     }
 
     super.update();
+  }
+
+  render(): void {
+    super.render();
+
+    LJS.drawText("You", this.pos.add(vec2(0, 1.2)), 0.5);
   }
 }

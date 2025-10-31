@@ -35,6 +35,7 @@ export function LOG(msg: string) {
 export const lerpVec2 = (start: LJS.Vector2, end: LJS.Vector2, value: number) =>
   start.add(end.subtract(start).scale(value));
 
+export const polar = vec2;
 export const polar2cart = (p: LJS.Vector2, c = vec2()) =>
   c.add(vec2().setAngle(p.x, p.y));
 
