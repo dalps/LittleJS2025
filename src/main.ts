@@ -5,9 +5,8 @@ import * as LJS from "littlejsengine";
 import { Beat } from "./beat";
 import { AutoMicrobe } from "./entities/microbe_auto";
 import { Player } from "./entities/player";
-import { DEG2RAD, formatTime, LOG } from "./mathUtils";
+import { DEG2RAD, rgba } from "./mathUtils";
 import { Metronome } from "./metronome";
-import { createTitleUI } from "./ui";
 import { songs } from "./music";
 const { vec2, rgb, tile, time } = LJS;
 
@@ -105,12 +104,20 @@ function titleScreen() {
   LJS.setTouchInputEnable(true);
   LJS.setSoundVolume(0);
 
+  LJS.setCanvasClearColor(rgba(5, 52, 106, 1));
+
   const startDist = 5;
-  const leader = new AutoMicrobe(vec2(angleDelta * 3, startDist));
+
+  const leader = new AutoMicrobe(vec2(0, startDist));
   autoMicrobes.push(leader);
-  player = new AutoMicrobe(vec2(angleDelta * 2, startDist), leader, 1);
-  autoMicrobes.push(player);
-  autoMicrobes.push(new AutoMicrobe(vec2(angleDelta, startDist), leader, 2));
+
+  player = new AutoMicrobe(vec2(-angleDelta, startDist), leader, 1);
+
+  for (let i = 2; i < 3; i++) {
+    autoMicrobes.push(
+      new AutoMicrobe(vec2(angleDelta * -i, startDist), leader, i)
+    );
+  }
 
   // prettier-ignore
   matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
@@ -128,6 +135,7 @@ function titleScreen() {
 
 function gameInit() {
   new LJS.UISystemPlugin();
+  // new LJS.PostProcessPlugin(tvShader);
 
   LJS.setFontDefault(font);
   LJS.uiSystem.defaultFont = font;
@@ -178,6 +186,28 @@ function gameRender() {
     }
 
     case GameState.Title:
+      const t = LJS.timeReal * 0.3;
+      LJS.drawTile(
+        LJS.cameraPos.scale(0.7).add(
+          vec2(-LJS.cos(t), LJS.sin(-t))
+        ),
+        LJS.mainCanvasSize.scale(0.1),
+        tile(vec2(), vec2(512), 3),
+        rgba(
+          255,
+          255,
+          255,
+          LJS.lerp(0.2, 0.5, 0.5 - LJS.cos(LJS.timeReal) * 0.5)
+        ),
+        0,
+        false,
+        rgba(
+          0,
+          119,
+          255,
+          LJS.lerp(0.02, 0.05, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
+        )
+      );
       bubbles.forEach(({ pos, size }) =>
         LJS.drawTile(pos, size, spriteAtlas["bubble"])
       );
@@ -187,6 +217,27 @@ function gameRender() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameRenderPost() {
+  LJS.drawTile(
+    LJS.cameraPos.scale(0.9).add(
+      vec2(LJS.cos(LJS.timeReal * 0.1), LJS.sin(LJS.timeReal * 0.1))
+    ),
+    LJS.mainCanvasSize.scale(0.1),
+    tile(vec2(), vec2(512), 3),
+    rgba(
+      255,
+      255,
+      255,
+      LJS.lerp(0.2, 0.5, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
+    ),
+    Math.PI,
+    false,
+    rgba(
+      0,
+      119,
+      255,
+      LJS.lerp(0.02, 0.05, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
+    )
+  );
   // called after objects are rendered
   // draw effects or hud that appear above all objects
   // LJS.drawText(
@@ -209,5 +260,5 @@ LJS.engineInit(
   gameUpdatePost,
   gameRender,
   gameRenderPost,
-  ["frames.png", "frames_tummy.png", "objects.png"]
+  ["frames.png", "frames_tummy.png", "objects.png", "caustic4.png"]
 );
