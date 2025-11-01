@@ -2,7 +2,7 @@ import { engineAddPlugin } from "littlejsengine";
 
 type n = number;
 type t = number;
-type f = (x: n) => n;
+type f = (x: n) => any;
 
 /**
  * Author: [EthanSuperior](https://github.com/EthanSuperior)
@@ -14,7 +14,7 @@ export class Tween {
   life: t;
   delta: number;
   fn: (x: t) => any;
-  then: (f: f) => this;
+  then: (f?: () => any) => this;
   setEase: (f: f) => this;
   ease = (t: number) => t;
 
@@ -48,7 +48,7 @@ export class Tween {
     this.delta = this.end - this.start;
     this.fn = fn;
     // Callback for when Tween is completed
-    this.then = (f) => ((this.then = f), this);
+    this.then = (f) => ((this.then = f!), this);
     this.setEase = (f) => ((this.ease = f), this);
     Tween.active.push(this);
     this.fn(this.interp(this.duration));
@@ -81,7 +81,7 @@ export class Tween {
     }
     if (--n == 0) return () => {};
     else if (n) return repeat;
-    else Tween.Loop(Infinity).call(this);
+    else Tween.Loop(Infinity)?.call(this);
   };
 
   static PingPong = function (n: number) {
@@ -92,7 +92,7 @@ export class Tween {
     }
     if (--n == 0) return () => {};
     else if (n) return repeat;
-    else Tween.PingPong(Infinity).call(this);
+    else Tween.PingPong(Infinity)?.call(this);
   };
 }
 

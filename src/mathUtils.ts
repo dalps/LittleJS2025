@@ -35,6 +35,33 @@ export function LOG(msg: string) {
 export const lerpVec2 = (start: LJS.Vector2, end: LJS.Vector2, value: number) =>
   start.add(end.subtract(start).scale(value));
 
+export const lerpVec2InPlace = (
+  start: LJS.Vector2,
+  end: LJS.Vector2,
+  t: number
+) => {
+  start.x = (1 - t) * start.x + t * end.x;
+  start.y = (1 - t) * start.y + t * end.y;
+  return start;
+};
+
+export const damp = (start: number, end: number, dt: number, lambda = 1) =>
+  LJS.lerp(start, end, 1 - Math.exp(-lambda * dt));
+
+export const dampVec2 = (
+  start: LJS.Vector2,
+  end: LJS.Vector2,
+  dt: number,
+  lambda = 1
+) => lerpVec2(start, end, 1 - Math.exp(-lambda * dt));
+
+export const dampVec2InPlace = (
+  start: LJS.Vector2,
+  end: LJS.Vector2,
+  dt: number,
+  lambda = 1
+) => lerpVec2InPlace(start, end, 1 - Math.exp(-lambda * dt));
+
 export const polar = vec2;
 export const polar2cart = (p: LJS.Vector2, c = vec2()) =>
   c.add(vec2().setAngle(p.x, p.y));

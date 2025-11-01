@@ -1,36 +1,14 @@
 import * as LJS from "littlejsengine";
-import { font } from "./main";
+import { font, titleMenu } from "./main";
 const { vec2, rgb, hsl } = LJS;
 
-export let titleMenu: LJS.UIObject;
 export let colorPickerMenu: LJS.UIObject;
 export let colorPickerBtn: LJS.UIObject;
 export let playerColor: LJS.Color;
 export let startBtn: LJS.UIButton;
 
-export function createTitleUI() {
-  titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
-
+export function createStartMenu() {
   createColorPickerUI();
-
-  let title = new LJS.UIText(
-    vec2(0, -100),
-    vec2(900, 90),
-    "Small Row",
-    "center"
-  );
-  let subtitle = new LJS.UIText(
-    vec2(0, 70),
-    vec2(900, 20),
-    "Rhythm Heaven copycat · made for LittleJS 2025",
-    "center"
-  );
-
-  title.textLineColor = LJS.WHITE;
-  title.textLineWidth = 2;
-  title.textColor = subtitle.textColor = LJS.WHITE;
-
-  title.addChild(subtitle);
 
   startBtn = new LJS.UIButton(vec2(0, 200), vec2(200, 50), "Start", LJS.CYAN);
 
@@ -51,7 +29,6 @@ export function createTitleUI() {
     colorPickerBtn.lineColor = LJS.BLACK;
   };
 
-  titleMenu.addChild(title);
   titleMenu.addChild(startBtn);
   titleMenu.addChild(colorPickerBtn);
 }
@@ -122,4 +99,23 @@ function createColorPickerUI() {
       );
     }
   }
+}
+
+export let pauseMenu: LJS.UIObject;
+export let quitBtn: LJS.UIObject;
+export let resumeBtn: LJS.UIObject;
+
+export function createPauseMenu() {
+  pauseMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
+
+  const text = new LJS.UIText(vec2(0, -100), vec2(1000, 50), "PAUSE");
+
+  text.textColor = LJS.WHITE;
+
+  resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
+  quitBtn = new LJS.UIButton(vec2(0, 215), vec2(200, 50), "Quit", LJS.RED);
+
+  pauseMenu.addChild(text);
+  pauseMenu.addChild(quitBtn);
+  pauseMenu.addChild(resumeBtn);
 }
