@@ -234,7 +234,7 @@ function startGame() {
   const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.1));
   metronome = new Metronome(metronomePos, globalBeat);
 
-  if (LJS.keyIsDown) gameState = GameState.Game;
+  gameState = GameState.Game;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -259,7 +259,8 @@ function gameUpdate() {
       awaitClick();
       break;
     case GameState.Title:
-      LJS.setCameraPos(autoMicrobes[1].pos);
+      LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
+      // LJS.setCameraPos(autoMicrobes[1].pos);
       break;
     case GameState.Game:
       // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
@@ -284,11 +285,12 @@ function gameRender() {
       loadingBtn.text = `Loading music: ${loadedPercent}%`;
       break;
 
+    case GameState.Game:
     case GameState.Title:
       const t = LJS.timeReal * 0.3;
       LJS.drawTile(
         LJS.cameraPos.scale(0.7).add(vec2(-LJS.cos(t), LJS.sin(-t))),
-        LJS.mainCanvasSize.scale(0.1),
+        vec2(LJS.mainCanvasSize.scale(0.1).x),
         tile(vec2(), vec2(512), 3),
         rgba(
           255,
@@ -319,7 +321,7 @@ function gameRenderPost() {
   // draw effects or hud that appear above all objects
   LJS.drawTile(
     LJS.cameraPos.scale(0.9).add(vec2(LJS.cos(t), LJS.sin(t))),
-    LJS.mainCanvasSize.scale(0.1),
+    vec2(LJS.mainCanvasSize.scale(0.1).x),
     tile(vec2(), vec2(512), 3),
     rgba(
       255,

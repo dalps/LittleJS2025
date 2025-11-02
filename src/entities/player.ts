@@ -1,7 +1,7 @@
 import * as LJS from "littlejsengine";
 import { globalBeat, metronome, tileSize } from "../main";
 import { accuracy, MyParticle } from "../mathUtils";
-import { Microbe } from "./microbe";
+import { Microbe, swimAccel } from "./microbe";
 import { defaultMetronomePattern } from "../metronome";
 
 const { vec2, rgb } = LJS;
@@ -73,7 +73,7 @@ export class Player extends Microbe {
     pos: LJS.Vector2,
     leader: Microbe,
     number = 1,
-    beat = globalBeat,
+    beat = globalBeat
   ) {
     super(pos, leader, number, beat);
 
@@ -85,7 +85,7 @@ export class Player extends Microbe {
   bump(other: Microbe): void {
     super.bump(other);
 
-    this.applyForce(vec2(other.phi > this.phi ? -0.5 : 1, 0));
+    this.applyForce(swimAccel.scale(other.phi > this.phi ? -1 : 1));
   }
 
   update(): void {
@@ -96,7 +96,7 @@ export class Player extends Microbe {
       const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
       const speed = LJS.lerp(0.005, 0.05, 1 - acc);
 
-      this.swim();
+      // this.swim();
 
       if (acc < perfectThreshold) {
         firework(pos, acc, 10, undefined, undefined, speed, 0.05);

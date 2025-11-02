@@ -27,6 +27,12 @@ export function formatTime(t: number, timePrecision = 3) {
     .padStart(3, "0")}`;
 }
 
+export const formatDegrees = (d: number) =>
+  `${(((d * RAD2DEG) >> 0) + 360) % 360}`;
+
+export const formatPolar = ({ x: phi, y: dist }: LJS.Vector2) =>
+  `(${formatDegrees(phi)}°, ${dist.toFixed(3)})`;
+
 export function LOG(msg: string) {
   const t = LJS.audioContext.currentTime;
   console.log(`[${formatTime(t)}] ${msg}`);

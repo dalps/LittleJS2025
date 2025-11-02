@@ -2,11 +2,20 @@ import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
 import { type BeatCount } from "../beat";
 import { globalBeat, spriteAtlas, tileSize } from "../main";
-import { DEG2RAD, lerpVec2, LOG, MyParticle, polar2cart } from "../mathUtils";
+import {
+  DEG2RAD,
+  formatPolar,
+  formatDegrees,
+  lerpVec2,
+  LOG,
+  MyParticle,
+  polar2cart,
+} from "../mathUtils";
 import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
-const swimAccel = vec2(0.2, 0.1);
+export const swimAccel = vec2(10 * DEG2RAD, 0.1);
+export const minRadius = 2;
 
 export class Microbe extends LJS.EngineObject {
   orbitCenter: LJS.Vector2 = vec2();
@@ -119,11 +128,15 @@ export class Microbe extends LJS.EngineObject {
     this.tileInfo = anim.getFrame(spriteAtlas[name]);
     const tummyTileInfo = anim.getFrame(spriteAtlas[`${name}_tummy`]);
 
-    // if (this.isLeader())
-    //   LJS.drawCircle(lerpVec2(this.orbitCenter, this.pos, 0.5), 1, LJS.YELLOW);
+    LJS.debugText(formatPolar(this.polarPos), this.pos.add(vec2(0, 1)), 0.5);
 
-    // LJS.drawLine(this.orbitCenter, this.pos, 0.1, LJS.BLUE);
-    // LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
+    LJS.drawLine(
+      this.orbitCenter,
+      this.pos,
+      0.1,
+      this.isLeader() ? LJS.YELLOW : LJS.BLUE
+    );
+    LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
     LJS.drawTile(
       this.pos,
       this.drawSize,
@@ -172,14 +185,16 @@ export class Microbe extends LJS.EngineObject {
       if (this.leader.turnSignal === this.number + 1) {
         this.orbitCenter = this.leader.orbitCenter;
         this.direction = this.leader.direction;
-        console.log(this.leader.turnPhi);
         this.phi = this.leader.turnPhi;
         // const v1 = this.leader.pos.subtract(this.leader.orbitCenter);
         // const v2 = this.pos.subtract(this.leader.orbitCenter);
         // this.phi = Math.acos(v1.dot(v2) / (v1.length() * v2.length()));
         // this.dist = v2.length();
       }
-    } else this.turnSignal++;
+    } else {
+      if (this.dist < minRadius) this.newCenter();
+      this.turnSignal++;
+    }
 
     this.applyForce(swimAccel.scale(this.direction));
 
