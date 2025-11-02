@@ -42,7 +42,7 @@ export class Metronome extends LJS.UIObject {
     );
 
     beat.onpattern(pattern, (note) => {
-      LOG("[metronome] tic");
+      // LOG("[metronome] tic");
       sfx.tic.play(undefined, note ? 0.5 : 0, note);
     });
   }

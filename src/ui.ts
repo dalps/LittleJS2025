@@ -1,5 +1,5 @@
 import * as LJS from "littlejsengine";
-import { font, titleMenu } from "./main";
+import { font, titleObj } from "./main";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
@@ -18,7 +18,7 @@ export function createStartMenu() {
   colorPickerBtn.cornerRadius = 10;
   colorPickerBtn.onClick = () => {
     colorPickerMenu.visible = true;
-    titleMenu.visible = false;
+    titleObj.visible = false;
     colorPickerBtn.lineColor = LJS.BLACK;
   };
 
@@ -29,8 +29,8 @@ export function createStartMenu() {
     colorPickerBtn.lineColor = LJS.BLACK;
   };
 
-  titleMenu.addChild(startBtn);
-  titleMenu.addChild(colorPickerBtn);
+  titleObj.addChild(startBtn);
+  titleObj.addChild(colorPickerBtn);
 }
 
 function createColorPickerUI() {
@@ -65,7 +65,7 @@ function createColorPickerUI() {
       colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor = color;
       colorPickerBtn.text = text ?? "";
       colorPickerMenu.visible = false;
-      titleMenu.visible = true;
+      titleObj.visible = true;
       btn.lineColor = LJS.BLACK;
     };
 

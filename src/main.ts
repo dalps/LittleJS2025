@@ -2,13 +2,12 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import { Beat } from "./beat";
 import type { Microbe } from "./entities/microbe";
 import { AutoMicrobe } from "./entities/microbe_auto";
 import { Player } from "./entities/player";
 import { DEG2RAD, polar, rgba } from "./mathUtils";
-import { Metronome } from "./metronome";
-import { songs } from "./music";
+import type { Song } from "./music";
+import * as songs from "./songs";
 import { Ease, Tween } from "./tween";
 import {
   colorPickerBtn,
@@ -21,8 +20,6 @@ import {
 } from "./ui";
 const { vec2, rgb, tile, time } = LJS;
 
-export let pauseBtn: LJS.UIObject;
-
 enum GameState {
   Loading,
   AwaitClick,
@@ -31,18 +28,16 @@ enum GameState {
   Paused,
 }
 
-export let globalBeat: Beat;
-export let metronome: Metronome;
-export let titleSong: LJS.SoundWave;
-export let musicInstance: LJS.SoundInstance;
 export let gameState: GameState = GameState.Loading;
-export let currentSong: keyof typeof songs = "stardustMemories";
+export let currentSong: Song;
+export let titleSong: Song;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
 export let center: LJS.Vector2;
+let leader: AutoMicrobe | undefined;
 
 let matrixParticles: LJS.ParticleEmitter;
 let musicVolume = 1;
@@ -52,10 +47,10 @@ let player: Player;
 let bubbles: {} = [];
 let autoMicrobes: Microbe[] = [];
 
-export let titleMenu: LJS.UIObject;
+// ui
+export let pauseBtn: LJS.UIObject;
+export let titleObj: LJS.UIObject;
 let loadingBtn: LJS.UIButton;
-let textColor = rgba(0, 0, 0, 1);
-let leader: AutoMicrobe | undefined;
 let foregroundCausticPos: LJS.Vector2 = vec2();
 let backgroundCausticPos: LJS.Vector2 = vec2();
 
@@ -68,10 +63,12 @@ function loadAssets() {
   });
 
   spriteAtlas["bubble"] = tile(0, tileSize, 2);
-  titleSong = new LJS.SoundWave(songs[currentSong].filename);
 
-  titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
-  let title = new LJS.UIText(
+  songs.initSongs();
+  currentSong = titleSong = songs.paarynasAllrite!;
+
+  titleObj = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
+  let titleText = new LJS.UIText(
     vec2(0, -100),
     vec2(900, 90),
     "Small Row",
@@ -84,12 +81,12 @@ function loadAssets() {
     "center"
   );
 
-  title.textLineColor = LJS.WHITE;
-  title.textLineWidth = 2;
-  title.textColor = subtitle.textColor = LJS.WHITE;
+  titleText.textLineColor = LJS.WHITE;
+  titleText.textLineWidth = 2;
+  titleText.textColor = subtitle.textColor = LJS.WHITE;
 
-  title.addChild(subtitle);
-  titleMenu.addChild(title);
+  titleText.addChild(subtitle);
+  titleObj.addChild(titleText);
 
   loadingBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
@@ -169,14 +166,13 @@ function titleScreen() {
   gameState = GameState.Title;
 
   pauseMenu.visible = false;
-  titleMenu.visible = true;
+  titleObj.visible = true;
 
   createStartMenu();
 
   startBtn.onClick = startGame;
 
-  globalBeat = new Beat(songs[currentSong].bpm, 4, 1);
-
+  currentSong?.show();
   LJS.setTouchInputEnable(true);
   LJS.setSoundVolume(0);
 
@@ -193,10 +189,14 @@ function titleScreen() {
     bubbles.push({ size, pos });
   }
 
-  globalBeat.play();
+  currentSong?.play();
 }
 
 function startGame() {
+  currentSong.stop();
+  currentSong = songs.stardustMemories!;
+  currentSong.show();
+
   pauseBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
     vec2(50, 50),
@@ -208,12 +208,13 @@ function startGame() {
 
     pauseMenu.visible = true;
     pauseBtn.visible = false;
-    globalBeat.stop();
+    currentSong?.stop();
   };
 
   quitBtn.onClick = () => {
     clearRow();
-    metronome.destroy();
+    player.destroy();
+    currentSong = titleSong;
     titleScreen();
   };
 
@@ -222,17 +223,17 @@ function startGame() {
 
     pauseMenu.visible = false;
     pauseBtn.visible = true;
-    globalBeat.play();
+    currentSong?.play();
   };
 
   clearRow();
   makeRow({ playerIdx: 1 });
+
+  currentSong = songs.stardustMemories!;
+  currentSong.addMetronome();
   player.color = colorPickerBtn.color;
 
-  titleMenu.visible = false;
-
-  const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.1));
-  metronome = new Metronome(metronomePos, globalBeat);
+  titleObj.visible = false;
 
   gameState = GameState.Game;
 }
@@ -255,8 +256,7 @@ function gameInit() {
 function gameUpdate() {
   switch (gameState) {
     case GameState.Loading:
-      // if (titleSong.isLoaded())
-      awaitClick();
+      if (currentSong?.sound?.isLoaded()) awaitClick();
       break;
     case GameState.Title:
       LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
@@ -281,7 +281,7 @@ function gameRender() {
   // draw any background effects that appear behind objects
   switch (gameState) {
     case GameState.Loading:
-      const loadedPercent = (titleSong.loadedPercent * 100) | 0;
+      const loadedPercent = (currentSong.sound.loadedPercent * 100) | 0;
       loadingBtn.text = `Loading music: ${loadedPercent}%`;
       break;
 

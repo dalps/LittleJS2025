@@ -1,7 +1,7 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
-import { type BeatCount } from "../beat";
-import { globalBeat, spriteAtlas, tileSize } from "../main";
+import { Beat, type BeatCount } from "../beat";
+import { spriteAtlas, tileSize } from "../main";
 import {
   DEG2RAD,
   formatPolar,
@@ -69,8 +69,8 @@ export class Microbe extends LJS.EngineObject {
   constructor(
     public polarPos: LJS.Vector2,
     public leader?: Microbe,
-    public number = 0,
-    public beat = globalBeat
+    public rowIdx = 0,
+    public beat?: Beat
   ) {
     super(polar2cart(polarPos));
 
@@ -93,7 +93,7 @@ export class Microbe extends LJS.EngineObject {
     this.bubbleEmitter.emitConeAngle = 30;
     // this.bubbleEmitter.particleDestroyCallback = () => sfx.bubble2.play(this.pos);
 
-    this.beat.onbeat(this.onbeat.bind(this));
+    this.beat?.onbeat(this.onbeat.bind(this));
 
     this.setCollision();
   }
@@ -182,7 +182,7 @@ export class Microbe extends LJS.EngineObject {
 
     // move forward
     if (this.leader) {
-      if (this.leader.turnSignal === this.number + 1) {
+      if (this.leader.turnSignal === this.rowIdx + 1) {
         this.orbitCenter = this.leader.orbitCenter;
         this.direction = this.leader.direction;
         this.phi = this.leader.turnPhi;
