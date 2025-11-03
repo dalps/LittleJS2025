@@ -2,8 +2,7 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import type { Microbe } from "./entities/microbe";
-import { AutoMicrobe } from "./entities/microbe_auto";
+import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import { DEG2RAD, polar, rgba } from "./mathUtils";
 import type { Song } from "./music";
@@ -37,7 +36,7 @@ export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
 export let center: LJS.Vector2;
-let leader: AutoMicrobe | undefined;
+let leader: Microbe | undefined;
 
 let matrixParticles: LJS.ParticleEmitter;
 let musicVolume = 1;
@@ -143,15 +142,15 @@ function makeRow({
   playerIdx = -1,
   length = 3,
 } = {}) {
-  leader = new AutoMicrobe(vec2(0, startDist));
+  leader = new Microbe(vec2(0, startDist), undefined, 0, currentSong);
   autoMicrobes.push(leader);
 
   for (let i = 1; i < length; i++) {
     const startPos = polar(startAngle + angleDelta * -i, startDist);
     const m =
       i === playerIdx
-        ? (player = new Player(startPos, leader, i))
-        : new AutoMicrobe(startPos, leader, i);
+        ? (player = new Player(startPos, leader, i, currentSong))
+        : new Microbe(startPos, leader, i, currentSong);
 
     autoMicrobes.push(m);
   }

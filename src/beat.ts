@@ -158,6 +158,7 @@ export class Beat {
 
   stop() {
     this.timerWorker?.postMessage("stop");
+    this.listeners.splice(0);
     this._isPlaying = false;
   }
 }

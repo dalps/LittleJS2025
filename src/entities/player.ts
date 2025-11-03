@@ -4,6 +4,7 @@ import { accuracy, MyParticle } from "../mathUtils";
 import { Microbe, swimAccel } from "./microbe";
 import { defaultMetronomePattern } from "../metronome";
 import type { Beat } from "../beat";
+import type { Song } from "../music";
 
 const { vec2, rgb } = LJS;
 
@@ -70,10 +71,10 @@ export const firework = (
 };
 
 export class Player extends Microbe {
-  constructor(pos: LJS.Vector2, leader: Microbe, number = 1, beat?: Beat) {
-    super(pos, leader, number, beat);
+  constructor(pos: LJS.Vector2, leader: Microbe, number = 1, song?: Song) {
+    super(pos, leader, number, song);
 
-    this.beat?.onpattern(defaultMetronomePattern, (note) => {
+    this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
       note && this.idle();
     });
   }

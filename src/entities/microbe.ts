@@ -1,6 +1,6 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
-import { Beat, type BeatCount } from "../beat";
+import { BarSequencing, Beat, type BeatCount } from "../beat";
 import { spriteAtlas, tileSize } from "../main";
 import {
   DEG2RAD,
@@ -12,6 +12,7 @@ import {
   polar2cart,
 } from "../mathUtils";
 import { sfx } from "../sfx";
+import type { Song } from "../music";
 const { vec2, rgb } = LJS;
 
 export const swimAccel = vec2(10 * DEG2RAD, 0.1);
@@ -32,6 +33,8 @@ export class Microbe extends LJS.EngineObject {
 
   turnSignal = 0;
   turnPhi;
+
+  actions = [this.idle, this.swim, () => (this.newCenter(), this.swim())];
 
   get phi() {
     return this.polarPos.x;
@@ -70,7 +73,7 @@ export class Microbe extends LJS.EngineObject {
     public polarPos: LJS.Vector2,
     public leader?: Microbe,
     public rowIdx = 0,
-    public beat?: Beat
+    public song?: Song
   ) {
     super(polar2cart(polarPos));
 
@@ -93,7 +96,12 @@ export class Microbe extends LJS.EngineObject {
     this.bubbleEmitter.emitConeAngle = 30;
     // this.bubbleEmitter.particleDestroyCallback = () => sfx.bubble2.play(this.pos);
 
-    this.beat?.onbeat(this.onbeat.bind(this));
+    // this.beat?.onbeat(this.onbeat.bind(this));
+    this.song?.beat?.onpattern(
+      this.song.choreography,
+      (note) => note !== undefined && this.actions.at(note)?.call(this),
+      BarSequencing.Loop
+    );
 
     this.setCollision();
   }
@@ -128,15 +136,16 @@ export class Microbe extends LJS.EngineObject {
     this.tileInfo = anim.getFrame(spriteAtlas[name]);
     const tummyTileInfo = anim.getFrame(spriteAtlas[`${name}_tummy`]);
 
-    LJS.debugText(formatPolar(this.polarPos), this.pos.add(vec2(0, 1)), 0.5);
+    // LJS.debugText(formatPolar(this.polarPos), this.pos.add(vec2(0, 1)), 0.5);
 
-    LJS.drawLine(
-      this.orbitCenter,
-      this.pos,
-      0.1,
-      this.isLeader() ? LJS.YELLOW : LJS.BLUE
-    );
-    LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
+    // LJS.drawLine(
+    //   this.orbitCenter,
+    //   this.pos,
+    //   0.1,
+    //   this.isLeader() ? LJS.YELLOW : LJS.BLUE
+    // );
+    // LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
+
     LJS.drawTile(
       this.pos,
       this.drawSize,
