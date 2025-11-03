@@ -2,8 +2,8 @@ import * as LJS from "littlejsengine";
 import { Beat, type Pattern } from "./beat";
 import { Metronome } from "./metronome";
 import { tileSize } from "./main";
-import { Tween } from "./tween";
-import { DEG2RAD } from "./mathUtils";
+import { Ease, Tween } from "./tween";
+import { DEG2RAD, rgba } from "./mathUtils";
 const { vec2, rgb, tile } = LJS;
 
 export class Song {
@@ -11,6 +11,7 @@ export class Song {
   title: string;
   author: string;
   year: string;
+  href: string;
 
   // music
   beat: Beat;
@@ -29,6 +30,7 @@ export class Song {
       title = "",
       author = "",
       year = "",
+      href = "",
       beats = 4,
       subs = 1,
       onLoad = () => {},
@@ -47,6 +49,7 @@ export class Song {
     this.title = title;
     this.author = author;
     this.year = year;
+    this.href = href;
   }
 
   /**
@@ -77,29 +80,63 @@ export class Song {
   }
 
   show(pos = LJS.mainCanvasSize.multiply(vec2(0.1, 0.9))) {
-    this.songContainer = new LJS.UIObject(pos);
+    const size = vec2(200, 100);
+    this.songContainer = new LJS.UIButton(pos, size);
+
+    new Tween(
+      (t) => (this.songContainer!.pos.x = t),
+      -200,
+      LJS.mainCanvasSize.x * 0.1,
+      100
+    ).setEase(Ease.OUT(Ease.EXPO));
+
+    this.songContainer.render = () => {
+      LJS.drawRectGradient(
+        this.songContainer.pos.add(vec2(8)),
+        vec2(50, 200),
+        rgba(255, 255, 255, 0.37),
+        LJS.CLEAR_WHITE,
+        90 * DEG2RAD,
+        true,
+        true
+      );
+    };
+
+    this.songContainer.onClick = () => {
+      open(this.href, "_blank", "noopener,noreferrer");
+    };
+
+    this.songContainer.onEnter = () => {
+      document.body.style.cursor = "pointer";
+    };
+
+    this.songContainer.onLeave = () => {
+      document.body.style.cursor = "initial";
+    };
 
     let titleText = new LJS.UIText(vec2(), vec2(100, 20), this.title);
     let authorText = new LJS.UIText(vec2(0, 20), vec2(100, 14), this.author);
 
     titleText.fontStyle = "italic";
     titleText.align = authorText.align = "left";
-    titleText.lineWidth = authorText.lineWidth = 0.1;
     titleText.textColor = authorText.textColor = LJS.WHITE;
-    titleText.lineColor = authorText.lineColor = LJS.BLACK;
+    titleText.lineColor = authorText.lineColor = LJS.CLEAR_WHITE;
+    titleText.textLineWidth = authorText.textLineWidth = 3;
+    titleText.textLineColor = authorText.textLineColor = LJS.BLACK;
 
+    const musicalNoteColor = rgba(255, 255, 255, 0.7);
     let musicalNotes: LJS.UITile[] = [
       new LJS.UITile(
-        vec2(-45, 0),
+        vec2(-45, 5),
         vec2(25),
         tile(vec2(7, 1), tileSize, 2),
-        LJS.randColor()
+        musicalNoteColor
       ),
       new LJS.UITile(
-        vec2(-25, 10),
+        vec2(-25, 12.5),
         vec2(30),
         tile(vec2(8, 1), tileSize, 2),
-        LJS.randColor()
+        musicalNoteColor
       ),
     ];
 

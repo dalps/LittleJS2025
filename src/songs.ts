@@ -9,6 +9,7 @@ export function initSongs() {
     title: "Paaryna's allrite",
     author: "DIZZY / CNDC",
     year: "1995",
+    href: "https://modarchive.org/index.php?request=view_by_moduleid&query=90188",
   });
 
   // prettier-ignore
@@ -39,6 +40,7 @@ export function initSongs() {
     title: "Stardust Memories",
     author: "Jester / Sanity",
     year: "1992",
+    href: "https://modarchive.org/index.php?request=view_by_moduleid&query=59344",
     choreography: [
       repeat([p2, p3, p3, p3], 4).flat(),
       repeat(p2, 16),
