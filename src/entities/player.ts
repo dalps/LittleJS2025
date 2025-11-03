@@ -31,7 +31,7 @@ export const firework = (
   const size2 = LJS.lerp(0.5, 1, 1 - acc);
   const mkSizeFunc = (maxSize: number) => (t: number) =>
     Math.sin(t * Math.PI) * maxSize;
-  const tileInfo = LJS.tile(vec2(13, 0), tileSize, 2);
+  const tileInfo = LJS.tile(vec2(2, 1), tileSize, 2);
 
   for (let i = 0, phi = 0; i < n; i++, phi += (Math.PI * 2) / n) {
     const colorStart =

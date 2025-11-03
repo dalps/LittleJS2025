@@ -1,7 +1,10 @@
 import * as LJS from "littlejsengine";
 import { Beat, type Pattern } from "./beat";
 import { Metronome } from "./metronome";
-const { vec2, rgb } = LJS;
+import { tileSize } from "./main";
+import { Tween } from "./tween";
+import { DEG2RAD } from "./mathUtils";
+const { vec2, rgb, tile } = LJS;
 
 export class Song {
   // metadata
@@ -64,7 +67,7 @@ export class Song {
 
   stop() {
     this.beat?.stop();
-    this.songContainer?.destroy()
+    this.songContainer?.destroy();
     this.soundInstance?.stop();
   }
 
@@ -85,6 +88,27 @@ export class Song {
     titleText.textColor = authorText.textColor = LJS.WHITE;
     titleText.lineColor = authorText.lineColor = LJS.BLACK;
 
+    let musicalNotes: LJS.UITile[] = [
+      new LJS.UITile(
+        vec2(-45, 0),
+        vec2(25),
+        tile(vec2(7, 1), tileSize, 2),
+        LJS.randColor()
+      ),
+      new LJS.UITile(
+        vec2(-25, 10),
+        vec2(30),
+        tile(vec2(8, 1), tileSize, 2),
+        LJS.randColor()
+      ),
+    ];
+
+    musicalNotes.forEach((n, idx) => {
+      this.songContainer?.addChild(n);
+      new Tween((t) => (n.angle = t), -15 * DEG2RAD, 15 * DEG2RAD, 50).then(
+        Tween.PingPong
+      );
+    });
     this.songContainer.addChild(titleText);
     this.songContainer.addChild(authorText);
   }
