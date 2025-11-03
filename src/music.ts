@@ -22,6 +22,7 @@ export class Song {
   // ui
   metronome?: Metronome;
   songContainer?: LJS.UIObject;
+  unlocked = false;
 
   constructor(
     public filename: string,
@@ -58,7 +59,20 @@ export class Song {
   play() {
     if (!this.sound?.isLoaded()) return;
 
-    this.soundInstance = this.beat?.play(this.sound);
+    if (!this.unlocked) {
+      // play silent buffer to unlock the audio
+      const buffer = LJS.audioContext.createBuffer(1, 1, 22050);
+      const node = LJS.audioContext.createBufferSource();
+      node.buffer = buffer;
+      node.start(0);
+      this.unlocked = true;
+    }
+
+    
+    if (this.soundInstance) this.soundInstance.stop();
+    this.soundInstance = this.sound.playMusic();
+    
+    this.beat?.play();
   }
 
   /**
@@ -70,6 +84,7 @@ export class Song {
 
   stop() {
     this.beat?.stop();
+    this.metronome?.destroy();
     this.songContainer?.destroy();
     this.soundInstance?.stop();
   }
@@ -80,7 +95,7 @@ export class Song {
   }
 
   show(pos = LJS.mainCanvasSize.multiply(vec2(0.1, 0.9))) {
-    const size = vec2(200, 100);
+    const size = vec2(200, 50);
     this.songContainer = new LJS.UIButton(pos, size);
 
     new Tween(

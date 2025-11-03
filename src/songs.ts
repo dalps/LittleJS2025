@@ -5,9 +5,9 @@ export let paarynasAllrite: Song | undefined;
 export let stardustMemories: Song | undefined;
 
 export function initSongs() {
-  paarynasAllrite = new Song("/songs/paarynas-allrite.mp3", 102, {
+  paarynasAllrite = new Song("/songs/paarynas-allrite.mp3", 102.5, {
     title: "Paaryna's allrite",
-    author: "DIZZY / CNDC",
+    author: "by DIZZY / CNDC",
     year: "1995",
     href: "https://modarchive.org/index.php?request=view_by_moduleid&query=90188",
   });
@@ -38,7 +38,7 @@ export function initSongs() {
 
   stardustMemories = new Song("/songs/stardustmemories.mp3", 125, {
     title: "Stardust Memories",
-    author: "Jester / Sanity",
+    author: "by Jester / Sanity",
     year: "1992",
     href: "https://modarchive.org/index.php?request=view_by_moduleid&query=59344",
     choreography: [

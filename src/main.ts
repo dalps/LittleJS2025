@@ -30,7 +30,7 @@ enum GameState {
 
 export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
-export let titleSong: Song;
+export let titleSong: keyof typeof songs;
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 export const font = "Averia Sans Libre";
@@ -172,9 +172,13 @@ function titleScreen() {
 
   startBtn.onClick = startGame;
 
+  currentSong = songs.paarynasAllrite!;
+  currentSong.addMetronome();
+  currentSong?.play();
   currentSong?.show();
+
   LJS.setTouchInputEnable(true);
-  LJS.setSoundVolume(0);
+  LJS.setSoundVolume(1);
 
   makeRow();
 
@@ -194,8 +198,10 @@ function titleScreen() {
 
 function startGame() {
   currentSong.stop();
+
   currentSong = songs.stardustMemories!;
   currentSong.show();
+  currentSong.play();
 
   pauseBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
@@ -214,7 +220,7 @@ function startGame() {
   quitBtn.onClick = () => {
     clearRow();
     player.destroy();
-    currentSong = titleSong;
+    currentSong = songs[titleSong];
     titleScreen();
   };
 

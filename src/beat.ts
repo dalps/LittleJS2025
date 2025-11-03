@@ -40,7 +40,6 @@ export class Beat {
 
   delta: number;
   private _isPlaying: boolean = false;
-  unlocked = false;
 
   constructor(public bpm = 60, public beats = 4, public subs = 1) {
     this.delta = bpm && subs ? 60 / (bpm * subs) : 1;
@@ -148,23 +147,13 @@ export class Beat {
     return this._isPlaying;
   }
 
-  play(music?: LJS.SoundWave): LJS.SoundInstance | undefined {
+  play() {
     if (this.isPlaying()) return;
-
-    if (!this.unlocked) {
-      // play silent buffer to unlock the audio
-      const buffer = LJS.audioContext.createBuffer(1, 1, 22050);
-      const node = LJS.audioContext.createBufferSource();
-      node.buffer = buffer;
-      node.start(0);
-      this.unlocked = true;
-    }
 
     this.timerWorker?.postMessage("start");
     this.barCount = this.beatCount = this.subCount = 0;
     this.nextNoteTime = LJS.audioContext.currentTime;
     this._isPlaying = true;
-    return music?.playMusic(1);
   }
 
   stop() {
