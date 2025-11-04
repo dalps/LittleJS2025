@@ -5,7 +5,7 @@ const { vec2, rgb, tile } = LJS;
 export const DEG2RAD = Math.PI / 180;
 export const RAD2DEG = 180 / Math.PI;
 
-export const rgba = (r: number, g: number, b: number, a: number | undefined) =>
+export const rgba = (r: number, g: number, b: number, a = 1) =>
   rgb(r / 255, g / 255, b / 255, a);
 
 export const setAlpha = (c: LJS.Color, a: number) =>
@@ -16,7 +16,19 @@ export const accuracy = (t: number) => Math.sin(t * Math.PI) ** 0.5;
 
 export const repeat = <T>(value: T, n: number): T[] => Array(n).fill(value);
 
-export function formatTime(t: number, timePrecision = 3) {
+/**
+ * Given a tile size and a position, figure out which quadrant of the tile we're in.
+ *
+ * The origin for `pos` is the top-left corner of the tile.
+ */
+export const getQuadrant = (size: LJS.Vector2, pos: LJS.Vector2) => {
+  const r = vec2(pos.x % size.x, pos.y % size.y);
+  const q = vec2((pos.x / size.x) >> 0, (pos.y / size.y) >> 0);
+
+  return [vec2(Math.sign(r.x - size.x / 2), Math.sign(r.y - size.y / 2)), q];
+};
+
+export const formatTime = (t: number, timePrecision = 3) => {
   const [min, sec, mil] = [t / 60, Math.trunc(t) % 60, t - Math.trunc(t)];
 
   return `${min.toFixed(0).padStart(2, "0")}:${sec
@@ -25,7 +37,7 @@ export function formatTime(t: number, timePrecision = 3) {
     .toFixed(timePrecision)
     .substring(2)
     .padStart(3, "0")}`;
-}
+};
 
 export const formatDegrees = (d: number) =>
   `${(((d * RAD2DEG) >> 0) + 360) % 360}`;

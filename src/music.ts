@@ -36,7 +36,7 @@ export class Song {
       subs = 1,
       onLoad = () => {},
       onEnd = () => {},
-      choreography = [],
+      choreography = [] as Pattern<number>,
     } = {}
   ) {
     this.beat = new Beat(bpm, beats, subs);
@@ -68,10 +68,9 @@ export class Song {
       this.unlocked = true;
     }
 
-    
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic();
-    
+
     this.beat?.play();
   }
 
@@ -92,6 +91,7 @@ export class Song {
   addMetronome() {
     const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.1));
     this.metronome = new Metronome(metronomePos, this.beat!);
+    this.metronome.show();
   }
 
   show(pos = LJS.mainCanvasSize.multiply(vec2(0.1, 0.9))) {

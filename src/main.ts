@@ -4,7 +4,7 @@
 import * as LJS from "littlejsengine";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
-import { DEG2RAD, polar, rgba } from "./mathUtils";
+import { DEG2RAD, getQuadrant, polar, rgba } from "./mathUtils";
 import type { Song } from "./music";
 import * as songs from "./songs";
 import { Ease, Tween } from "./tween";
@@ -172,7 +172,6 @@ function titleScreen() {
   startBtn.onClick = startGame;
 
   currentSong = songs.paarynasAllrite!;
-  currentSong.addMetronome();
   currentSong?.play();
   currentSong?.show();
 
@@ -200,6 +199,7 @@ function startGame() {
 
   currentSong = songs.stardustMemories!;
   currentSong.show();
+  currentSong.addMetronome();
   currentSong.play();
 
   pauseBtn = new LJS.UIButton(
@@ -293,25 +293,27 @@ function gameRender() {
     case GameState.Game:
     case GameState.Title:
       const t = LJS.timeReal * 0.3;
+
+      const color = rgba(255, 255, 255, 1);
+      color.a = LJS.lerp(0.2, 0.5, 0.5 - LJS.cos(LJS.timeReal) * 0.5);
+
+      const additiveColor = rgba(0, 119, 255, 1);
+      additiveColor.a = LJS.lerp(
+        0.02,
+        0.05,
+        0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5
+      );
+
       LJS.drawTile(
         LJS.cameraPos.scale(0.7).add(vec2(-LJS.cos(t), LJS.sin(-t))),
         vec2(LJS.mainCanvasSize.scale(0.1).x),
         tile(vec2(), vec2(512), 3),
-        rgba(
-          255,
-          255,
-          255,
-          LJS.lerp(0.2, 0.5, 0.5 - LJS.cos(LJS.timeReal) * 0.5)
-        ),
+        color,
         0,
         false,
-        rgba(
-          0,
-          119,
-          255,
-          LJS.lerp(0.02, 0.05, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
-        )
+        additiveColor
       );
+
       bubbles.forEach(({ pos, size }) =>
         LJS.drawTile(pos, size, spriteAtlas["bubble"])
       );
@@ -321,38 +323,41 @@ function gameRender() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameRenderPost() {
-  const t = LJS.timeReal * 0.1;
   // called after objects are rendered
   // draw effects or hud that appear above all objects
-  LJS.drawTile(
-    LJS.cameraPos.scale(0.9).add(vec2(LJS.cos(t), LJS.sin(t))),
-    vec2(LJS.mainCanvasSize.scale(0.1).x),
-    tile(vec2(), vec2(512), 3),
-    rgba(
-      255,
-      255,
-      255,
-      LJS.lerp(0.2, 0.5, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
-    ),
-    Math.PI,
-    false,
-    rgba(
-      0,
-      119,
-      255,
-      LJS.lerp(0.02, 0.05, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5)
-    )
+
+  const causticTileSize = vec2(512);
+  const causticRenderTileSize = vec2(LJS.mainCanvasSize.scale(0.1).x);
+  const t = LJS.timeReal * 0.1;
+  const [r, q] = getQuadrant(
+    causticRenderTileSize.scale(2),
+    LJS.cameraPos.subtract(causticRenderTileSize)
   );
-  // LJS.drawText(
-  //   "The mitochondrion is the partyhouse of the cell",
-  //   vec2(0.5, 0.5),
-  //   1,
-  //   LJS.WHITE,
-  //   undefined,
-  //   undefined,
-  //   "center",
-  //   font
-  // );
+
+  const color = rgba(255, 255, 255, 1);
+  color.a = LJS.lerp(0.2, 0.5, 0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5);
+
+  const additiveColor = rgba(0, 119, 255, 1);
+  additiveColor.a = LJS.lerp(
+    0.02,
+    0.05,
+    0.5 - LJS.cos(LJS.timeReal + Math.PI) * 0.5
+  );
+
+  for (let i = 0; i < 2; i++)
+    for (let j = 0; j < 2; j++) {
+      const offset = vec2(i, j).multiply(r).add(q);
+      // const pos2 = LJS.cameraPos; // .scale(0.9).add(vec2(LJS.cos(t), LJS.sin(t)));
+      LJS.drawTile(
+        causticRenderTileSize.multiply(offset),
+        causticRenderTileSize,
+        tile(vec2(), causticTileSize, 3),
+        color,
+        Math.PI,
+        false,
+        additiveColor
+      );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

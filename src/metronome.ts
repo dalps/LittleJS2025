@@ -45,6 +45,8 @@ export class Metronome extends LJS.UIObject {
       // LOG("[metronome] tic");
       sfx.tic.play(undefined, note ? 0.5 : 0, note);
     });
+
+    this.visible = false;
   }
 
   click(): number {
@@ -59,6 +61,10 @@ export class Metronome extends LJS.UIObject {
     );
 
     return timing;
+  }
+
+  show() {
+    this.visible = true;
   }
 
   render() {
