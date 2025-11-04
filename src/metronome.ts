@@ -15,12 +15,28 @@ const radiusSubBeat = 10;
 export const metronomeColor = LJS.rgb(1, 1, 0, 0.5);
 
 // prettier-ignore
+export const countInMetronomePattern = [
+  [
+    [2, ],
+    [ , ],
+    [2, ],
+    [ , ],
+  ],
+  [
+    [2, ],
+    [1, ],
+    [1, ],
+    [1, ],
+  ],
+];
+
+// prettier-ignore
 export const defaultMetronomePattern = [
   [
-    [2,],
-    [1,],
-    [2,],
-    [1,],
+    [2, ],
+    [1, ],
+    [2, ],
+    [1, ],
   ],
 ];
 
@@ -29,6 +45,8 @@ export const defaultMetronomePattern = [
  */
 export class Metronome extends LJS.UIObject {
   spacingSubBeat: number;
+  private beatHandle?: string;
+
   constructor(
     pos: LJS.Vector2,
     public beat: Beat,
@@ -41,12 +59,19 @@ export class Metronome extends LJS.UIObject {
       vec2((spacingBeat * beat.beats - this.spacingSubBeat) * 0.5, 0)
     );
 
-    beat.onpattern(pattern, (note) => {
-      // LOG("[metronome] tic");
-      sfx.tic.play(undefined, note ? 0.5 : 0, note);
-    });
-
     this.visible = false;
+  }
+
+  start() {
+    this.beatHandle = this.beat.onpattern(this.pattern, (note) => {
+      // LOG("[metronome] tic");
+      sfx.tic.play(LJS.cameraPos, note ? 0.5 : 0, note);
+    });
+  }
+
+  destroy(): void {
+    super.destroy();
+    this.beatHandle && this.beat.removeListener(this.beatHandle);
   }
 
   click(): number {

@@ -16,7 +16,7 @@ import type { Song } from "../music";
 const { vec2, rgb } = LJS;
 
 export const swimAccel = vec2(10 * DEG2RAD, 0.1);
-export const minRadius = 2;
+export const minRadius = 5;
 
 export class Microbe extends LJS.EngineObject {
   orbitCenter: LJS.Vector2 = vec2();
@@ -122,7 +122,8 @@ export class Microbe extends LJS.EngineObject {
     this.polarPos = this.polarPos.add(this.velocity);
 
     // smooth out radius differences
-    this.leader && (this.dist = LJS.lerp(this.dist, this.leader.dist, 0.01));
+    if (this.leader) this.dist = LJS.lerp(this.dist, this.leader.dist, 0.01);
+    this.dist = LJS.max(minRadius, this.dist)
 
     this.pos = polar2cart(this.polarPos, this.orbitCenter);
     this.angle = this.phi + this.direction * 90 * DEG2RAD;

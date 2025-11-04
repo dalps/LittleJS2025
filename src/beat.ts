@@ -3,7 +3,6 @@
 
 import * as LJS from "littlejsengine";
 import { accuracy, formatTime, LOG } from "./mathUtils";
-import BeatWorker from "./beatWorker?worker";
 const { vec2, rgb } = LJS;
 
 export type BeatCount = [number, number, number];
@@ -33,7 +32,7 @@ export class Beat {
   scheduleAheadTime = 0.5;
   nextNoteTime = 0.0;
 
-  listeners: BeatListener[] = [];
+  listeners: Map<string, BeatListener> = new Map();
   eventQueue: { fn: Function; time: number; arg: BeatCount }[] = [];
 
   timerWorker?: Worker; // The Web Worker used to fire timer messages
@@ -44,7 +43,9 @@ export class Beat {
   constructor(public bpm = 60, public beats = 4, public subs = 1) {
     this.delta = bpm && subs ? 60 / (bpm * subs) : 1;
 
-    this.timerWorker = new BeatWorker();
+    this.timerWorker = new Worker(new URL("./beatWorker.js", import.meta.url), {
+      type: "module",
+    });
 
     this.timerWorker.onmessage = (e: MessageEvent) => {
       if (e.data === "tick") this.scheduler();
@@ -69,7 +70,7 @@ export class Beat {
     while (this.nextNoteTime < this.time + this.scheduleAheadTime) {
       // schedule future events
       if (this.elapsed > 0)
-        for (let fn of this.listeners) {
+        for (let fn of this.listeners.values()) {
           // this.eventQueue.push({
           //   fn,
           //   time: this.nextNoteTime,
@@ -110,15 +111,45 @@ export class Beat {
     return accuracy(this.getPercent());
   }
 
-  onbeat(f: BeatListener) {
-    this.listeners.push(f);
+  private getId() {
+    return crypto.randomUUID();
   }
 
+  removeListener(id: string) {
+    this.listeners.delete(id);
+  }
+
+  /**
+   * Register a callback to be executed at every sub-beat
+   */
+  onbeat(fn: BeatListener): string {
+    let id = this.getId();
+    this.listeners.set(id, fn);
+    return id;
+  }
+
+  /**
+   * Register a callback to be executed once at a specific beat count
+   */
+  atbeat([beat, sub, bar]: BeatCount, fn: () => void): string {
+    let id = this.getId();
+    this.listeners.set(id, ([b, s, br]) => {
+      if (b === beat && s === sub && bar === br) {
+        fn();
+        this.listeners.delete(id);
+      }
+    });
+    return id;
+  }
+
+  /**
+   * Register a callback to be executed once at a specific beat count
+   */
   onpattern<T>(
     ptn: Pattern<T>,
     listener: PatternListener<T>,
     sequencing = BarSequencing.HoldLast
-  ) {
+  ): string {
     let nBars = ptn.length;
     let barPicker: (b: number) => number;
 
@@ -134,9 +165,11 @@ export class Beat {
         break;
     }
 
-    this.listeners.push(([beat, sub, bar]) =>
+    let id = this.getId();
+    this.listeners.set(id, ([beat, sub, bar]) =>
       listener(ptn.at(barPicker(bar))?.at(beat)?.at(sub))
     );
+    return id;
   }
 
   get count(): BeatCount {
@@ -158,7 +191,7 @@ export class Beat {
 
   stop() {
     this.timerWorker?.postMessage("stop");
-    this.listeners.splice(0);
+    this.listeners.clear();
     this._isPlaying = false;
   }
 }

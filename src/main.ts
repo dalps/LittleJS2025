@@ -198,9 +198,8 @@ function startGame() {
   currentSong.stop();
 
   currentSong = songs.stardustMemories!;
-  currentSong.show();
   currentSong.addMetronome();
-  currentSong.play();
+  currentSong.countIn();
 
   pauseBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),

@@ -1,10 +1,30 @@
 import * as LJS from "littlejsengine";
 import { Beat, type Pattern } from "./beat";
-import { Metronome } from "./metronome";
+import {
+  countInMetronomePattern,
+  defaultMetronomePattern,
+  Metronome,
+} from "./metronome";
 import { tileSize } from "./main";
 import { Ease, Tween } from "./tween";
 import { DEG2RAD, rgba } from "./mathUtils";
 const { vec2, rgb, tile } = LJS;
+
+// prettier-ignore
+const countInPattern: Pattern<number> = [
+  [
+    [0, ],
+    [ , ],
+    [0, ],
+    [ , ],
+  ],
+  [
+    [0, ],
+    [0, ],
+    [0, ],
+    [0, ],
+  ],
+]
 
 export class Song {
   // metadata
@@ -71,14 +91,28 @@ export class Song {
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic();
 
-    this.beat?.play();
+    this.beat.play();
   }
 
   /**
    * Play a count-in pattern before the main song
    */
-  countIn(bars = 1) {
+  countIn(bars = 2) {
     if (!this.sound?.isLoaded()) return;
+
+    if (this.metronome)
+      this.metronome.pattern = [
+        ...countInMetronomePattern,
+        ...defaultMetronomePattern,
+      ];
+
+    this.choreography = [...countInPattern, ...this.choreography];
+    this.beat.atbeat([0, 0, bars], () => {
+      this.play.call(this);
+      this.show.call(this);
+    });
+    this.metronome?.start();
+    this.beat.play();
   }
 
   stop() {
