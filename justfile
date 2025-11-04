@@ -3,12 +3,14 @@ default:
 
 build:
     npx vite build
+    # make the worker path relative because Vite won't
+    sed -i -e 's/beatWorker/\.\/beatWorker/' dist/assets/index-*.js
 
 deploy: build
     netlify deploy --no-build -d dist --prod
 
-zip: build
+zip:
     advzip -a game.zip dist/*
 
-publish: zip
-    butler push game.zip dalps/smallrow:browser
+publish:
+    butler push dist dalps/smallrow:browser -v
