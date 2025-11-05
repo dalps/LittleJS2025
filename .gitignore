@@ -174,3 +174,4 @@ _other/
 # Local Netlify folder
 .netlify
 src/shaders/
+microbes
