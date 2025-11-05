@@ -105,7 +105,7 @@ export class Microbe extends LJS.EngineObject {
     this.song?.beat?.onpattern(
       this.song.choreography,
       (note) => note !== undefined && this.actions.at(note)?.call(this),
-      BarSequencing.Loop
+      BarSequencing.End
     );
 
     this.setCollision();

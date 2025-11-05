@@ -79,29 +79,28 @@ export class Player extends Microbe {
       note && this.idle();
     });
 
-    this.actions = [this.idle, () => {}]
+    this.actions[1] = () => {};
   }
 
   bump(other: Microbe): void {
     super.bump(other);
 
-    this.applyForce(swimAccel.scale(other.phi > this.phi ? -0.5 : 0.5));
+    this.applyForce(swimAccel.scale((other.phi > this.phi ? -1 : 1) * 0.5));
   }
 
   update(): void {
     if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
-      const timing = currentSong.metronome?.click() || 0;
-      const acc = accuracy(timing);
+      const { accuracy } = currentSong.metronome.click();
 
       const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
-      const speed = LJS.lerp(0.005, 0.05, 1 - acc);
+      const speed = LJS.lerp(0.005, 0.05, 1 - accuracy);
 
       this.swim();
 
-      if (acc < perfectThreshold) {
-        firework(pos, acc, 10, undefined, undefined, speed, 0.05);
-      } else if (acc < goodThreshold) {
-        firework(pos, acc, 8, LJS.YELLOW, undefined, speed);
+      if (accuracy < perfectThreshold) {
+        firework(pos, accuracy, 10, undefined, undefined, speed, 0.05);
+      } else if (accuracy < goodThreshold) {
+        firework(pos, accuracy, 8, LJS.YELLOW, undefined, speed);
       }
     }
 

@@ -1,9 +1,10 @@
 import * as LJS from "littlejsengine";
-import type { Beat } from "./beat";
+import type { Beat, Pattern } from "./beat";
 import { BeatRipple } from "./entities/ripple";
 import { font } from "./main";
 import { sfx } from "./sfx";
 import { LOG } from "./mathUtils";
+import { Ease, Tween } from "./tween";
 const { vec2, rgb } = LJS;
 
 export const spacingBeat = 75;
@@ -31,7 +32,7 @@ export const countInMetronomePattern = [
 ];
 
 // prettier-ignore
-export const defaultMetronomePattern = [
+export const defaultMetronomePattern: Pattern<number> = [
   [
     [2, ],
     [1, ],
@@ -46,11 +47,16 @@ export const defaultMetronomePattern = [
 export class Metronome extends LJS.UIObject {
   spacingSubBeat: number;
   private beatHandle?: string;
+  private _score = 0;
+
+  get score() {
+    return this._score;
+  }
 
   constructor(
     pos: LJS.Vector2,
     public beat: Beat,
-    public pattern = defaultMetronomePattern
+    public pattern: Pattern<number> = defaultMetronomePattern
   ) {
     super(pos);
 
@@ -69,13 +75,19 @@ export class Metronome extends LJS.UIObject {
     });
   }
 
-  destroy(): void {
-    super.destroy();
+  stop(): void {
+    LOG(`Stopping metronome... ${this.beatHandle}`);
+    this.hide();
     this.beatHandle && this.beat.removeListener(this.beatHandle);
   }
 
-  click(): number {
-    const timing = this.beat.getPercent(); // this is the distance from the current beat / subbeat
+  destroy(): void {
+    this.stop();
+    super.destroy();
+  }
+
+  click() {
+    const { timing, accuracy } = this.beat.getPercent(); // this is the distance from the current beat / subbeat
 
     new BeatRipple(
       this.pos,
@@ -85,11 +97,26 @@ export class Metronome extends LJS.UIObject {
       this.beat
     );
 
-    return timing;
+    this._score += accuracy;
+    return { timing, accuracy };
   }
 
   show() {
     this.visible = true;
+    new Tween(
+      (t) => (this.pos.y = t),
+      -200,
+      LJS.mainCanvasSize.x * 0.1,
+      100
+    ).setEase(Ease.OUT(Ease.EXPO));
+  }
+
+  hide() {
+    new Tween((t) => (this.pos.y = t), LJS.mainCanvasSize.x * 0.1, -200, 100)
+      .setEase(Ease.OUT(Ease.EXPO))
+      .then(() => {
+        this.visible = false;
+      });
   }
 
   render() {

@@ -116,17 +116,13 @@ export class Beat {
 
   getPercent() {
     const t = this.elapsed - this.delta * (this.notesScheduled + 1);
-    const res = LJS.percent(t, 0, this.delta);
+    const timing = LJS.percent(t, 0, this.delta);
     // LOG(
     //   `${this.notesScheduled} ${formatTime(t)} of ${formatTime(this.delta)}: ${
     //     (res * 100) >> 0
     //   }%`
     // );
-    return res;
-  }
-
-  getAccuracy() {
-    return accuracy(this.getPercent());
+    return { timing, accuracy: accuracy(timing) };
   }
 
   private getId() {

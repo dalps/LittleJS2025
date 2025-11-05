@@ -17,6 +17,7 @@ import {
   resumeBtn,
   startBtn,
 } from "./ui";
+import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -25,7 +26,29 @@ enum GameState {
   Title,
   Game,
   Paused,
+  GameResults,
 }
+
+export const ratings = {
+  superb: {
+    message: `Superb!`,
+    threshold: 80,
+    color1: rgba(203, 26, 138, 1),
+    color2: rgba(243, 21, 209, 1),
+  },
+  ok: {
+    message: `Just OK...`,
+    threshold: 50,
+    color1: rgba(57, 243, 156, 1),
+    color2: rgba(3, 184, 138, 1),
+  },
+  tryAgain: {
+    message: `Try again :(`,
+    threshold: 0,
+    color1: rgba(26, 120, 203, 1),
+    color2: rgba(102, 207, 255, 1),
+  },
+};
 
 export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
@@ -122,15 +145,6 @@ function awaitClick() {
 
   loadingBtn.onClick = () => {
     loadingBtn.destroy();
-    new Tween(
-      (t) =>
-        LJS.setCanvasClearColor(
-          LJS.canvasClearColor.lerp(rgba(5, 52, 106, 1), t)
-        ),
-      0,
-      1,
-      20
-    ).setEase(Ease.OUT(Ease.BOUNCE));
     titleScreen();
   };
 }
@@ -164,6 +178,18 @@ function clearRow() {
 function titleScreen() {
   gameState = GameState.Title;
 
+  clearRow();
+
+  new Tween(
+    (t) =>
+      LJS.setCanvasClearColor(
+        LJS.canvasClearColor.lerp(rgba(5, 52, 106, 1), t)
+      ),
+    0,
+    1,
+    20
+  ).setEase(Ease.OUT(Ease.BOUNCE));
+
   pauseMenu.visible = false;
   titleObj.visible = true;
 
@@ -196,6 +222,7 @@ function startGame() {
 
   currentSong = songs.stardustMemories!;
   currentSong.addMetronome();
+  currentSong.onEnd = afterGame;
   currentSong.play();
   LOG(`Starting game...`);
 
@@ -210,12 +237,13 @@ function startGame() {
 
     pauseMenu.visible = true;
     pauseBtn.visible = false;
-    currentSong?.stop();
+    currentSong?.pause();
   };
 
   quitBtn.onClick = () => {
     clearRow();
     player.destroy();
+    currentSong?.stop();
     currentSong = songs[titleSong];
     titleScreen();
   };
@@ -225,7 +253,7 @@ function startGame() {
 
     pauseMenu.visible = false;
     pauseBtn.visible = true;
-    currentSong?.play();
+    currentSong?.resume();
   };
 
   clearRow();
@@ -238,6 +266,80 @@ function startGame() {
   titleObj.visible = false;
 
   gameState = GameState.Game;
+}
+
+function afterGame() {
+  gameState = GameState.GameResults;
+
+  let finalScore = currentSong.getFinalScore();
+
+  let resultsObj = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
+  let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm Check:`);
+  let scoreText = new LJS.UIText(vec2(), vec2(200, 60), `0`);
+  let ratingText = new LJS.UIText(vec2(100), vec2(200, 48), ``);
+  let backToTitleBtn = new LJS.UIButton(
+    vec2(0, 200),
+    LJS.mainCanvasSize,
+    "Back to title",
+    rgba(0, 0, 0, 0)
+  );
+
+  backToTitleBtn.onClick = () => {
+    resultsObj.destroy();
+    currentSong.stop();
+    titleScreen();
+  };
+  backToTitleBtn.lineWidth = 0;
+  backToTitleBtn.hoverColor = LJS.CLEAR_WHITE;
+  backToTitleBtn.textColor = LJS.WHITE.copy();
+  backToTitleBtn.textHeight = 42;
+
+  pauseBtn.visible = false;
+
+  resultsObj.addChild(backToTitleBtn);
+  resultsObj.addChild(title);
+  resultsObj.addChild(scoreText);
+  resultsObj.addChild(ratingText);
+
+  ratingText.visible = false;
+  ratingText.textLineWidth = 5;
+  scoreText.textColor = ratingText.textColor = title.textColor = LJS.WHITE;
+
+  // const between = (value: number, a: number, b: number) =>
+  //   a < value && value <= b;
+
+  // darken the background
+  new Tween(
+    (t) =>
+      LJS.setCanvasClearColor(LJS.canvasClearColor.lerp(rgba(0, 0, 0, 1), t)),
+    0,
+    1,
+    20
+  ).setEase(Ease.OUT(Ease.BOUNCE));
+
+  // tally up the score
+  new Tween(
+    (t) => {
+      // play beep sound with pitch function of t
+      scoreText.text = `${(t * 100) >> 0}%`;
+    },
+    0,
+    finalScore,
+    100
+  ).then(() => {
+    // show rating
+    const { message, color1, color2 } = Object.values(ratings).find(
+      ({ threshold }) => threshold <= finalScore
+    )!;
+
+    ratingText.visible = true;
+    ratingText.text = message;
+    ratingText.textColor = color1;
+    ratingText.textLineColor = color2;
+
+    new Tween((t) => (backToTitleBtn.textColor.a = t), 0, 1, 30) //
+      .then(Tween.PingPong);
+  });
 }
 
 ///////////////////////////////////////////////////////////////////////////////

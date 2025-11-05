@@ -41,9 +41,12 @@ export class Song {
   orignalChoreo: Pattern<number>;
 
   // ui
-  metronome?: Metronome;
+  metronome: Metronome;
   songContainer?: LJS.UIObject;
   unlocked = false;
+
+  private _isPlaying = false; // set by play, unset by stop
+  onEnd: Function;
 
   constructor(
     public filename: string,
@@ -69,10 +72,18 @@ export class Song {
       onLoad.call(this);
       return this.sound;
     };
+    this.onEnd = onEnd;
     this.title = title;
     this.author = author;
     this.year = year;
     this.href = href;
+
+    const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.9));
+    this.metronome = new Metronome(metronomePos, this.beat);
+  }
+
+  isPlaying() {
+    return this._isPlaying;
   }
 
   /**
@@ -91,8 +102,13 @@ export class Song {
     }
 
     if (this.soundInstance) this.soundInstance.stop();
-    this.soundInstance = this.sound.playMusic();
+    this.soundInstance = this.sound.playMusic(1, false);
+    this.soundInstance.getSource().addEventListener("ended", () => {
+      // this is fired even when the song is paused, hence the guard
+      if (this.beat.barCount >= this.choreography.length - 1) this.onEnd();
+    });
 
+    this._isPlaying = true;
     LOG(`Now playing: ${this}`);
     this.beat.play();
     this.show();
@@ -112,20 +128,33 @@ export class Song {
 
     this.choreography = [...countInPattern, ...this.orignalChoreo];
     this.beat.atbeat([0, 0, bars], this.play.bind(this));
-    this.metronome?.start();
+    this.metronome.start();
     this.beat.play();
   }
 
-  stop() {
+  pause() {
     this.beat?.stop();
-    this.metronome?.destroy();
+    this.metronome.stop();
+    this.soundInstance?.pause();
+  }
+
+  resume() {
+    this.beat?.play();
+    this.metronome.start();
+    this.soundInstance?.resume();
+  }
+
+  stop() {
+    this._isPlaying = false;
+    this.beat?.stop();
+    this.metronome.destroy();
     this.songContainer?.destroy();
     this.soundInstance?.stop();
+    this.hide();
   }
 
   addMetronome() {
-    const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.1));
-    this.metronome = new Metronome(metronomePos, this.beat!);
+    this.metronome.start();
     this.metronome.show();
   }
 
@@ -142,7 +171,7 @@ export class Song {
 
     this.songContainer.render = () => {
       LJS.drawRectGradient(
-        this.songContainer.pos.add(vec2(8)),
+        this.songContainer!.pos.add(vec2(8)),
         vec2(50, 200),
         rgba(255, 255, 255, 0.37),
         LJS.CLEAR_WHITE,
@@ -198,6 +227,24 @@ export class Song {
     });
     this.songContainer.addChild(titleText);
     this.songContainer.addChild(authorText);
+  }
+
+  hide() {
+    new Tween(
+      (t) => (this.songContainer!.pos.x = t),
+      LJS.mainCanvasSize.x * 0.1,
+      -200,
+      100
+    )
+      .then(() => this.songContainer?.destroy())
+      .setEase(Ease.OUT(Ease.EXPO));
+  }
+
+  getFinalScore() {
+    return (
+      ((this.metronome && this.metronome.score) ?? 0) /
+      (this.orignalChoreo.length * this.beat.beats)
+    );
   }
 
   toString() {
