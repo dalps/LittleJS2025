@@ -175,20 +175,19 @@ function clearRow() {
   leader = undefined;
 }
 
-function titleScreen() {
-  gameState = GameState.Title;
-
-  clearRow();
-
+function changeBackground(color = currentSong.color) {
   new Tween(
-    (t) =>
-      LJS.setCanvasClearColor(
-        LJS.canvasClearColor.lerp(rgba(5, 52, 106, 1), t)
-      ),
+    (t) => LJS.setCanvasClearColor(LJS.canvasClearColor.lerp(color, t)),
     0,
     1,
     20
   ).setEase(Ease.OUT(Ease.BOUNCE));
+}
+
+function titleScreen() {
+  gameState = GameState.Title;
+
+  clearRow();
 
   pauseMenu.visible = false;
   titleObj.visible = true;
@@ -198,6 +197,8 @@ function titleScreen() {
   startBtn.onClick = startGame;
 
   currentSong = songs.paarynasAllrite!;
+
+  changeBackground();
   currentSong?.play();
 
   LJS.setTouchInputEnable(true);
@@ -224,7 +225,9 @@ function startGame() {
   currentSong.addMetronome();
   currentSong.onEnd = afterGame;
   currentSong.play();
+
   LOG(`Starting game...`);
+  changeBackground();
 
   pauseBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
@@ -237,6 +240,7 @@ function startGame() {
 
     pauseMenu.visible = true;
     pauseBtn.visible = false;
+    changeBackground(LJS.BLACK);
     currentSong?.pause();
   };
 
@@ -253,6 +257,8 @@ function startGame() {
 
     pauseMenu.visible = false;
     pauseBtn.visible = true;
+    changeBackground();
+    
     currentSong?.resume();
   };
 
@@ -308,14 +314,7 @@ function afterGame() {
   // const between = (value: number, a: number, b: number) =>
   //   a < value && value <= b;
 
-  // darken the background
-  new Tween(
-    (t) =>
-      LJS.setCanvasClearColor(LJS.canvasClearColor.lerp(rgba(0, 0, 0, 1), t)),
-    0,
-    1,
-    20
-  ).setEase(Ease.OUT(Ease.BOUNCE));
+  changeBackground(LJS.BLACK);
 
   // tally up the score
   new Tween(

@@ -44,8 +44,8 @@ export class Song {
   metronome: Metronome;
   songContainer?: LJS.UIObject;
   unlocked = false;
+  color: LJS.Color;
 
-  private _isPlaying = false; // set by play, unset by stop
   onEnd: Function;
 
   constructor(
@@ -56,6 +56,7 @@ export class Song {
       author = "",
       year = "",
       href = "",
+      color = LJS.randColor(),
       beats = 4,
       subs = 1,
       onLoad = () => {},
@@ -67,6 +68,7 @@ export class Song {
     this.sound = new LJS.SoundWave(filename);
     this.orignalChoreo = choreography;
     this.choreography = choreography.slice(0);
+    this.color = color;
     this.sound.onloadCallback = (wav) => {
       this.sound = wav;
       onLoad.call(this);
@@ -80,10 +82,6 @@ export class Song {
 
     const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.9));
     this.metronome = new Metronome(metronomePos, this.beat);
-  }
-
-  isPlaying() {
-    return this._isPlaying;
   }
 
   /**
@@ -108,7 +106,6 @@ export class Song {
       if (this.beat.barCount >= this.choreography.length - 1) this.onEnd();
     });
 
-    this._isPlaying = true;
     LOG(`Now playing: ${this}`);
     this.beat.play();
     this.show();
@@ -145,7 +142,6 @@ export class Song {
   }
 
   stop() {
-    this._isPlaying = false;
     this.beat?.stop();
     this.metronome.destroy();
     this.songContainer?.destroy();

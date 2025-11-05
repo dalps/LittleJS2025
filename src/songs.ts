@@ -1,4 +1,4 @@
-import { repeat } from "./mathUtils";
+import { repeat, rgba } from "./mathUtils";
 import { Song } from "./music";
 
 export let paarynasAllrite: Song | undefined;
@@ -42,6 +42,7 @@ export function initSongs() {
     author: "by DIZZY / CNDC",
     year: "1995",
     href: "https://modarchive.org/index.php?request=view_by_moduleid&query=90188",
+    color: rgba(5, 52, 106, 1),
     choreography: [repeat(idle, 4), repeat(p4, 16)].flat(),
   });
 
@@ -55,7 +56,7 @@ export function initSongs() {
     ];
 
     // prettier-ignore
-    const p2 = [
+    const normal = [
       [0, ],
       [1, ],
       [0, ],
@@ -63,7 +64,15 @@ export function initSongs() {
     ];
 
     // prettier-ignore
-    const p3 = [
+    const normal2 = [
+      [0, ],
+      [1, ],
+      [0, ],
+      [1, ],
+    ];
+
+    // prettier-ignore
+    const ding = [
       [3, ],
       [1, ],
       [1, ],
@@ -75,11 +84,16 @@ export function initSongs() {
       author: "by Jester / Sanity",
       year: "1992",
       href: "https://modarchive.org/index.php?request=view_by_moduleid&query=59344",
+      color: rgba(155, 128, 46, 1),
       choreography: [
         repeat(idle, 4),
-        repeat(p2, 16),
-        repeat([p2, p3], 4).flat(),
-        repeat(p2, 4),
+        repeat(normal, 7),
+        [normal2],
+        repeat(normal, 8),
+        repeat([normal, ding], 4).flat(),
+        repeat(normal, 1),
+        [normal2],
+        repeat(normal, 2),
       ].flat(),
     });
   }
