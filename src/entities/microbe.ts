@@ -34,7 +34,12 @@ export class Microbe extends LJS.EngineObject {
   turnSignal = 0;
   turnPhi;
 
-  actions = [this.idle, this.swim, () => (this.newCenter(), this.swim())];
+  actions = [
+    this.idle,
+    this.swim,
+    () => (this.newCenter(), this.swim()),
+    () => sfx.ding.play(),
+  ];
 
   get phi() {
     return this.polarPos.x;
@@ -123,7 +128,7 @@ export class Microbe extends LJS.EngineObject {
 
     // smooth out radius differences
     if (this.leader) this.dist = LJS.lerp(this.dist, this.leader.dist, 0.01);
-    this.dist = LJS.max(minRadius, this.dist)
+    this.dist = LJS.max(minRadius, this.dist);
 
     this.pos = polar2cart(this.polarPos, this.orbitCenter);
     this.angle = this.phi + this.direction * 90 * DEG2RAD;
