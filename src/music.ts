@@ -7,7 +7,7 @@ import {
 } from "./metronome";
 import { tileSize } from "./main";
 import { Ease, Tween } from "./tween";
-import { DEG2RAD, rgba } from "./mathUtils";
+import { DEG2RAD, LOG, rgba } from "./mathUtils";
 const { vec2, rgb, tile } = LJS;
 
 // prettier-ignore
@@ -38,6 +38,7 @@ export class Song {
   sound: LJS.SoundWave;
   soundInstance?: LJS.SoundInstance;
   choreography: Pattern<number>;
+  orignalChoreo: Pattern<number>;
 
   // ui
   metronome?: Metronome;
@@ -61,7 +62,8 @@ export class Song {
   ) {
     this.beat = new Beat(bpm, beats, subs);
     this.sound = new LJS.SoundWave(filename);
-    this.choreography = choreography;
+    this.orignalChoreo = choreography;
+    this.choreography = choreography.slice(0);
     this.sound.onloadCallback = (wav) => {
       this.sound = wav;
       onLoad.call(this);
@@ -91,6 +93,7 @@ export class Song {
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic();
 
+    LOG(`Now playing: ${this}`);
     this.beat.play();
   }
 
@@ -106,7 +109,7 @@ export class Song {
         ...defaultMetronomePattern,
       ];
 
-    this.choreography = [...countInPattern, ...this.choreography];
+    this.choreography = [...countInPattern, ...this.orignalChoreo];
     this.beat.atbeat([0, 0, bars], () => {
       this.play.call(this);
       this.show.call(this);
@@ -197,5 +200,9 @@ export class Song {
     });
     this.songContainer.addChild(titleText);
     this.songContainer.addChild(authorText);
+  }
+
+  toString() {
+    return `${this.title} by ${this.author}`;
   }
 }

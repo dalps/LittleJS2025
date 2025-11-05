@@ -64,7 +64,7 @@ export class Metronome extends LJS.UIObject {
 
   start() {
     this.beatHandle = this.beat.onpattern(this.pattern, (note) => {
-      // LOG("[metronome] tic");
+      // LOG(`[metronome] tic ${note}`);
       sfx.tic.play(LJS.cameraPos, note ? 0.5 : 0, note);
     });
   }
@@ -95,6 +95,9 @@ export class Metronome extends LJS.UIObject {
   render() {
     const { beat, spacingSubBeat } = this;
 
+    const correctedBeatCount =
+      (beat.beatCount < 1 ? beat.beats : beat.beatCount) - 1;
+
     for (
       let i = 0, pi = this.pos;
       i < beat.beats;
@@ -105,7 +108,7 @@ export class Metronome extends LJS.UIObject {
         `${i + 1}`,
         pi,
         textSize,
-        i === beat.beatCount && beat.subCount === 0 ? LJS.YELLOW : LJS.BLUE,
+        i === correctedBeatCount && beat.subCount === 0 ? LJS.YELLOW : LJS.BLUE,
         textLineWidth,
         LJS.WHITE,
         "center",
@@ -120,7 +123,7 @@ export class Metronome extends LJS.UIObject {
         LJS.drawCircle(
           pj,
           radiusSubBeat,
-          i === beat.beatCount && j + 1 === beat.subCount
+          i === correctedBeatCount && j + 1 === beat.subCount
             ? LJS.YELLOW
             : metronomeColor,
           undefined,

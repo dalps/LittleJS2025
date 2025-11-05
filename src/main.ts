@@ -4,7 +4,7 @@
 import * as LJS from "littlejsengine";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
-import { DEG2RAD, getQuadrant, polar, rgba } from "./mathUtils";
+import { DEG2RAD, getQuadrant, LOG, polar, rgba } from "./mathUtils";
 import type { Song } from "./music";
 import * as songs from "./songs";
 import { Ease, Tween } from "./tween";
@@ -200,6 +200,7 @@ function startGame() {
   currentSong = songs.stardustMemories!;
   currentSong.addMetronome();
   currentSong.countIn();
+  LOG(`Starting game...`)
 
   pauseBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),

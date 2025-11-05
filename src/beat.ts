@@ -68,6 +68,12 @@ export class Beat {
    */
   private scheduler() {
     while (this.nextNoteTime < this.time + this.scheduleAheadTime) {
+      // LOG(
+      //   `${formatTime(this.nextNoteTime)} < ${formatTime(
+      //     this.time + this.scheduleAheadTime
+      //   )}, ${this.beatCount}`
+      // );
+
       // schedule future events
       if (this.elapsed > 0)
         for (let fn of this.listeners.values()) {
@@ -85,6 +91,7 @@ export class Beat {
   }
 
   private nextNote() {
+    // LOG(`${this.beatCount} ${formatTime(this.nextNoteTime)}`);
     this.nextNoteTime += this.delta;
 
     if (++this.subCount === this.subs) {
@@ -136,7 +143,7 @@ export class Beat {
     this.listeners.set(id, ([b, s, br]) => {
       if (b === beat && s === sub && bar === br) {
         fn();
-        this.listeners.delete(id);
+        this.removeListener(id);
       }
     });
     return id;
@@ -185,7 +192,7 @@ export class Beat {
 
     this.timerWorker?.postMessage("start");
     this.barCount = this.beatCount = this.subCount = 0;
-    this.nextNoteTime = LJS.audioContext.currentTime;
+    this.nextNoteTime = LJS.audioContext.currentTime + this.scheduleAheadTime;
     this._isPlaying = true;
   }
 
