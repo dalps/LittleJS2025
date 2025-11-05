@@ -173,7 +173,6 @@ function titleScreen() {
 
   currentSong = songs.paarynasAllrite!;
   currentSong?.play();
-  currentSong?.show();
 
   LJS.setTouchInputEnable(true);
   LJS.setSoundVolume(1);
@@ -190,8 +189,6 @@ function titleScreen() {
     const pos = LJS.randInCircle(100, 0);
     bubbles.push({ size, pos });
   }
-
-  currentSong?.play();
 }
 
 function startGame() {
@@ -199,8 +196,8 @@ function startGame() {
 
   currentSong = songs.stardustMemories!;
   currentSong.addMetronome();
-  currentSong.countIn();
-  LOG(`Starting game...`)
+  currentSong.play();
+  LOG(`Starting game...`);
 
   pauseBtn = new LJS.UIButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),

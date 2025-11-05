@@ -1,10 +1,11 @@
 import * as LJS from "littlejsengine";
 import { currentSong, tileSize } from "../main";
 import { accuracy, MyParticle } from "../mathUtils";
-import { Microbe, swimAccel } from "./microbe";
+import { Microbe, minRadius, swimAccel } from "./microbe";
 import { defaultMetronomePattern } from "../metronome";
 import type { Beat } from "../beat";
 import type { Song } from "../music";
+import { sfx } from "../sfx";
 
 const { vec2, rgb } = LJS;
 
@@ -77,12 +78,14 @@ export class Player extends Microbe {
     this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
       note && this.idle();
     });
+
+    this.actions = [this.idle, () => {}]
   }
 
   bump(other: Microbe): void {
     super.bump(other);
 
-    this.applyForce(swimAccel.scale(other.phi > this.phi ? -1 : 1));
+    this.applyForce(swimAccel.scale(other.phi > this.phi ? -0.5 : 0.5));
   }
 
   update(): void {
@@ -93,7 +96,7 @@ export class Player extends Microbe {
       const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
       const speed = LJS.lerp(0.005, 0.05, 1 - acc);
 
-      // this.swim();
+      this.swim();
 
       if (acc < perfectThreshold) {
         firework(pos, acc, 10, undefined, undefined, speed, 0.05);

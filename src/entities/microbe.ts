@@ -15,7 +15,7 @@ import { sfx } from "../sfx";
 import type { Song } from "../music";
 const { vec2, rgb } = LJS;
 
-export const swimAccel = vec2(10 * DEG2RAD, 0.1);
+export const swimAccel = vec2(10 * DEG2RAD, 0);
 export const minRadius = 5;
 
 export class Microbe extends LJS.EngineObject {

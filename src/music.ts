@@ -95,6 +95,7 @@ export class Song {
 
     LOG(`Now playing: ${this}`);
     this.beat.play();
+    this.show();
   }
 
   /**
@@ -110,10 +111,7 @@ export class Song {
       ];
 
     this.choreography = [...countInPattern, ...this.orignalChoreo];
-    this.beat.atbeat([0, 0, bars], () => {
-      this.play.call(this);
-      this.show.call(this);
-    });
+    this.beat.atbeat([0, 0, bars], this.play.bind(this));
     this.metronome?.start();
     this.beat.play();
   }
