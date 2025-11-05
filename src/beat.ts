@@ -31,6 +31,7 @@ export class Beat {
    */
   scheduleAheadTime = 0.5;
   nextNoteTime = 0.0;
+  notesScheduled = 0;
 
   listeners: Map<string, BeatListener> = new Map();
   eventQueue: { fn: Function; time: number; arg: BeatCount }[] = [];
@@ -67,6 +68,8 @@ export class Beat {
    * Called every `this.lookahead` seconds.
    */
   private scheduler() {
+    this.notesScheduled = 0;
+
     while (this.nextNoteTime < this.time + this.scheduleAheadTime) {
       // LOG(
       //   `${formatTime(this.nextNoteTime)} < ${formatTime(
@@ -93,6 +96,7 @@ export class Beat {
   private nextNote() {
     // LOG(`${this.beatCount} ${formatTime(this.nextNoteTime)}`);
     this.nextNoteTime += this.delta;
+    this.notesScheduled++;
 
     if (++this.subCount === this.subs) {
       if (++this.beatCount === this.beats) this.barCount++;
@@ -111,7 +115,14 @@ export class Beat {
   }
 
   getPercent() {
-    return LJS.percent(this.elapsed, 0, this.delta);
+    const t = this.elapsed - this.delta * (this.notesScheduled + 1);
+    const res = LJS.percent(t, 0, this.delta);
+    // LOG(
+    //   `${this.notesScheduled} ${formatTime(t)} of ${formatTime(this.delta)}: ${
+    //     (res * 100) >> 0
+    //   }%`
+    // );
+    return res;
   }
 
   getAccuracy() {
