@@ -1,11 +1,10 @@
 import * as LJS from "littlejsengine";
-import type { Beat, Pattern } from "./beat";
-import { BeatRipple } from "./entities/ripple";
-import { font } from "./main";
-import { sfx } from "./sfx";
-import { LOG } from "./mathUtils";
+import type { Beat, Pattern, TimingInfo } from "./beat";
+import { font, tileSize } from "./main";
+import { LOG, setAlpha } from "./mathUtils";
+import { MyParticle } from "./particleUtils";
 import { Ease, Tween } from "./tween";
-const { vec2, rgb } = LJS;
+const { vec2, rgb, tile } = LJS;
 
 export const spacingBeat = 75;
 export const metronomeY = 10;
@@ -41,6 +40,10 @@ export const defaultMetronomePattern: Pattern<number> = [
   ],
 ];
 
+// (b + 1 === beat.beats && sub + 1 === beat.subs && timing > 0.5
+//       ? -spacingSubBeat
+//       : spacingBeat * b + spacingSubBeat * sub) + timing;
+
 /**
  * Visualizes and updates a beat every frame
  */
@@ -60,6 +63,7 @@ export class Metronome extends LJS.UIObject {
   ) {
     super(pos);
 
+    // centering
     this.spacingSubBeat = spacingBeat / (beat.subs || 1);
     this.pos = pos.subtract(
       vec2((spacingBeat * beat.beats - this.spacingSubBeat) * 0.5, 0)
@@ -69,10 +73,10 @@ export class Metronome extends LJS.UIObject {
   }
 
   start() {
-    this.beatHandle = this.beat.onpattern(this.pattern, (note) => {
-      // LOG(`[metronome] tic ${note}`);
-      sfx.tic.play(LJS.cameraPos, note ? 0.5 : 0, note);
-    });
+    // this.beatHandle = this.beat.onpattern(this.pattern, (note) => {
+    //   // LOG(`[metronome] tic ${note}`);
+    //   sfx.tic.play(LJS.cameraPos, note ? 0.5 : 0, note);
+    // });
   }
 
   stop(): void {
@@ -86,18 +90,47 @@ export class Metronome extends LJS.UIObject {
     super.destroy();
   }
 
-  click() {
-    const { timing, accuracy } = this.beat.getPercent(); // this is the distance from the current beat / subbeat
+  click(): TimingInfo {
+    // the distance from the current beat / subbeat
+    const { timing, accuracy } = this.beat.getPercent();
+    const {
+      spacingSubBeat,
+      beat: {
+        count: [b, sub],
+      },
+    } = this;
 
-    new BeatRipple(
-      this.pos,
-      spacingBeat,
-      this.spacingSubBeat,
-      timing,
-      this.beat
+    // visualize the timing with a ripple
+    const colorStart = new LJS.Color(accuracy, 1 - accuracy, 0, 1);
+    const sizeStart = 50;
+    const sizeEnd = LJS.lerp(100, sizeStart, accuracy);
+
+    const offset =
+      (b + 1 === this.beat.beats && sub + 1 === this.beat.subs && timing > 0.5
+        ? -spacingSubBeat
+        : spacingBeat * b + spacingSubBeat * sub) +
+      LJS.lerp(0, spacingSubBeat, timing);
+
+    new MyParticle(
+      this.pos.add(vec2(offset, 0)), //
+      {
+        tileInfo: tile(vec2(1, 0), tileSize, 2),
+        lifeTime: 1,
+        colorStart,
+        colorEnd: colorStart.copy(),
+        sizeStart,
+        sizeEnd,
+        trailRate: 0,
+        fadeRate: 0,
+        screenSpace: true,
+        sizeEase: Ease.OUT(Ease.CIRC),
+        name: "ripple",
+      }
     );
 
+    // update the score
     this._score += accuracy;
+
     return { timing, accuracy };
   }
 

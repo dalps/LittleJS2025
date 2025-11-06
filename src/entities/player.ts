@@ -4,6 +4,7 @@ import { defaultMetronomePattern } from "../metronome";
 import type { Song } from "../music";
 import { Microbe, swimAccel } from "./microbe";
 import { MyParticle } from "../particleUtils";
+import { rgba } from "../mathUtils";
 
 const { vec2, rgb } = LJS;
 
@@ -34,37 +35,35 @@ export const firework = (
   const tileInfo = LJS.tile(vec2(2, 1), tileSize, 2);
 
   for (let i = 0, phi = 0; i < n; i++, phi += (Math.PI * 2) / n) {
-    const colorStart =
-      color ?? LJS.randColor().add(new LJS.Color(0.1, 0.1, 0.1));
+    const colorStart = color ?? LJS.randColor().add(rgba(50, 50, 50, 1));
 
+    // small ring
     new MyParticle(pos.add(vec2(1, 0).setAngle(phi, r1)), {
       tileInfo,
       lifeTime,
       colorStart,
       colorEnd: colorStart,
-      sizeStart: size1,
-      sizeEnd: size1,
       velocity: vec2(1, 0).setAngle(phi, speed * 0.5),
       angleVelocity: speed * 2,
       spin,
       sizeFunc: mkSizeFunc(size1),
       additive: true,
-      trailScale: 1,
+      // screenSpace: true,
     });
 
+    // large ring
     new MyParticle(pos.add(vec2(1, 0).setAngle(phi, r2)), {
       tileInfo,
       lifeTime,
       colorStart,
       colorEnd: colorStart,
-      sizeStart: size2,
-      sizeEnd: size2,
       velocity: vec2(1, 0).setAngle(phi, speed * 2),
       angleVelocity: speed * 2,
       spin,
       sizeFunc: mkSizeFunc(size2),
       additive: true,
-      trailScale: 1,
+      // screenSpace: true,
+      trailRate: 1 / 3,
     });
   }
 };

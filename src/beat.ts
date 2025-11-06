@@ -16,6 +16,11 @@ export enum BarSequencing {
   End,
 }
 
+export interface TimingInfo {
+  timing: number;
+  accuracy: number;
+}
+
 export class Beat {
   barCount = 0;
   subCount = 0;
@@ -114,7 +119,7 @@ export class Beat {
     }
   }
 
-  getPercent() {
+  getPercent(): TimingInfo {
     const t = this.elapsed - this.delta * (this.notesScheduled + 1);
     const timing = LJS.percent(t, 0, this.delta);
     // LOG(

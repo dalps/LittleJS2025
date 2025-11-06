@@ -9,6 +9,8 @@ import {
   lerpVec2,
   LOG,
   polar2cart,
+  setAlpha,
+  rgba,
 } from "../mathUtils";
 import { sfx } from "../sfx";
 import type { Song } from "../music";
@@ -18,6 +20,7 @@ const { vec2, rgb } = LJS;
 export const swimAccel = vec2(10 * DEG2RAD, 0);
 export const minRadius = 5;
 export const bubbleEmitRate = 15;
+export const bubbleColor = rgba(224, 246, 255, 1);
 
 export class Microbe extends LJS.EngineObject {
   orbitCenter: LJS.Vector2 = vec2();
@@ -99,8 +102,8 @@ export class Microbe extends LJS.EngineObject {
       emitSize: 4,
       particleTime: 1,
       fadeRate: 0,
-      colorEndA: LJS.WHITE,
-      colorEndB: LJS.WHITE,
+      colorEndA: setAlpha(bubbleColor, 0.8),
+      colorEndB: setAlpha(bubbleColor, 0.8),
       sizeStart: 0.8,
       sizeEnd: 0.9,
       randomness: 0.25,

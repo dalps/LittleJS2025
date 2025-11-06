@@ -1,5 +1,6 @@
 import * as LJS from "littlejsengine";
 import { tileSize } from "./main";
+import { LOG, setAlpha } from "./mathUtils";
 const { vec2, rgb, tile } = LJS;
 
 export const emitter = ({
@@ -30,6 +31,7 @@ export const emitter = ({
   randomColorLinear = true,
   renderOrder = additive ? 1e9 : 0,
   localSpace = false,
+  screenSpace = false,
 } = {}) =>
   new LJS.ParticleEmitter(
     pos,
@@ -62,16 +64,29 @@ export const emitter = ({
   );
 
 export class MyParticle extends LJS.Particle {
+  radius: number;
   spin: number;
   trailRate: number;
   trailTimer!: LJS.Timer;
-  trail: {
-    pos: LJS.Vector2;
-    size: LJS.Vector2;
-    angle: number;
-    color: LJS.Color;
-  }[] = [];
-  sizeFunc: (t: number) => number;
+  trail: MyParticle[] = [];
+
+  /**
+   * Overrides default sizing interpolation (ignores sizeStart, sizeEnd and sizeEase)
+   * */
+  sizeFunc?: (t: number) => number;
+
+  /**
+   * Easing for radius transition. Both domain and codomain must be [0,1].
+   */
+  sizeEase: (t: number) => number;
+
+  /**
+   * Easing for color transition. Both domain and codomain must be [0,1].
+   */
+  colorEase: (t: number) => number;
+
+  screenSpace: boolean;
+  name: string;
 
   constructor(
     pos: LJS.Vector2,
@@ -91,7 +106,7 @@ export class MyParticle extends LJS.Particle {
       /** @property {number} - How quick to fade in/out */
       fadeRate = 0,
       /** @property {boolean} - Is it additive */
-      additive = true,
+      additive = false,
       /** @property {number} - If a undefined, how long to make it */
       trailScale = 0,
       /** @property {ParticleEmitter} - Parent emitter if local space */
@@ -101,8 +116,12 @@ export class MyParticle extends LJS.Particle {
       velocity = vec2(),
       angleVelocity = 0,
       spin = 0,
-      sizeFunc = (t: number) => t,
-      trailRate = 1 / 3,
+      sizeFunc = undefined as ((t: number) => number) | undefined,
+      sizeEase = (t: number) => t,
+      colorEase = (t: number) => t,
+      trailRate = 0,
+      screenSpace = false,
+      name = "",
     } = {}
   ) {
     super(
@@ -126,9 +145,13 @@ export class MyParticle extends LJS.Particle {
     this.angleVelocity = angleVelocity;
     this.spin = spin;
     this.sizeFunc = sizeFunc;
+    this.sizeEase = sizeEase;
+    this.colorEase = colorEase;
+    this.radius = (sizeFunc && sizeFunc(0)) ?? sizeStart;
+    this.screenSpace = screenSpace;
+    this.name = name;
 
     this.trailRate = trailRate;
-
     if (trailRate) this.trailTimer = new LJS.Timer(this.trailRate);
   }
 
@@ -136,14 +159,18 @@ export class MyParticle extends LJS.Particle {
     super.update();
 
     if (this.trailRate && this.trailTimer.elapsed()) {
-      const trailColor = this.color.copy();
-      trailColor.a = 0.5;
-
-      this.trail.push({
-        pos: this.pos.copy(),
+      new MyParticle(this.pos, {
         angle: this.angle,
-        size: this.size.copy(),
-        color: trailColor,
+        lifeTime: 10,
+        tileInfo: this.tileInfo,
+        spin: 0,
+        colorStart: setAlpha(this.color, 0.5),
+        colorEnd: setAlpha(this.color, 0),
+        trailRate: 0,
+        additive: true,
+        sizeStart: this.radius,
+        sizeEnd: 0,
+        screenSpace: this.screenSpace,
       });
 
       this.trailTimer.set(this.trailRate);
@@ -158,33 +185,30 @@ export class MyParticle extends LJS.Particle {
       this.lifeTime > 0
         ? LJS.min((LJS.time - this.spawnTime) / this.lifeTime, 1)
         : 1;
-    const radius = this.sizeFunc(t); // p2 * this.sizeStart + p1 * this.sizeEnd;
-    this.size = vec2(radius);
-    this.color.lerp(this.colorEnd, t);
 
-    // fade alpha
-    const fadeRate = this.fadeRate / 2;
-    this.color.a *=
-      t < fadeRate ? t / fadeRate : t > 1 - fadeRate ? (1 - t) / fadeRate : 1;
+    this.radius =
+      (this.sizeFunc && this.sizeFunc(t)) ??
+      LJS.lerp(this.sizeStart, this.sizeEnd, this.sizeEase(t));
+    this.size = vec2(this.radius);
+    this.name === "ripple" &&
+      LOG(
+        `${this.sizeStart} -> ${this.sizeEnd} ${(t * 100) >> 0}% ${this.radius}`
+      );
+    this.color = this.color.lerp(this.colorEnd, this.colorEase(t));
 
     // draw the particle
     this.additive && LJS.setBlendMode(true);
-
-    // update the position and angle for drawing
-    this.trail.forEach(({ pos, angle, size, color }) => {
-      color.a *= 0.98;
-      LJS.drawTile(pos, size, this.tileInfo, color, angle, this.mirror);
-    });
-
     LJS.drawTile(
       this.pos,
       this.size,
       this.tileInfo,
       this.color,
       this.angle,
-      this.mirror
+      this.mirror,
+      undefined,
+      undefined,
+      this.screenSpace
     );
-
     this.additive && LJS.setBlendMode();
   }
 }
