@@ -6,6 +6,7 @@ import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import { DEG2RAD, getQuadrant, LOG, polar, rgba } from "./mathUtils";
 import type { Song } from "./music";
+import { emitter, MyParticle } from "./particleUtils";
 import * as songs from "./songs";
 import { Ease, Tween } from "./tween";
 import {
@@ -17,7 +18,6 @@ import {
   resumeBtn,
   startBtn,
 } from "./ui";
-import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -52,7 +52,7 @@ export const ratings = {
 
 export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
-export let titleSong: keyof typeof songs;
+export let titleSong: keyof typeof songs = "paarynasAllrite";
 
 export const spriteAtlas: Record<string, LJS.TileInfo> = {};
 export const font = "Averia Sans Libre";
@@ -66,7 +66,7 @@ let musicVolume = 1;
 let musicLoaded = false;
 let percentLoaded = 0;
 let player: Player;
-let bubbles: {} = [];
+let bubbles: Bubble[] = [];
 let autoMicrobes: Microbe[] = [];
 
 // ui
@@ -87,7 +87,7 @@ function loadAssets() {
   spriteAtlas["bubble"] = tile(0, tileSize, 2);
 
   songs.initSongs();
-  currentSong = titleSong = songs.paarynasAllrite!;
+  currentSong = songs.paarynasAllrite!;
 
   titleObj = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
   let titleText = new LJS.UIText(
@@ -206,16 +206,24 @@ function titleScreen() {
 
   makeRow();
 
-  // prettier-ignore
-  matrixParticles = new LJS.ParticleEmitter(vec2(), 0, 100, 0, 10, 3.14, spriteAtlas["bubble"], new LJS.Color(1, 1, 1, 1), new LJS.Color(1, 1, 1, 1), new LJS.Color(0.439, 0.973, 0.361, 0), new LJS.Color(1, 1, 1, 0), 4.3, 0.2, 1, 0, 0, 1, 1, 0, 0, 0, 0, false, true, false, -1e4, false);
+  matrixParticles = emitter({
+    emitSize: 100,
+    emitTime: 0,
+    emitRate: 10,
+    tileInfo: spriteAtlas["bubble"],
+    sizeStart: 0.2,
+    sizeEnd: 4.3,
+    additive: true,
+    renderOrder: -1e4,
+  });
 
   autoMicrobes[1].addChild(matrixParticles);
 
-  for (let i = 0; i < 100; i++) {
-    const size = vec2(1).scale(LJS.rand(1, 5));
-    const pos = LJS.randInCircle(100, 0);
-    bubbles.push({ size, pos });
-  }
+  // for (let i = 0; i < 100; i++)
+  //   new MyParticle(LJS.randInCircle(100, 0), {
+  //     tileInfo: spriteAtlas["bubble"],
+  //     sizeStart: LJS.rand(1, 10),
+  //   });
 }
 
 function startGame() {
@@ -258,7 +266,7 @@ function startGame() {
     pauseMenu.visible = false;
     pauseBtn.visible = true;
     changeBackground();
-    
+
     currentSong?.resume();
   };
 
@@ -353,6 +361,7 @@ function gameInit() {
   pauseMenu.visible = false;
 
   loadAssets();
+  // titleScreen();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -412,9 +421,6 @@ function gameRender() {
         additiveColor
       );
 
-      bubbles.forEach(({ pos, size }) =>
-        LJS.drawTile(pos, size, spriteAtlas["bubble"])
-      );
       break;
   }
 }

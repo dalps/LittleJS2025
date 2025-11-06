@@ -8,15 +8,16 @@ import {
   formatDegrees,
   lerpVec2,
   LOG,
-  MyParticle,
   polar2cart,
 } from "../mathUtils";
 import { sfx } from "../sfx";
 import type { Song } from "../music";
+import { emitter, MyParticle } from "../particleUtils";
 const { vec2, rgb } = LJS;
 
 export const swimAccel = vec2(10 * DEG2RAD, 0);
 export const minRadius = 5;
+export const bubbleEmitRate = 15;
 
 export class Microbe extends LJS.EngineObject {
   orbitCenter: LJS.Vector2 = vec2();
@@ -91,14 +92,28 @@ export class Microbe extends LJS.EngineObject {
     this.color = LJS.randColor();
     this.turnPhi = this.phi;
 
-    this.bubbleEmitter = new LJS.ParticleEmitter(this.pos);
+    this.bubbleEmitter = emitter({
+      pos: this.pos, //
+      tileInfo: spriteAtlas["bubble"],
+      emitRate: bubbleEmitRate,
+      emitSize: 4,
+      particleTime: 1,
+      fadeRate: 0,
+      colorEndA: LJS.WHITE,
+      colorEndB: LJS.WHITE,
+      sizeStart: 0.8,
+      sizeEnd: 0.9,
+      randomness: 0.25,
+      additive: true,
+      emitConeAngle: 30 * DEG2RAD,
+      speed: -0.25,
+      damping: 0.89,
+    });
+
+    this.bubbleEmitter.localPos = vec2(0, -1);
+
     this.addChild(this.bubbleEmitter);
 
-    this.bubbleEmitter.emitRate = 0;
-    this.bubbleEmitter.localPos = vec2(0, -1);
-    this.bubbleEmitter.additive = true;
-    this.bubbleEmitter.tileInfo = spriteAtlas["bubble"];
-    this.bubbleEmitter.emitConeAngle = 30;
     // this.bubbleEmitter.particleDestroyCallback = () => sfx.bubble2.play(this.pos);
 
     // this.beat?.onbeat(this.onbeat.bind(this));
@@ -132,6 +147,9 @@ export class Microbe extends LJS.EngineObject {
 
     this.pos = polar2cart(this.polarPos, this.orbitCenter);
     this.angle = this.phi + this.direction * 90 * DEG2RAD;
+
+    this.bubbleEmitter.emitRate =
+      this.velocity.length() > 0.01 ? bubbleEmitRate : 0;
   }
 
   render(): void {
@@ -212,8 +230,6 @@ export class Microbe extends LJS.EngineObject {
     }
 
     this.applyForce(swimAccel.scale(this.direction));
-
-    this.bubbleEmitter.emitRate = 10;
   }
 
   idle() {

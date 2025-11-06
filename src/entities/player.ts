@@ -1,11 +1,9 @@
 import * as LJS from "littlejsengine";
 import { currentSong, tileSize } from "../main";
-import { accuracy, MyParticle } from "../mathUtils";
-import { Microbe, minRadius, swimAccel } from "./microbe";
 import { defaultMetronomePattern } from "../metronome";
-import type { Beat } from "../beat";
 import type { Song } from "../music";
-import { sfx } from "../sfx";
+import { Microbe, swimAccel } from "./microbe";
+import { MyParticle } from "../particleUtils";
 
 const { vec2, rgb } = LJS;
 
@@ -85,7 +83,7 @@ export class Player extends Microbe {
   bump(other: Microbe): void {
     super.bump(other);
 
-    this.applyForce(swimAccel.scale((other.phi > this.phi ? -1 : 1) * 0.5));
+    this.applyForce(swimAccel.scale((other.phi > this.phi ? -1 : 1) * 0.2));
   }
 
   update(): void {
