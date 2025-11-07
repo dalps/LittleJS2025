@@ -18,6 +18,8 @@ import {
   resumeBtn,
   startBtn,
 } from "./ui";
+import { PatternWrapping } from "./beat";
+import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -32,13 +34,13 @@ enum GameState {
 export const ratings = {
   superb: {
     message: `Superb!`,
-    threshold: 80,
+    threshold: 0.8,
     color1: rgba(203, 26, 138, 1),
     color2: rgba(243, 21, 209, 1),
   },
   ok: {
-    message: `Just OK...`,
-    threshold: 50,
+    message: `Good enough.`,
+    threshold: 0.5,
     color1: rgba(57, 243, 156, 1),
     color2: rgba(3, 184, 138, 1),
   },
@@ -185,8 +187,9 @@ function makeRow({
   startDist = 5,
   playerIdx = -1,
   length = 3,
+  wrapping = PatternWrapping.End,
 } = {}) {
-  leader = new Microbe(vec2(0, startDist), undefined, 0, currentSong);
+  leader = new Microbe(vec2(0, startDist), undefined, 0, currentSong, wrapping);
   autoMicrobes.push(leader);
 
   for (let i = 1; i < length; i++) {
@@ -194,7 +197,7 @@ function makeRow({
     const m =
       i === playerIdx
         ? (player = new Player(startPos, leader, i, currentSong))
-        : new Microbe(startPos, leader, i, currentSong);
+        : new Microbe(startPos, leader, i, currentSong, wrapping);
 
     autoMicrobes.push(m);
   }
@@ -234,7 +237,7 @@ function titleScreen() {
   LJS.setTouchInputEnable(true);
   LJS.setSoundVolume(1);
 
-  makeRow();
+  makeRow({ wrapping: PatternWrapping.Loop });
 
   matrixParticles = emitter({
     emitSize: 100,
@@ -264,7 +267,7 @@ function startGame() {
   currentSong.onEnd = afterGame;
   currentSong.play();
 
-  LOG(`Starting game...`);
+  // LOG(`Starting game...`);
   changeBackground();
 
   pauseBtn = new LJS.UIButton(
@@ -307,6 +310,7 @@ function startGame() {
 
   clearRow();
   makeRow({ playerIdx: 1 });
+  // afterGame();
 
   currentSong = songs.stardustMemories!;
   currentSong.addMetronome();
@@ -333,17 +337,19 @@ export function cameraZoom({
 function afterGame() {
   gameState = GameState.GameResults;
 
+  currentSong.hide();
   let finalScore = currentSong.getFinalScore();
+  LOG(`finalScore: ${finalScore}`);
 
   let resultsObj = new LJS.UIObject(
     LJS.mainCanvasSize.scale(0.5),
-    vec2(LJS.mainCanvasSize.x * 0.8, 300)
+    vec2(580, 300)
   );
   let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm score:`);
 
   title.textColor = rgba(217, 217, 217, 1);
 
-  let scoreText = new LJS.UIText(vec2(), vec2(200, 72), `0`);
+  let scoreText = new LJS.UIText(vec2(), vec2(200, 72), `0%`);
   let ratingText = new LJS.UIText(vec2(100), vec2(200, 48), ``);
   let backToTitleBtn = new LJS.UIButton(
     vec2(0, 250),
@@ -389,34 +395,50 @@ function afterGame() {
   changeBackground(LJS.BLACK);
   currentSong.metronome.hide();
 
+  sfx.blink.play(undefined, 1);
+
+  // const scoreTimerDelta = 1 / LJS.lerp(3, 10, finalScore);
+  // let scoreTimer = new LJS.Timer(scoreTimerDelta);
+
+  let prevT = 0;
+
   // tally up the score
-  new Tween(
-    (t) => {
-      // play beep sound with pitch function of t
-      scoreText.text = `${(t * 100) >> 0}%`;
-    },
-    0,
-    finalScore,
-    100
-  ).then(() => {
-    sleep(100).then(() => {
-      // show rating
-      const { message, color1, color2 } = Object.values(ratings).find(
-        ({ threshold }) => threshold <= finalScore
-      )!;
-
-      ratingText.visible = true;
-      ratingText.text = message;
-      ratingText.textColor = color1;
-      ratingText.textLineColor = color2;
-
+  sleep(100).then(() =>
+    new Tween(
+      (t) => {
+        // play beep sound with pitch function of t
+        let intT = (t * 100) >> 0;
+        if (intT > prevT) {
+          sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
+          scoreText.text = `${intT}%`;
+          prevT = intT;
+        }
+      },
+      0,
+      finalScore,
+      LJS.lerp(100, 250, finalScore) >> 0
+    ).then(() => {
       sleep(100).then(() => {
-        backToTitleBtn.visible = true;
-        new Tween((t) => (backToTitleBtn.textColor.a = t), 0, 1, 30) //
-          .then(Tween.PingPong);
+        // show rating
+        sfx.blink.play(undefined, 1, LJS.clamp(1 + finalScore, 0, 2));
+
+        const { message, color1, color2 } = Object.values(ratings).find(
+          ({ threshold }) => threshold <= finalScore
+        )!;
+
+        ratingText.visible = true;
+        ratingText.text = message;
+        ratingText.textColor = color1;
+        ratingText.textLineColor = color2;
+
+        sleep(100).then(() => {
+          backToTitleBtn.visible = true;
+          new Tween((t) => (backToTitleBtn.textColor.a = t), 0, 1, 30) //
+            .then(Tween.PingPong);
+        });
       });
-    });
-  });
+    })
+  );
 }
 
 const sleep = (duration = 50) => new Tween(() => {}, 0, 0, duration);
@@ -443,8 +465,8 @@ function gameUpdate() {
       if (currentSong?.sound?.isLoaded()) awaitClick();
       break;
     case GameState.Title:
-      LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
-      // LJS.setCameraPos(autoMicrobes[1].pos);
+      // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
+      LJS.setCameraPos(autoMicrobes[1].pos);
       break;
     case GameState.Game:
       // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
@@ -470,6 +492,8 @@ function gameRender() {
       break;
 
     case GameState.Game:
+      // debugScore();
+
     case GameState.Title:
       const t = LJS.timeReal * 0.3;
 
@@ -495,6 +519,22 @@ function gameRender() {
 
       break;
   }
+}
+
+function debugScore() {
+  LJS.drawTextScreen(
+    `Score: ${currentSong.metronome.score.toFixed(3)} / ${
+      currentSong.totalSwims
+    } (+ ${currentSong.scoreDelta.toFixed(3)})
+Swim: ${currentSong.swimCount}
+        `,
+    vec2(20, 100),
+    20,
+    LJS.WHITE,
+    undefined,
+    undefined,
+    "left"
+  );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
-import { BarSequencing, Beat, type BeatCount } from "../beat";
+import { PatternWrapping, Beat, type BeatCount } from "../beat";
 import { spriteAtlas, tileSize } from "../main";
 import {
   DEG2RAD,
@@ -16,6 +16,14 @@ import { sfx } from "../sfx";
 import type { Song } from "../music";
 import { emitter, MyParticle } from "../particleUtils";
 const { vec2, rgb } = LJS;
+
+export enum MicrobeAction {
+  Idle,
+  Swim,
+  Turn,
+  Ding,
+  Wink,
+}
 
 export const swimAccel = vec2(10 * DEG2RAD, 0);
 export const minRadius = 5;
@@ -39,13 +47,7 @@ export class Microbe extends LJS.EngineObject {
   turnSignal = 0;
   turnPhi;
 
-  actions = [
-    this.idle,
-    this.swim,
-    () => (this.newCenter(), this.swim()),
-    () => sfx.ding.play(),
-    this.blink
-  ];
+  actions: Function[] = [];
 
   get phi() {
     return this.polarPos.x;
@@ -84,7 +86,8 @@ export class Microbe extends LJS.EngineObject {
     public polarPos: LJS.Vector2,
     public leader?: Microbe,
     public rowIdx = 0,
-    public song?: Song
+    public song?: Song,
+    public wrapping = PatternWrapping.End
   ) {
     super(polar2cart(polarPos));
 
@@ -96,6 +99,21 @@ export class Microbe extends LJS.EngineObject {
     // this.restitution = 2;
     this.color = LJS.randColor();
     this.turnPhi = this.phi;
+
+    this.actions[MicrobeAction.Idle] = this.idle;
+    this.actions[MicrobeAction.Swim] = () => {
+      this.isLeader() && (this.song!.swimCount += 1);
+      this.swim();
+    };
+    this.actions[MicrobeAction.Wink] = this.wink;
+    this.actions[MicrobeAction.Turn] = () => {
+      this.newCenter();
+      this.swim();
+    };
+    this.actions[MicrobeAction.Ding] = () => {
+      this.idle();
+      sfx.ding.play();
+    };
 
     this.bubbleEmitter = emitter({
       pos: this.pos, //
@@ -125,7 +143,7 @@ export class Microbe extends LJS.EngineObject {
     this.song?.beat?.onpattern(
       this.song.choreography,
       (note) => note !== undefined && this.actions.at(note)?.call(this),
-      BarSequencing.End
+      wrapping
     );
 
     this.setCollision();
@@ -157,6 +175,18 @@ export class Microbe extends LJS.EngineObject {
       this.velocity.length() > 0.01 ? bubbleEmitRate : 0;
   }
 
+  debug() {
+    LJS.debugText(formatPolar(this.polarPos), this.pos.add(vec2(0, 1)), 0.5);
+
+    LJS.drawLine(
+      this.orbitCenter,
+      this.pos,
+      0.1,
+      this.isLeader() ? LJS.YELLOW : LJS.BLUE
+    );
+    LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
+  }
+
   render(): void {
     const name = this.currentAnim;
     const anim = this.animations[name];
@@ -165,15 +195,7 @@ export class Microbe extends LJS.EngineObject {
     this.tileInfo = anim.getFrame(spriteAtlas[name]);
     const tummyTileInfo = anim.getFrame(spriteAtlas[`${name}_tummy`]);
 
-    // LJS.debugText(formatPolar(this.polarPos), this.pos.add(vec2(0, 1)), 0.5);
-
-    // LJS.drawLine(
-    //   this.orbitCenter,
-    //   this.pos,
-    //   0.1,
-    //   this.isLeader() ? LJS.YELLOW : LJS.BLUE
-    // );
-    // LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
+    // this.debug();
 
     LJS.drawTile(
       this.pos,
@@ -194,14 +216,12 @@ export class Microbe extends LJS.EngineObject {
     );
   }
 
-  blink() {
-    this.playAnim("blink")
+  wink() {
+    this.playAnim("blink");
   }
 
   bump(other: Microbe) {
     this.playAnim("bump");
-
-    sfx.boo.play(this.pos);
 
     new MyParticle(this.pos, {
       tileInfo: LJS.tile(5, tileSize, 2),
@@ -248,7 +268,7 @@ export class Microbe extends LJS.EngineObject {
   }
 
   /** Play an animation by its name.
-   * Fails if an animation with higher priority is already playing,
+   * Plays nothing if an animation with higher priority is already playing,
    * in which case this function returns false. */
   private playAnim(desiredAnim: keyof typeof this.animations) {
     const current = this.animations[this.currentAnim];

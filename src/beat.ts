@@ -10,7 +10,7 @@ export type BeatListener = ([beat, sub, bar]: BeatCount) => void;
 
 export type Pattern<T> = (T | undefined)[][][]; // bar, beat, sub-beat
 export type PatternListener<T> = (note: T | undefined) => void;
-export enum BarSequencing {
+export enum PatternWrapping {
   Loop,
   HoldLast,
   End,
@@ -167,19 +167,19 @@ export class Beat {
   onpattern<T>(
     ptn: Pattern<T>,
     listener: PatternListener<T>,
-    sequencing = BarSequencing.HoldLast
+    sequencing = PatternWrapping.HoldLast
   ): string {
     let nBars = ptn.length;
     let barPicker: (b: number) => number;
 
     switch (sequencing) {
-      case BarSequencing.Loop:
+      case PatternWrapping.Loop:
         barPicker = (bar) => bar % nBars;
         break;
-      case BarSequencing.HoldLast:
+      case PatternWrapping.HoldLast:
         barPicker = (bar) => Math.min(bar, nBars - 1);
         break;
-      case BarSequencing.End:
+      case PatternWrapping.End:
         barPicker = (bar) => bar;
         break;
     }

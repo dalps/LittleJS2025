@@ -8,6 +8,7 @@ import {
 import { tileSize } from "./main";
 import { Ease, Tween } from "./tween";
 import { DEG2RAD, LOG, rgba } from "./mathUtils";
+import { countSwimActions } from "./songs";
 const { vec2, rgb, tile } = LJS;
 
 // prettier-ignore
@@ -33,12 +34,17 @@ export class Song {
   year: string;
   href: string;
 
-  // music
+  // soung
   beat: Beat;
   sound: LJS.SoundWave;
   soundInstance?: LJS.SoundInstance;
+
+  // choreography
   choreography: Pattern<number>;
   orignalChoreo: Pattern<number>;
+  totalSwims: number;
+  swimCount = 0;
+  scoreDelta = 0;
 
   // ui
   metronome: Metronome;
@@ -68,6 +74,7 @@ export class Song {
     this.sound = new LJS.SoundWave(filename);
     this.orignalChoreo = choreography;
     this.choreography = choreography.slice(0);
+    this.totalSwims = countSwimActions(choreography);
     this.color = color;
     this.sound.onloadCallback = (wav) => {
       this.sound = wav;
@@ -102,7 +109,7 @@ export class Song {
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic(1, false);
 
-    this.beat.atbeat([3, 0, this.choreography.length + 1], this.onEnd);
+    this.beat.atbeat([0, 0, this.choreography.length], this.onEnd);
 
     LOG(`Now playing: ${this}`);
     this.beat.play();
@@ -129,8 +136,8 @@ export class Song {
 
   pause() {
     this.beat?.stop();
-    this.metronome.stop();
     this.soundInstance?.pause();
+    this.metronome.stop();
   }
 
   resume() {
@@ -236,10 +243,7 @@ export class Song {
   }
 
   getFinalScore() {
-    return (
-      ((this.metronome && this.metronome.score) ?? 0) /
-      (this.orignalChoreo.length * this.beat.beats)
-    );
+    return LJS.clamp(this.metronome.score / this.totalSwims, 0, 1);
   }
 
   toString() {

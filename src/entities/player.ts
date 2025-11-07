@@ -1,10 +1,10 @@
 import * as LJS from "littlejsengine";
 import { currentSong, spriteAtlas, tileSize } from "../main";
-import { defaultMetronomePattern } from "../metronome";
-import type { Song } from "../music";
-import { Microbe, swimAccel } from "./microbe";
-import { MyParticle } from "../particleUtils";
 import { LOG, rgba, setAlpha } from "../mathUtils";
+import type { Song } from "../music";
+import { MyParticle } from "../particleUtils";
+import { sfx } from "../sfx";
+import { Microbe, swimAccel } from "./microbe";
 
 const { vec2, rgb } = LJS;
 
@@ -68,9 +68,9 @@ export class Player extends Microbe {
   constructor(pos: LJS.Vector2, leader: Microbe, number = 1, song?: Song) {
     super(pos, leader, number, song);
 
-    this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
-      note && this.idle();
-    });
+    // this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
+    //   note && this.idle();
+    // });
 
     this.actions[1] = () => {};
   }
@@ -78,16 +78,19 @@ export class Player extends Microbe {
   bump(other: Microbe): void {
     super.bump(other);
 
+    sfx.boo.play(this.pos);
+
     this.applyForce(swimAccel.scale((other.phi > this.phi ? -1 : 1) * 0.2));
   }
 
   update(): void {
-    if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
+    if (LJS.mouseWasPressed(0) || LJS.keyWasReleased("Space")) {
       const { accuracy } = currentSong.metronome.click();
+      this.song!.scoreDelta = accuracy;
 
       const pos =
         (LJS.mouseWasReleased(0) && LJS.mousePosScreen) ||
-        LJS.worldToScreen(this.pos);
+        LJS.worldToScreen(this.pos).add(vec2(0, 100));
       const speed = LJS.lerp(0.5, 1, accuracy);
 
       this.swim();

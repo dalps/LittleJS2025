@@ -39,7 +39,7 @@ export class Tween {
     public end = 1,
 
     /**
-     * Duration of the tween
+     * Duration of the tween. MUST BE INTEGER!
      */
     public duration = 100
   ) {
