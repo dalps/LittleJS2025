@@ -18,18 +18,19 @@ function randColor() {
 
 export const firework = (
   pos: LJS.Vector2,
-  acc = 0,
-  n = 5,
-  color?: LJS.Color,
-  size = 0.7,
-  speed = 1,
-  spin = 0
+  {
+    accuracy = 0,
+    n = 5,
+    color = undefined as LJS.Color | undefined,
+    speed = 1,
+    spin = 0,
+  } = {}
 ) => {
   const lifeTime = 1;
-  const r1 = 0.25;
-  const r2 = 0.25;
-  const size1 = 0.35;
-  const size2 = LJS.lerp(0.5, 1, 1 - acc);
+  const r1 = 5;
+  const r2 = 5;
+  const size1 = 12.5;
+  const size2 = LJS.lerp(20, 30, 1 - accuracy);
   const mkSizeFunc = (maxSize: number) => (t: number) =>
     Math.sin(t * Math.PI) * maxSize;
   const tileInfo = LJS.tile(vec2(2, 1), tileSize, 2);
@@ -44,11 +45,11 @@ export const firework = (
       colorStart,
       colorEnd: colorStart,
       velocity: vec2(1, 0).setAngle(phi, speed * 0.5),
-      angleVelocity: speed * 2,
+      angleVelocity: speed * 0.1,
       spin,
       sizeFunc: mkSizeFunc(size1),
       additive: true,
-      // screenSpace: true,
+      screenSpace: true,
     });
 
     // large ring
@@ -58,12 +59,12 @@ export const firework = (
       colorStart,
       colorEnd: colorStart,
       velocity: vec2(1, 0).setAngle(phi, speed * 2),
-      angleVelocity: speed * 2,
+      angleVelocity: speed * 0.1,
       spin,
       sizeFunc: mkSizeFunc(size2),
       additive: true,
-      // screenSpace: true,
-      trailRate: 1 / 3,
+      screenSpace: true,
+      trailRate: 1 / 4,
     });
   }
 };
@@ -89,15 +90,17 @@ export class Player extends Microbe {
     if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
       const { accuracy } = currentSong.metronome.click();
 
-      const pos = (LJS.mouseWasReleased(0) && LJS.mousePos) || this.pos;
-      const speed = LJS.lerp(0.005, 0.05, 1 - accuracy);
+      const pos =
+        (LJS.mouseWasReleased(0) && LJS.mousePosScreen) ||
+        LJS.worldToScreen(this.pos);
+      const speed = LJS.lerp(0.5, 1, 1 - accuracy);
 
       this.swim();
 
       if (accuracy < perfectThreshold) {
-        firework(pos, accuracy, 10, undefined, undefined, speed, 0.05);
+        firework(pos, { accuracy, n: 10, speed, spin: 0.05 });
       } else if (accuracy < goodThreshold) {
-        firework(pos, accuracy, 8, LJS.YELLOW, undefined, speed);
+        firework(pos, { accuracy, n: 8, color: LJS.YELLOW, speed });
       }
     }
 

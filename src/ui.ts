@@ -10,9 +10,12 @@ export let startBtn: LJS.UIButton;
 export function createStartMenu() {
   createColorPickerUI();
 
-  startBtn = new LJS.UIButton(vec2(0, 200), vec2(200, 50), "Start", LJS.CYAN);
+  const y = 150;
+  startBtn = new LJS.UIButton(vec2(0, y), vec2(200, 50), "Start", LJS.CYAN);
 
-  colorPickerBtn = new LJS.UIButton(vec2(100 + 60, 200), vec2(50, 50));
+  // startBtn.pos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.8));
+
+  colorPickerBtn = new LJS.UIButton(vec2(100 + 60, y), vec2(50, 50));
 
   colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor;
   colorPickerBtn.cornerRadius = 10;

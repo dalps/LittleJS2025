@@ -101,10 +101,8 @@ export class Song {
 
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic(1, false);
-    this.soundInstance.getSource().addEventListener("ended", () => {
-      // this is fired even when the song is paused, hence the guard
-      if (this.beat.barCount >= this.choreography.length - 1) this.onEnd();
-    });
+
+    this.beat.atbeat([3, 0, this.choreography.length + 1], this.onEnd);
 
     LOG(`Now playing: ${this}`);
     this.beat.play();
@@ -138,6 +136,7 @@ export class Song {
   resume() {
     this.beat?.play();
     this.metronome.start();
+    this.metronome.show();
     this.soundInstance?.resume();
   }
 
@@ -154,7 +153,7 @@ export class Song {
     this.metronome.show();
   }
 
-  show(pos = LJS.mainCanvasSize.multiply(vec2(0.1, 0.9))) {
+  show(pos = LJS.mainCanvasSize.multiply(vec2(0.1, 0.8))) {
     const size = vec2(200, 50);
     this.songContainer = new LJS.UIButton(pos, size);
 

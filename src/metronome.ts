@@ -77,6 +77,7 @@ export class Metronome extends LJS.UIObject {
     //   // LOG(`[metronome] tic ${note}`);
     //   sfx.tic.play(LJS.cameraPos, note ? 0.5 : 0, note);
     // });
+    this.show();
   }
 
   stop(): void {
@@ -99,6 +100,11 @@ export class Metronome extends LJS.UIObject {
         count: [b, sub],
       },
     } = this;
+
+    // update the score
+    this._score += accuracy;
+
+    if (!this.visible) return { timing, accuracy };
 
     // visualize the timing with a ripple
     const colorStart = new LJS.Color(accuracy, 1 - accuracy, 0, 1);
@@ -128,9 +134,6 @@ export class Metronome extends LJS.UIObject {
       }
     );
 
-    // update the score
-    this._score += accuracy;
-
     return { timing, accuracy };
   }
 
@@ -139,13 +142,13 @@ export class Metronome extends LJS.UIObject {
     new Tween(
       (t) => (this.pos.y = t),
       -200,
-      LJS.mainCanvasSize.x * 0.1,
+      LJS.mainCanvasSize.y * 0.1,
       100
     ).setEase(Ease.OUT(Ease.EXPO));
   }
 
   hide() {
-    new Tween((t) => (this.pos.y = t), LJS.mainCanvasSize.x * 0.1, -200, 100)
+    new Tween((t) => (this.pos.y = t), LJS.mainCanvasSize.y * 0.1, -200, 100)
       .setEase(Ease.OUT(Ease.EXPO))
       .then(() => {
         this.visible = false;

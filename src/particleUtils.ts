@@ -190,10 +190,6 @@ export class MyParticle extends LJS.Particle {
       (this.sizeFunc && this.sizeFunc(t)) ??
       LJS.lerp(this.sizeStart, this.sizeEnd, this.sizeEase(t));
     this.size = vec2(this.radius);
-    this.name === "ripple" &&
-      LOG(
-        `${this.sizeStart} -> ${this.sizeEnd} ${(t * 100) >> 0}% ${this.radius}`
-      );
     this.color = this.color.lerp(this.colorEnd, this.colorEase(t));
 
     // draw the particle

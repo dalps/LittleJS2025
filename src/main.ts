@@ -4,7 +4,7 @@
 import * as LJS from "littlejsengine";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
-import { DEG2RAD, getQuadrant, LOG, polar, rgba } from "./mathUtils";
+import { DEG2RAD, getQuadrant, LOG, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
 import { emitter, MyParticle } from "./particleUtils";
 import * as songs from "./songs";
@@ -248,7 +248,10 @@ function startGame() {
 
     pauseMenu.visible = true;
     pauseBtn.visible = false;
+
     changeBackground(LJS.BLACK);
+    cameraZoom({ delta: -2, duration: 100 });
+
     currentSong?.pause();
   };
 
@@ -265,7 +268,9 @@ function startGame() {
 
     pauseMenu.visible = false;
     pauseBtn.visible = true;
+
     changeBackground();
+    cameraZoom({ delta: 2 });
 
     currentSong?.resume();
   };
@@ -282,21 +287,50 @@ function startGame() {
   gameState = GameState.Game;
 }
 
+export function cameraZoom({
+  delta = 1,
+  ease = Ease.OUT(Ease.POWER(3)),
+  duration = 10,
+} = {}) {
+  new Tween(
+    (v) => LJS.setCameraScale(v),
+    LJS.cameraScale,
+    LJS.cameraScale + delta,
+    duration
+  ).setEase(ease);
+}
+
 function afterGame() {
   gameState = GameState.GameResults;
 
   let finalScore = currentSong.getFinalScore();
 
-  let resultsObj = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
-  let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm Check:`);
-  let scoreText = new LJS.UIText(vec2(), vec2(200, 60), `0`);
+  let resultsObj = new LJS.UIObject(
+    LJS.mainCanvasSize.scale(0.5),
+    vec2(LJS.mainCanvasSize.x * 0.8, 300)
+  );
+  let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm score:`);
+
+  title.textColor = rgba(217, 217, 217, 1);
+
+  let scoreText = new LJS.UIText(vec2(), vec2(200, 72), `0`);
   let ratingText = new LJS.UIText(vec2(100), vec2(200, 48), ``);
   let backToTitleBtn = new LJS.UIButton(
-    vec2(0, 200),
+    vec2(0, 250),
     LJS.mainCanvasSize,
     "Back to title",
     rgba(0, 0, 0, 0)
   );
+
+  resultsObj.color = setAlpha(LJS.BLACK, 0.5);
+  resultsObj.cornerRadius = 50;
+  resultsObj.lineColor = LJS.YELLOW;
+  resultsObj.lineWidth = 10;
+  resultsObj.shadowOffset = vec2(20);
+  resultsObj.shadowBlur = 10;
+  resultsObj.shadowColor = setAlpha(LJS.BLACK, 0.5);
+
+  backToTitleBtn.visible = false;
 
   backToTitleBtn.onClick = () => {
     resultsObj.destroy();
@@ -317,12 +351,13 @@ function afterGame() {
 
   ratingText.visible = false;
   ratingText.textLineWidth = 5;
-  scoreText.textColor = ratingText.textColor = title.textColor = LJS.WHITE;
+  scoreText.textColor = ratingText.textColor = LJS.WHITE;
 
   // const between = (value: number, a: number, b: number) =>
   //   a < value && value <= b;
 
   changeBackground(LJS.BLACK);
+  currentSong.metronome.hide();
 
   // tally up the score
   new Tween(
@@ -334,20 +369,27 @@ function afterGame() {
     finalScore,
     100
   ).then(() => {
-    // show rating
-    const { message, color1, color2 } = Object.values(ratings).find(
-      ({ threshold }) => threshold <= finalScore
-    )!;
+    sleep(100).then(() => {
+      // show rating
+      const { message, color1, color2 } = Object.values(ratings).find(
+        ({ threshold }) => threshold <= finalScore
+      )!;
 
-    ratingText.visible = true;
-    ratingText.text = message;
-    ratingText.textColor = color1;
-    ratingText.textLineColor = color2;
+      ratingText.visible = true;
+      ratingText.text = message;
+      ratingText.textColor = color1;
+      ratingText.textLineColor = color2;
 
-    new Tween((t) => (backToTitleBtn.textColor.a = t), 0, 1, 30) //
-      .then(Tween.PingPong);
+      sleep(100).then(() => {
+        backToTitleBtn.visible = true;
+        new Tween((t) => (backToTitleBtn.textColor.a = t), 0, 1, 30) //
+          .then(Tween.PingPong);
+      });
+    });
   });
 }
+
+const sleep = (duration = 50) => new Tween(() => {}, 0, 0, duration);
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
