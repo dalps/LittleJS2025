@@ -1,20 +1,15 @@
 import * as LJS from "littlejsengine";
-import { currentSong, tileSize } from "../main";
+import { currentSong, spriteAtlas, tileSize } from "../main";
 import { defaultMetronomePattern } from "../metronome";
 import type { Song } from "../music";
 import { Microbe, swimAccel } from "./microbe";
 import { MyParticle } from "../particleUtils";
-import { rgba } from "../mathUtils";
+import { LOG, rgba, setAlpha } from "../mathUtils";
 
 const { vec2, rgb } = LJS;
 
-export const perfectThreshold = 0.5;
-export const goodThreshold = 1;
-
-function randColor() {
-  const opts = [LJS.YELLOW, LJS.RED, LJS.CYAN, LJS.PURPLE];
-  return opts.at(LJS.randInt(0, opts.length - 1));
-}
+export const perfectThreshold = 0.75;
+export const goodThreshold = 0.3;
 
 export const firework = (
   pos: LJS.Vector2,
@@ -30,7 +25,7 @@ export const firework = (
   const r1 = 5;
   const r2 = 5;
   const size1 = 12.5;
-  const size2 = LJS.lerp(20, 30, 1 - accuracy);
+  const size2 = LJS.lerp(20, 30, accuracy);
   const mkSizeFunc = (maxSize: number) => (t: number) =>
     Math.sin(t * Math.PI) * maxSize;
   const tileInfo = LJS.tile(vec2(2, 1), tileSize, 2);
@@ -93,15 +88,26 @@ export class Player extends Microbe {
       const pos =
         (LJS.mouseWasReleased(0) && LJS.mousePosScreen) ||
         LJS.worldToScreen(this.pos);
-      const speed = LJS.lerp(0.5, 1, 1 - accuracy);
+      const speed = LJS.lerp(0.5, 1, accuracy);
 
       this.swim();
 
-      if (accuracy < perfectThreshold) {
+      LOG(accuracy.toFixed(2));
+
+      if (accuracy >= perfectThreshold)
         firework(pos, { accuracy, n: 10, speed, spin: 0.05 });
-      } else if (accuracy < goodThreshold) {
+      else if (accuracy >= goodThreshold)
         firework(pos, { accuracy, n: 8, color: LJS.YELLOW, speed });
-      }
+      else
+        new MyParticle(pos, {
+          tileInfo: spriteAtlas["hoop_click"],
+          colorStart: LJS.RED,
+          colorEnd: setAlpha(LJS.RED, 0),
+          lifeTime: 1,
+          sizeStart: 60,
+          sizeEnd: 120,
+          screenSpace: true,
+        });
     }
 
     super.update();

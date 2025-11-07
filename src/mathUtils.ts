@@ -5,14 +5,19 @@ const { vec2, rgb, tile } = LJS;
 export const DEG2RAD = Math.PI / 180;
 export const RAD2DEG = 180 / Math.PI;
 
+export const myRandColor = () => {
+  const opts = [LJS.YELLOW, LJS.RED, LJS.CYAN, LJS.PURPLE];
+  return opts.at(LJS.randInt(0, opts.length - 1));
+};
+
 export const rgba = (r: number, g: number, b: number, a = 1) =>
   rgb(r / 255, g / 255, b / 255, a);
 
 export const setAlpha = (c: LJS.Color, a: number) =>
   c.copy().set(c.r, c.g, c.b, a);
 
-// https://www.desmos.com/calculator/ln6rtzn9kb
-export const accuracy = (t: number) => Math.sin(t * Math.PI) ** 0.5;
+// https://www.desmos.com/calculator/r4gs7wf5lq
+export const accuracy = (t: number) => 1 - Math.sin(t * Math.PI) ** 0.5;
 
 export const repeat = <T>(value: T, n: number): T[] => Array(n).fill(value);
 

@@ -1,9 +1,10 @@
 import * as LJS from "littlejsengine";
 import type { Beat, Pattern, TimingInfo } from "./beat";
-import { font, tileSize } from "./main";
+import { font, spriteAtlas, tileSize } from "./main";
 import { LOG, setAlpha } from "./mathUtils";
 import { MyParticle } from "./particleUtils";
 import { Ease, Tween } from "./tween";
+import { goodThreshold, perfectThreshold } from "./entities/player";
 const { vec2, rgb, tile } = LJS;
 
 export const spacingBeat = 75;
@@ -107,44 +108,63 @@ export class Metronome extends LJS.UIObject {
     if (!this.visible) return { timing, accuracy };
 
     // visualize the timing with a ripple
-    const colorStart = new LJS.Color(accuracy, 1 - accuracy, 0, 1);
-    const sizeStart = 50;
-    const sizeEnd = LJS.lerp(100, sizeStart, accuracy);
-
+    const colorStart = rgb(1 - accuracy, accuracy, 0, 1); // +accuracy -> -red +green
+    
     const offset =
-      (b + 1 === this.beat.beats && sub + 1 === this.beat.subs && timing > 0.5
-        ? -spacingSubBeat
-        : spacingBeat * b + spacingSubBeat * sub) +
+    (b + 1 === this.beat.beats && sub + 1 === this.beat.subs && timing > 0.5
+      ? -spacingSubBeat
+      : spacingBeat * b + spacingSubBeat * sub) +
       LJS.lerp(0, spacingSubBeat, timing);
+      
+      new MyParticle(
+        this.pos.add(vec2(offset, 0)), //
+        {
+          tileInfo:
+          accuracy >= perfectThreshold
+          ? spriteAtlas["smiley_happy"]
+          : accuracy >= goodThreshold
+          ? spriteAtlas["smiley_smile"]
+          : spriteAtlas["smiley_frown"],
+          lifeTime: 30,
+          colorStart,
+          colorEnd: setAlpha(colorStart, 0),
+          sizeStart: 50,
+          sizeEnd: 50,
+          trailRate: 0,
+          fadeRate: 0,
+          screenSpace: true,
+          sizeEase: Ease.OUT(Ease.CIRC),
+        }
+      );
 
-    new MyParticle(
-      this.pos.add(vec2(offset, 0)), //
-      {
-        tileInfo: tile(vec2(1, 0), tileSize, 2),
-        lifeTime: 1,
-        colorStart,
-        colorEnd: colorStart.copy(),
-        sizeStart,
-        sizeEnd,
-        trailRate: 0,
-        fadeRate: 0,
-        screenSpace: true,
-        sizeEase: Ease.OUT(Ease.CIRC),
-        name: "ripple",
-      }
-    );
-
-    return { timing, accuracy };
-  }
-
-  show() {
-    this.visible = true;
-    new Tween(
-      (t) => (this.pos.y = t),
-      -200,
-      LJS.mainCanvasSize.y * 0.1,
-      100
-    ).setEase(Ease.OUT(Ease.EXPO));
+      new MyParticle(
+        this.pos.add(vec2(offset, 0)), //
+        {
+          tileInfo: tile(vec2(1, 0), tileSize, 2),
+          lifeTime: 10,
+          colorStart,
+          colorEnd: setAlpha(colorStart, 0),
+          sizeStart: 70,
+          sizeEnd: LJS.lerp(70, 250, accuracy),
+          trailRate: 0,
+          fadeRate: 0,
+          screenSpace: true,
+          sizeEase: Ease.OUT(Ease.CIRC),
+          name: "ripple",
+        }
+      );
+      
+      return { timing, accuracy };
+    }
+    
+    show() {
+      this.visible = true;
+      new Tween(
+        (t) => (this.pos.y = t),
+        -200,
+        LJS.mainCanvasSize.y * 0.1,
+        100
+      ).setEase(Ease.OUT(Ease.EXPO));
   }
 
   hide() {
