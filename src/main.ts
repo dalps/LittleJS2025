@@ -54,7 +54,27 @@ export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
 export let titleSong: keyof typeof songs = "paarynasAllrite";
 
-export const spriteAtlas: Record<string, LJS.TileInfo> = {};
+export type Atlas = {
+  swim: LJS.TileInfo;
+  idle: LJS.TileInfo;
+  bump: LJS.TileInfo;
+  blink: LJS.TileInfo;
+  bubble: LJS.TileInfo;
+  smiley_happy: LJS.TileInfo;
+  smiley_smile: LJS.TileInfo;
+  smiley_frown: LJS.TileInfo;
+  die: LJS.TileInfo;
+  microbe_bw: LJS.TileInfo;
+  hoop_metronome: LJS.TileInfo;
+  hoop_click: LJS.TileInfo;
+  star: LJS.TileInfo;
+};
+
+export type AtlasKey = keyof Atlas;
+
+export const spriteAtlas: Partial<
+  Atlas & Record<`${keyof Atlas}_tummy`, LJS.TileInfo>
+> = {};
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
@@ -78,13 +98,23 @@ let backgroundCausticPos: LJS.Vector2 = vec2();
 
 function loadAssets() {
   // init textures
-  ["swim", "idle", "bump"].forEach((animKey, idx) => {
+  (["swim", "idle", "bump"] as AtlasKey[]).forEach((animKey, idx) => {
     spriteAtlas[animKey] = tile(vec2(0, idx), tileSize);
-
     spriteAtlas[`${animKey}_tummy`] = tile(vec2(0, idx), tileSize, 1);
   });
 
+  spriteAtlas["blink"] = tile(vec2(8, 1), tileSize);
+  spriteAtlas["blink_tummy"] = tile(vec2(8, 1), tileSize, 1);
+
   spriteAtlas["bubble"] = tile(0, tileSize, 2);
+  spriteAtlas["hoop_metronome"] = tile(vec2(1, 0), tileSize, 2);
+  spriteAtlas["hoop_click"] = tile(vec2(2, 0), tileSize, 2);
+  spriteAtlas["star"] = tile(vec2(2, 1), tileSize, 2);
+  spriteAtlas["smiley_happy"] = tile(vec2(3, 1), tileSize, 2);
+  spriteAtlas["smiley_smile"] = tile(vec2(4, 1), tileSize, 2);
+  spriteAtlas["smiley_frown"] = tile(vec2(5, 1), tileSize, 2);
+  spriteAtlas["die"] = tile(vec2(6, 1), tileSize, 2);
+  spriteAtlas["microbe_bw"] = tile(vec2(9, 1), tileSize, 2);
 
   songs.initSongs();
   currentSong = songs.paarynasAllrite!;

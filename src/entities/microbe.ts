@@ -19,8 +19,8 @@ const { vec2, rgb } = LJS;
 
 export const swimAccel = vec2(10 * DEG2RAD, 0);
 export const minRadius = 5;
-export const bubbleEmitRate = 15;
-export const bubbleColor = rgba(224, 246, 255, 1);
+export const bubbleEmitRate = 12;
+export const bubbleColor = rgba(196, 230, 255, 1);
 
 export class Microbe extends LJS.EngineObject {
   orbitCenter: LJS.Vector2 = vec2();
@@ -30,6 +30,7 @@ export class Microbe extends LJS.EngineObject {
     swim: new Animation("swim", 10, 1 / 30, 1),
     idle: new Animation("idle", 5, 1 / 12, 0),
     bump: new Animation("bump", 12, 1 / 30, 1),
+    blink: new Animation("blink", 4, 1 / 30, 1),
   };
 
   currentAnim: keyof typeof this.animations = "idle";
@@ -43,6 +44,7 @@ export class Microbe extends LJS.EngineObject {
     this.swim,
     () => (this.newCenter(), this.swim()),
     () => sfx.ding.play(),
+    this.blink
   ];
 
   get phi() {
@@ -190,6 +192,10 @@ export class Microbe extends LJS.EngineObject {
       this.angle,
       this.mirror
     );
+  }
+
+  blink() {
+    this.playAnim("blink")
   }
 
   bump(other: Microbe) {

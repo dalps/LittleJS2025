@@ -1,11 +1,36 @@
 import * as LJS from "littlejsengine";
-import { font, titleObj } from "./main";
+import { font, spriteAtlas, titleObj, type AtlasKey } from "./main";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
 export let colorPickerBtn: LJS.UIObject;
 export let playerColor: LJS.Color;
 export let startBtn: LJS.UIButton;
+
+export class IconButton extends LJS.UIButton {
+  constructor(
+    btnPos: LJS.Vector2,
+    iconKey: AtlasKey,
+    {
+      btnSize = vec2(50, 50),
+      iconPos = vec2(),
+      iconSize = vec2(40),
+      onClick = () => {},
+      onEnter = () => {},
+      onLeave = () => {},
+    } = {}
+  ) {
+    super(btnPos, btnSize);
+
+    let icon = new LJS.UITile(iconPos, iconSize, spriteAtlas[iconKey]);
+    this.addChild(icon);
+
+    icon.interactive = true;
+    this.onClick = icon.onClick = onClick.bind(this);
+    this.onEnter = icon.onEnter = onEnter.bind(this);
+    this.onLeave = icon.onLeave = onLeave.bind(this);
+  }
+}
 
 export function createStartMenu() {
   createColorPickerUI();
@@ -15,22 +40,22 @@ export function createStartMenu() {
 
   // startBtn.pos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.8));
 
-  colorPickerBtn = new LJS.UIButton(vec2(100 + 60, y), vec2(50, 50));
+  colorPickerBtn = new IconButton(vec2(100 + 60, y), "microbe_bw", {
+    onClick: () => {
+      colorPickerMenu.visible = true;
+      titleObj.visible = false;
+      colorPickerBtn.lineColor = LJS.BLACK;
+    },
+    onEnter: () => {
+      colorPickerBtn.lineColor = LJS.WHITE;
+    },
+    onLeave: () => {
+      colorPickerBtn.lineColor = LJS.BLACK;
+    },
+  });
 
   colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor;
   colorPickerBtn.cornerRadius = 10;
-  colorPickerBtn.onClick = () => {
-    colorPickerMenu.visible = true;
-    titleObj.visible = false;
-    colorPickerBtn.lineColor = LJS.BLACK;
-  };
-
-  colorPickerBtn.onEnter = () => {
-    colorPickerBtn.lineColor = LJS.WHITE;
-  };
-  colorPickerBtn.onLeave = () => {
-    colorPickerBtn.lineColor = LJS.BLACK;
-  };
 
   titleObj.addChild(startBtn);
   titleObj.addChild(colorPickerBtn);
@@ -46,31 +71,50 @@ function createColorPickerUI() {
   colorPickerMenu.color = LJS.GRAY;
   colorPickerMenu.lineColor = LJS.BLACK;
 
-  let mkColorBtn = (pos: LJS.Vector2, color: LJS.Color, text?: string) => {
+  let mkColorBtn = (
+    pos: LJS.Vector2,
+    color?: LJS.Color,
+    iconKey?: AtlasKey
+  ) => {
     let btn = new LJS.UIButton(pos, vec2(btnSize));
+    let icon: LJS.UITile;
 
-    btn.color = color;
+    btn.color = color ?? LJS.WHITE;
     btn.textColor = LJS.BLACK;
-    if (text) btn.text = text;
     btn.interactive = true;
     btn.cornerRadius = 10;
     btn.activeColor = color;
-    btn.hoverColor = color;
+    btn.hoverColor = color ?? LJS.WHITE;
 
-    btn.onEnter = () => {
+    const onEnter = () => {
       btn.lineColor = LJS.WHITE;
     };
-    btn.onLeave = () => {
+    const onLeave = () => {
       btn.lineColor = LJS.BLACK;
     };
 
-    btn.onClick = () => {
-      colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor = color;
-      colorPickerBtn.text = text ?? "";
+    const onClick = () => {
+      colorPickerBtn.hoverColor =
+        colorPickerBtn.color =
+        playerColor =
+          color ?? LJS.randColor();
       colorPickerMenu.visible = false;
       titleObj.visible = true;
       btn.lineColor = LJS.BLACK;
     };
+
+    btn.onClick = onClick;
+    btn.onEnter = onEnter;
+    btn.onLeave = onLeave;
+
+    if (iconKey) {
+      icon = new LJS.UITile(vec2(), vec2(40), spriteAtlas[iconKey]);
+      icon.interactive = true;
+      icon.onClick = onClick;
+      icon.onEnter = onEnter;
+      icon.onLeave = onLeave;
+      btn.addChild(icon);
+    }
 
     return btn;
   };
@@ -80,12 +124,26 @@ function createColorPickerUI() {
 
   let randomColorBtn = mkColorBtn(
     vec2(-btnSize - btnPadding, 50 + -btnSize - btnPadding * 2),
-    LJS.WHITE,
-    "?"
+    undefined,
+    "die"
   );
 
   colorPickerMenu.addChild(cue);
   colorPickerMenu.addChild(randomColorBtn);
+
+  const colorOpts = [
+    LJS.GREEN,
+    LJS.RED,
+    LJS.YELLOW,
+    LJS.BLUE,
+    LJS.MAGENTA,
+    LJS.CYAN,
+    LJS.GRAY,
+    LJS.PURPLE,
+  ].map((c) => {
+    let [h, s, _] = c.HSLA();
+    return c.copy().setHSLA(h, s * 0.75, 0.5);
+  });
 
   for (
     let i = 0, x = -btnSize - btnPadding;
@@ -98,7 +156,7 @@ function createColorPickerUI() {
       j++, y -= btnSize + btnPadding
     ) {
       colorPickerMenu.addChild(
-        mkColorBtn(vec2(x, y), hsl(i / 3 + j / 9, 0.75, 0.5))
+        mkColorBtn(vec2(x, y), colorOpts[i * 3 + (j - 1)]) // hsl((i * 3 + j) / 8, 0.75, 0.5)
       );
     }
   }
