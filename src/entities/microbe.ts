@@ -49,48 +49,33 @@ export class Microbe extends LJS.EngineObject {
 
   actions: Function[] = [];
 
-  get phi() {
-    return this.polarPos.x;
-  }
+  song?: Song;
+  wrapping: PatternWrapping;
 
-  get dist() {
-    return this.polarPos.y;
-  }
+  name?: string;
+  leader?: Microbe;
+  rowIdx: number;
 
-  set phi(v) {
-    this.polarPos.x = v;
-  }
+  bumpTimer: LJS.Timer;
 
-  set dist(v) {
-    this.polarPos.y = v;
-  }
-
-  newCenter() {
-    if (this.isLeader()) {
-      this.orbitCenter = lerpVec2(this.orbitCenter, this.pos, 2);
-      this.direction *= -1;
-      this.turnPhi = this.phi -= Math.PI;
-      this.turnSignal = 0;
-
-      LOG(
-        `Changing center of leader at angle turnPhi: ${this.turnPhi} ${this.phi}`
-      );
-    }
-  }
-
-  isLeader() {
-    return this.leader === undefined;
-  }
+  private readonly bumpCooldown = 0.2;
 
   constructor(
     public polarPos: LJS.Vector2,
-    public leader?: Microbe,
-    public rowIdx = 0,
-    public song?: Song,
-    public wrapping = PatternWrapping.End
+    {
+      rowIdx = 0,
+      leader = undefined as Microbe | undefined,
+      song = undefined as Song | undefined,
+      wrapping = PatternWrapping.End,
+    } = {}
   ) {
     super(polar2cart(polarPos));
 
+    this.wrapping = wrapping;
+    this.leader = leader;
+    this.song = song;
+    this.rowIdx = rowIdx;
+    this.name = `microbe_${rowIdx}`;
     this.size = vec2(1.5);
     this.drawSize = vec2(5);
     this.mass = 1;
@@ -132,29 +117,66 @@ export class Microbe extends LJS.EngineObject {
       speed: -0.25,
       damping: 0.89,
     });
-
     this.bubbleEmitter.localPos = vec2(0, -1);
-
     this.addChild(this.bubbleEmitter);
 
-    // this.bubbleEmitter.particleDestroyCallback = () => sfx.bubble2.play(this.pos);
+    this.setChoreography();
 
-    // this.beat?.onbeat(this.onbeat.bind(this));
-    this.song?.beat?.onpattern(
+    this.bumpTimer = new LJS.Timer(this.bumpCooldown);
+    this.setCollision();
+  }
+
+  setChoreography() {
+    this.song?.beat.onpattern(
       this.song.choreography,
       (note) => note !== undefined && this.actions.at(note)?.call(this),
-      wrapping
+      this.wrapping
     );
-
-    this.setCollision();
   }
 
   collideWithObject(o: LJS.EngineObject): boolean {
     if (!(o instanceof Microbe)) return true;
+    if (this.destroyed || o.destroyed) return false;
 
+    if (this.bumpTimer.elapsed()) {
+      this.bumpTimer.set(this.bumpCooldown);
+    }
     this.bump(o);
 
     return false;
+  }
+
+  get phi() {
+    return this.polarPos.x;
+  }
+
+  get dist() {
+    return this.polarPos.y;
+  }
+
+  set phi(v) {
+    this.polarPos.x = v;
+  }
+
+  set dist(v) {
+    this.polarPos.y = v;
+  }
+
+  newCenter() {
+    if (this.isLeader()) {
+      this.orbitCenter = lerpVec2(this.orbitCenter, this.pos, 2);
+      this.direction *= -1;
+      this.turnPhi = this.phi -= Math.PI;
+      this.turnSignal = 0;
+
+      LOG(
+        `Changing center of leader at angle turnPhi: ${this.turnPhi} ${this.phi}`
+      );
+    }
+  }
+
+  isLeader() {
+    return this.leader === undefined;
   }
 
   onbeat(_: BeatCount) {}
@@ -178,13 +200,13 @@ export class Microbe extends LJS.EngineObject {
   debug() {
     LJS.debugText(formatPolar(this.polarPos), this.pos.add(vec2(0, 1)), 0.5);
 
-    LJS.drawLine(
+    LJS.debugLine(
       this.orbitCenter,
       this.pos,
-      0.1,
-      this.isLeader() ? LJS.YELLOW : LJS.BLUE
+      this.isLeader() ? LJS.YELLOW : LJS.BLUE,
+      0.1
     );
-    LJS.drawCircle(this.orbitCenter, 0.5, LJS.RED);
+    LJS.debugCircle(this.orbitCenter, 0.5, LJS.RED);
   }
 
   render(): void {
@@ -221,6 +243,8 @@ export class Microbe extends LJS.EngineObject {
   }
 
   bump(other: Microbe) {
+    // LOG(`${this.name} ${this.pos} bumped with ${other.name} ${other.pos}`);
+
     this.playAnim("bump");
 
     new MyParticle(this.pos, {

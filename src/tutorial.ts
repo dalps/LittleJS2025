@@ -1,9 +1,20 @@
 import * as LJS from "littlejsengine";
 import { SpeechBubble } from "./uiUtils";
-import { center, clearRow, currentSong, makeRow, setCurrentSong } from "./main";
+import {
+  center,
+  clearRow,
+  currentSong,
+  makeRow,
+  setCurrentSong,
+  titleScreen,
+} from "./main";
 import type { Microbe } from "./entities/microbe";
 import { goodThreshold, type Player } from "./entities/player";
-import { myFirstConsoleTutorial, tutorialChoreo2 } from "./songs";
+import {
+  myFirstConsoleTutorial,
+  tutorialChoreo2,
+  tutorialChoreo3,
+} from "./songs";
 import { PatternWrapping, type TimingInfo } from "./beat";
 import { LOG } from "./mathUtils";
 const { vec2, rgb, tile } = LJS;
@@ -13,88 +24,119 @@ const beatsToHit = 8;
 
 let score = 0;
 let beatsLeft = beatsToHit;
+let player: Player;
+
+let t1: LJS.UIText;
+let t2: LJS.UIText;
 
 export function tutorial() {
   setCurrentSong(myFirstConsoleTutorial);
-  currentSong.addMetronome();
+  currentSong.loopStart = 3.333; // 2 bar 1 beat 1 sub
 
-  clearRow();
-
-  let [leader, player] = makeRow({
+  let row = makeRow({
     playerIdx: 1,
     wrapping: PatternWrapping.HoldLast,
   }) as [Microbe, Player];
+  let [leader] = row;
 
+  player = row[1];
   player.interactive = false;
 
-  const pos = LJS.worldToScreen(leader.pos).subtract(vec2(0, 100));
-  new SpeechBubble(pos, "Hello there!") //
+  t1 = new LJS.UIText(
+    LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
+    vec2(1000, 20)
+  );
+  t2 = new LJS.UIText(vec2(0, 40), vec2(1000, 40));
+  t1.addChild(t2);
+  t1.textColor = t2.textColor = LJS.WHITE;
+  t1.shadowColor = t2.shadowColor = LJS.BLACK;
+
+  const pos = () => LJS.worldToScreen(leader.pos).subtract(vec2(0, 100));
+
+  new SpeechBubble(pos(), "Hello there!") //
     .then(() => {
       leader.idle();
       new SpeechBubble(
-        pos,
+        pos(),
         `Let us show you our moves.` // `Welcome to the mitochondrion. We are in charge of cellular respiration.`
       ).then(() => {
         //         leader.idle();
         //         new SpeechBubble(
-        //           pos,
+        //           pos(),
         //           `Our tiny march powers up the cell by burning oxygen.
         // Let us show you the ropes.`
         //         ).then(() => {
         leader.idle();
-        new SpeechBubble(pos, `Ready?`).then(() => {
-          let t1 = new LJS.UIText(
-            LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
-            vec2(1000, 20),
-            `Press space or click on the 1st and 3rd beat.`
-          );
-          let t2 = new LJS.UIText(
-            vec2(0, 40),
-            vec2(1000, 40),
-            `${beatsToHit} times left.`
-          );
-          t1.addChild(t2);
+        new SpeechBubble(pos(), `Ready?`).then(() => {
+          t1.text = `Click on the 1st and 3rd beat.`;
+          testPlayer([1, 3], (finalScore) => {
+            LOG(`finalScore: ${finalScore}`);
 
-          t1.textColor = t2.textColor = LJS.WHITE;
-          t1.shadowColor = t2.shadowColor = LJS.BLACK;
-
-          player.onClick = testPlayer(
-            () => {
-              t2.text = `${beatsLeft} times left.`;
-            },
-            () => {
-              currentSong.stop();
-              player.interactive = false;
-              t1.visible = false;
-
-              let finalScore = score / 8;
-
-              LOG(`finalScore: ${finalScore}`);
-
-              new SpeechBubble(
-                pos,
-                finalScore >= 0.5 ? `Awesome!` : `That'll do.`
-              ).then(() =>
-                new SpeechBubble(pos, `Let's try a different pattern...`).then(
-                  () =>
-                    new SpeechBubble(pos, `We ready?`).then(() => {
+            new SpeechBubble(
+              pos(),
+              finalScore >= 0.85 ? `Awesome!` : `That'll do.`
+            ).then(() =>
+              new SpeechBubble(pos(), `Let's try a different pattern.`).then(
+                () =>
+                  new SpeechBubble(
+                    pos(),
+                    `This time, we'll march on the offbeat.`
+                  ).then(() => {
+                    new SpeechBubble(pos(), `We ready?!`).then(() => {
                       currentSong.setChoreography(tutorialChoreo2);
-                      currentSong.addMetronome();
-                      currentSong.play();
-                    })
-                )
-              );
-            }
-          );
+                      row.forEach((m) => m.setChoreography()); // song should take care of this
 
-          currentSong.play(true);
+                      t1.text = `Click on the 2nd and 4th beat.`;
+                      testPlayer([2, 4], (finalScore) => {
+                        LOG(`finalScore: ${finalScore}`);
+                        new SpeechBubble(
+                          pos(),
+                          finalScore >= 0.85 ? `Sweet!` : `Not bad.`
+                        ).then(() =>
+                          new SpeechBubble(pos(), `One last pattern.`).then(
+                            () =>
+                              new SpeechBubble(
+                                pos(),
+                                `You'll hear a bell ding: swim for three beats in a row!`
+                              ).then(() =>
+                                new SpeechBubble(pos(), `Here we go.`).then(
+                                  () => {
+                                    currentSong.setChoreography(
+                                      tutorialChoreo3
+                                    );
+                                    row.forEach((m) => m.setChoreography());
 
-          const songSrc = currentSong.soundInstance!.source;
-          songSrc.loopStart = 3.333; // 2 bar 1 beat 1 sub
-          songSrc.loopEnd = songSrc.buffer!.duration;
+                                    t1.text = `Click on the 2nd, 3rd and 4th beat.`;
 
-          player.interactive = true;
-
+                                    testPlayer([2, 3, 4], () => {
+                                      new SpeechBubble(
+                                        pos(),
+                                        finalScore >= 0.85
+                                          ? `You got rhythm!`
+                                          : `I think you're ready.`
+                                      ).then(() =>
+                                        new SpeechBubble(
+                                          pos(),
+                                          `Congrats! You completed the tutorial!`
+                                        ).then(() =>
+                                          new SpeechBubble(
+                                            pos(),
+                                            `Now, march on to the main levels.`
+                                          ).then(titleScreen)
+                                        )
+                                      );
+                                    });
+                                  }
+                                )
+                              )
+                          )
+                        );
+                      });
+                    });
+                  })
+              )
+            );
+          });
           // });
         });
       });
@@ -103,16 +145,40 @@ export function tutorial() {
   hasDoneTutorial = true;
 }
 
-function testPlayer(onProgress: () => void, onComplete: () => void) {
+function testPlayer(
+  /** Which beats should the player hit? */
+  beats: number[],
+  /** What happens after the player passes the test */
+  onComplete: (score: number) => void,
+  /** What happens after the player makes hit a beat correctly */
+  onProgress?: () => void
+) {
   score = 0;
   beatsLeft = beatsToHit;
+  t2.text = `${beatsToHit} times left.`;
+  t1.visible = true;
 
-  return ({ accuracy, count: [beat] }: TimingInfo) => {
-    if ((beat === 1 || beat === 3) && accuracy >= goodThreshold) {
-      onProgress();
+  currentSong.addMetronome();
+  currentSong.play({ loop: true });
+
+  player.interactive = true;
+
+  player.onClick = ({ accuracy, count: [currentBeat] }: TimingInfo) => {
+    const correctBeat = beats.find((b) => b === currentBeat);
+    // LOG(`${currentBeat} vs ${beats}: ${correctBeat}`);
+
+    if (correctBeat && accuracy >= goodThreshold) {
+      t2.text = `${beatsLeft} times left.`;
+      onProgress && onProgress();
+
       LOG(`${score} (+${accuracy})`);
       score += accuracy;
-      if (--beatsLeft < 0) onComplete();
+      if (--beatsLeft < 0) {
+        currentSong.stop();
+        player.interactive = false;
+        t1.visible = false;
+        onComplete(score / beatsToHit);
+      }
     }
   };
 }

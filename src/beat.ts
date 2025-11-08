@@ -151,10 +151,23 @@ export class Beat {
   /**
    * Register a callback to be executed once at a specific beat count
    */
-  atbeat([beat, sub, bar]: BeatCount, fn: () => void): string {
+  atbar([beat, sub, bar]: BeatCount, fn: () => void): string {
     let id = this.getId();
     this.listeners.set(id, ([b, s, br]) => {
       if (b === beat && s === sub && bar === br) {
+        fn();
+        this.removeListener(id);
+      }
+    });
+    return id;
+  }
+  /**
+   * Register a callback to be executed at a specific beat count
+   */
+  atbeat([beat, sub]: BeatCount, fn: () => void): string {
+    let id = this.getId();
+    this.listeners.set(id, ([b, s, br]) => {
+      if (b === beat && s === sub) {
         fn();
         this.removeListener(id);
       }

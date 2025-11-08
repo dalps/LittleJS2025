@@ -50,7 +50,7 @@ export class Tween {
     this.delta = this.end - this.start;
     this.fn = fn;
     // Callback for when Tween is completed
-    this.then = (f) => ((this.then = f!), this);
+    this.then = (f) => ((this.then = f!), this); // flatten with Promises?
     this.setEase = (f) => ((this.ease = f), this);
     Tween.active.push(this);
     this.fn(this.interp(this.duration));

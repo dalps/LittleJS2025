@@ -5,7 +5,7 @@ import type { Song } from "../music";
 import { MyParticle } from "../particleUtils";
 import { sfx } from "../sfx";
 import { Microbe, swimAccel } from "./microbe";
-import type { TimingInfo } from "../beat";
+import { PatternWrapping, type TimingInfo } from "../beat";
 
 const { vec2, rgb } = LJS;
 
@@ -70,8 +70,23 @@ export class Player extends Microbe {
 
   onClick?: (timing: TimingInfo) => void;
 
-  constructor(pos: LJS.Vector2, leader: Microbe, number = 1, song?: Song) {
-    super(pos, leader, number, song);
+  constructor(
+    pos: LJS.Vector2,
+    {
+      rowIdx = 0,
+      leader = undefined as Microbe | undefined,
+      song = undefined as Song | undefined,
+      wrapping = PatternWrapping.End,
+    } = {}
+  ) {
+    super(pos, {
+      rowIdx,
+      leader,
+      song,
+      wrapping,
+    });
+
+    this.name = "player";
 
     // this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
     //   note && this.idle();
@@ -83,13 +98,15 @@ export class Player extends Microbe {
   bump(other: Microbe): void {
     super.bump(other);
 
+    // if other's rowIdx is bigger, move to next phi
+    // otherwise return to current phi
+
     sfx.boo.play(this.pos);
 
     this.applyForce(swimAccel.scale((other.phi > this.phi ? -1 : 1) * 0.2));
   }
 
   update(): void {
-    LOG(this.pos);
     if (
       (this.interactive && LJS.mouseWasReleased(0)) ||
       LJS.keyWasReleased("Space")

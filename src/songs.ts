@@ -37,6 +37,20 @@ const swim_2_4 = [
   [Swim],
 ];
 
+const ding1 = [
+  [Ding], //
+  [Swim],
+  [Swim],
+  [Swim],
+];
+
+const ding2 = [
+  [Swim], //
+  [Ding],
+  [Swim],
+  [Swim],
+];
+
 export function initSongs() {
   {
     const p2 = [
@@ -98,14 +112,6 @@ export function initSongs() {
     ];
 
     // prettier-ignore
-    const ding = [
-      [Ding, ],
-      [Swim, ],
-      [Swim, ],
-      [Swim, ],
-    ];
-
-    // prettier-ignore
     const end = [
       [____, ],
       [____, ],
@@ -132,7 +138,7 @@ export function initSongs() {
         repeat(mid, 7),
         [mid2],
         repeat(mid, 8),
-        repeat([mid, ding], 4).flat(),
+        repeat([mid, ding1], 4).flat(),
         [mid, mid2, mid, mid],
         [idle, end, empty],
       ].flat(),
@@ -148,9 +154,18 @@ export function initSongs() {
   }
 }
 
-export const tutorialChoreo1 = [repeat(idle1_3_, 2), repeat(swim1_3_, 8)].flat()
-export const tutorialChoreo2 = [repeat(idle1_3_, 2), repeat(swim_2_4, 8)].flat()
-export const tutorialChoreo3 = [repeat(idle1_3_, 2), repeat(swim1_3_, 8)].flat()
+export const tutorialChoreo1 = [
+  repeat(idle1_3_, 2),
+  repeat(swim1_3_, 8),
+].flat();
+export const tutorialChoreo2 = [
+  repeat(idle1_3_, 2),
+  repeat(swim_2_4, 8),
+].flat();
+export const tutorialChoreo3 = [
+  repeat(idle1_3_, 2),
+  repeat([swim1_3_, ding2], 32).flat(),
+].flat();
 
 export const countSwimActions = (choreography: Pattern<MicrobeAction>) =>
   choreography.flat(3).filter((a) => a === MicrobeAction.Swim).length;

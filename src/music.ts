@@ -39,8 +39,8 @@ export class Song {
   sound: LJS.SoundWave;
   soundInstance?: LJS.SoundInstance;
   loop: boolean;
-  loopStart = 0;
-  loopEnd = 0;
+  loopStart?: number;
+  loopEnd?: number;
 
   // choreography
   choreography!: Pattern<number>;
@@ -103,7 +103,7 @@ export class Song {
   /**
    * Play the song immediately
    */
-  play(loop = false) {
+  play({ loop = false } = {}) {
     if (!this.sound?.isLoaded()) return;
 
     if (!this.unlocked) {
@@ -118,12 +118,15 @@ export class Song {
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic(1, loop);
 
+    const songSrc = this.soundInstance.source;
+
     if (loop) {
-      this.soundInstance.source.loopStart = this.loopStart;
-      this.soundInstance.source.loopEnd = this.loopEnd;
+      this.soundInstance.source.loopStart = this.loopStart ?? 0;
+      this.soundInstance.source.loopEnd =
+        this.loopEnd ?? songSrc.buffer!.duration;
     }
 
-    this.beat.atbeat([0, 0, this.choreography.length], this.onEnd);
+    this.beat.atbar([0, 0, this.choreography.length], this.onEnd);
 
     LOG(`Now playing: ${this}`);
     this.beat.play();
@@ -143,7 +146,7 @@ export class Song {
       ];
 
     this.choreography = [...countInPattern, ...this.orignalChoreo];
-    this.beat.atbeat([0, 0, bars], this.play.bind(this));
+    this.beat.atbar([0, 0, bars], this.play.bind(this));
     this.metronome.start();
     this.beat.play();
   }

@@ -195,16 +195,32 @@ export function makeRow({
   length = 3,
   wrapping = PatternWrapping.End,
 } = {}) {
-  leader = new Microbe(vec2(0, startDist), undefined, 0, currentSong, wrapping);
+  clearRow();
+
+  leader = new Microbe(vec2(0, startDist), {
+    rowIdx: 0,
+    song: currentSong,
+    wrapping,
+  });
   row.push(leader);
 
-  for (let i = 1; i < length; i++) {
-    const startPos = polar(startAngle + angleDelta * -i, startDist);
+  for (let rowIdx = 1; rowIdx < length; rowIdx++) {
+    const startPos = polar(startAngle + angleDelta * -rowIdx, startDist);
 
     const m =
-      i === playerIdx
-        ? (player = new Player(startPos, leader, i, currentSong))
-        : new Microbe(startPos, leader, i, currentSong, wrapping);
+      rowIdx === playerIdx
+        ? (player = new Player(startPos, {
+            leader,
+            rowIdx: rowIdx,
+            song: currentSong,
+            wrapping,
+          }))
+        : new Microbe(startPos, {
+            leader,
+            rowIdx: rowIdx,
+            song: currentSong,
+            wrapping,
+          });
 
     row.push(m);
   }
@@ -227,7 +243,7 @@ function changeBackground(color = currentSong.color) {
   ).setEase(Ease.OUT(Ease.BOUNCE));
 }
 
-function titleScreen() {
+export function titleScreen() {
   gameState = GameState.Title;
 
   clearRow();
