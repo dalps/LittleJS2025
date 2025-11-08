@@ -1,5 +1,5 @@
 import * as LJS from "littlejsengine";
-import { font, spriteAtlas, titleObj, type AtlasKey } from "./main";
+import { font, spriteAtlas, titleMenu, type AtlasKey } from "./main";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
@@ -51,7 +51,7 @@ export function createStartMenu() {
   colorPickerBtn = new IconButton(vec2(100 + 60, y), "microbe_bw", {
     onClick: () => {
       colorPickerMenu.visible = true;
-      titleObj.visible = false;
+      titleMenu.visible = false;
       colorPickerBtn.lineColor = LJS.BLACK;
     },
     onEnter: () => {
@@ -65,8 +65,8 @@ export function createStartMenu() {
   colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor;
   colorPickerBtn.cornerRadius = 10;
 
-  titleObj.addChild(startBtn);
-  titleObj.addChild(colorPickerBtn);
+  titleMenu.addChild(startBtn);
+  titleMenu.addChild(colorPickerBtn);
 }
 
 function createColorPickerUI() {
@@ -107,7 +107,7 @@ function createColorPickerUI() {
         playerColor =
           color ?? LJS.randColor();
       colorPickerMenu.visible = false;
-      titleObj.visible = true;
+      titleMenu.visible = true;
       btn.lineColor = LJS.BLACK;
     };
 

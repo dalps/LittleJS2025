@@ -36,6 +36,8 @@ enum GameState {
   GameResults,
 }
 
+export const DEBUG = false;
+
 export const ratings = {
   superb: {
     message: `Superb!`,
@@ -113,7 +115,7 @@ let row: Microbe[] = [];
 
 // ui
 export let pauseBtn: LJS.UIObject;
-export let titleObj: LJS.UIObject;
+export let titleMenu: LJS.UIObject;
 let loadingText: LJS.UIText;
 let foregroundCausticPos: LJS.Vector2 = vec2();
 let backgroundCausticPos: LJS.Vector2 = vec2();
@@ -137,7 +139,7 @@ function loadAssets() {
   songs.initSongs();
   currentSong = songs.paarynasAllrite!;
 
-  titleObj = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
+  titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
   let titleText = new LJS.UIText(
     vec2(0, -100),
     vec2(900, 90),
@@ -156,7 +158,7 @@ function loadAssets() {
   titleText.textColor = subtitle.textColor = LJS.WHITE;
 
   titleText.addChild(subtitle);
-  titleObj.addChild(titleText);
+  titleMenu.addChild(titleText);
 
   loadingText = new LJS.UIText(
     LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
@@ -246,19 +248,16 @@ function changeBackground(color = currentSong.color) {
 export function titleScreen() {
   gameState = GameState.Title;
 
-  clearRow();
-
-  pauseMenu.visible = false;
-  titleObj.visible = true;
-
   createStartMenu();
+  pauseMenu.visible = false;
+  titleMenu.visible = true;
 
   startBtn.onClick = startGame;
 
   currentSong = songs.paarynasAllrite!;
+  currentSong.play({ loop: true });
 
   changeBackground();
-  currentSong?.play();
 
   LJS.setTouchInputEnable(true);
   LJS.setSoundVolume(1);
@@ -288,7 +287,7 @@ export function titleScreen() {
 function startGame() {
   if (!hasDoneTutorial) {
     clearRow();
-    titleObj.destroy();
+    titleMenu.visible = false;
     gameState = GameState.Tutorial;
     return tutorial();
   }
@@ -351,7 +350,7 @@ function startGame() {
   currentSong.addMetronome();
   player.color = colorPickerBtn.color;
 
-  titleObj.visible = false;
+  titleMenu.visible = false;
 
   gameState = GameState.Game;
 }

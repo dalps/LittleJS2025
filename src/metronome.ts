@@ -79,11 +79,10 @@ export class Metronome extends LJS.UIObject {
     //   sfx.tic.play(LJS.cameraPos, note ? 0.5 : 0, note);
     // });
     this._score = 0;
-    this.show();
   }
 
   stop(): void {
-    LOG(`Stopping metronome... ${this.beatHandle}`);
+    // LOG(`Stopping metronome... ${this.beatHandle}`);
     this.hide();
     this.beatHandle && this.beat.removeListener(this.beatHandle);
   }

@@ -1,5 +1,5 @@
 import * as LJS from "littlejsengine";
-import { tileSize } from "./main";
+import { DEBUG, tileSize } from "./main";
 const { vec2, rgb, tile } = LJS;
 
 export const DEG2RAD = Math.PI / 180;
@@ -51,6 +51,7 @@ export const formatPolar = ({ x: phi, y: dist }: LJS.Vector2) =>
   `(${formatDegrees(phi)}°, ${dist.toFixed(3)})`;
 
 export const LOG = (msg: string) => {
+  if (!DEBUG) return;
   const t = LJS.audioContext.currentTime;
   console.log(`[${formatTime(t)}] ${msg}`);
 };

@@ -166,9 +166,8 @@ export class Song {
 
   stop() {
     this.beat?.stop();
-    this.metronome.destroy();
-    this.songContainer?.destroy();
     this.soundInstance?.stop();
+    this.metronome.hide();
     this.hide();
   }
 
