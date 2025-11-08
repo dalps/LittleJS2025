@@ -58,7 +58,7 @@ export function tutorial() {
       leader.idle();
       new SpeechBubble(
         pos(),
-        `Let us show you our moves.` // `Welcome to the mitochondrion. We are in charge of cellular respiration.`
+        `Let us teach you our moves.` // `Welcome to the mitochondrion. We are in charge of cellular respiration.`
       ).then(() => {
         //         leader.idle();
         //         new SpeechBubble(
@@ -80,7 +80,7 @@ export function tutorial() {
                 () =>
                   new SpeechBubble(
                     pos(),
-                    `This time, we'll march on the offbeat.`
+                    `This time, we'll march to the offbeat.`
                   ).then(() => {
                     new SpeechBubble(pos(), `We ready?!`).then(() => {
                       currentSong.setChoreography(tutorialChoreo2);
@@ -97,16 +97,22 @@ export function tutorial() {
                             () =>
                               new SpeechBubble(
                                 pos(),
-                                `You'll hear a bell ding: swim for three beats in a row!`
+                                `When you hear a bell ding...`
                               ).then(() =>
-                                new SpeechBubble(pos(), `Here we go.`).then(
-                                  () => {
+                                new SpeechBubble(
+                                  pos(),
+                                  `...swim for the next three beats!`
+                                ).then(() =>
+                                  new SpeechBubble(
+                                    pos(),
+                                    `Ok, here we go!`
+                                  ).then(() => {
                                     currentSong.setChoreography(
                                       tutorialChoreo3
                                     );
                                     row.forEach((m) => m.setChoreography());
 
-                                    t1.text = `Click on the 2nd, 3rd and 4th beat.`;
+                                    t1.text = `Click on the 2nd, 3rd and 4th beat after the ding.`;
 
                                     testPlayer([2, 3, 4], () => {
                                       new SpeechBubble(
@@ -126,7 +132,7 @@ export function tutorial() {
                                         )
                                       );
                                     });
-                                  }
+                                  })
                                 )
                               )
                           )
