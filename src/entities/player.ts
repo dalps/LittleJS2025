@@ -5,6 +5,7 @@ import type { Song } from "../music";
 import { MyParticle } from "../particleUtils";
 import { sfx } from "../sfx";
 import { Microbe, swimAccel } from "./microbe";
+import type { TimingInfo } from "../beat";
 
 const { vec2, rgb } = LJS;
 
@@ -17,7 +18,6 @@ export const firework = (
     accuracy = 0,
     n = 5,
     color = undefined as LJS.Color | undefined,
-    speed = 1,
     spin = 0,
   } = {}
 ) => {
@@ -26,6 +26,7 @@ export const firework = (
   const r2 = 5;
   const size1 = 12.5;
   const size2 = LJS.lerp(20, 30, accuracy);
+  const speed = LJS.lerp(0.5, 1, accuracy);
   const mkSizeFunc = (maxSize: number) => (t: number) =>
     Math.sin(t * Math.PI) * maxSize;
   const tileInfo = spriteAtlas.star;
@@ -65,6 +66,10 @@ export const firework = (
 };
 
 export class Player extends Microbe {
+  interactive = true;
+
+  onClick?: (timing: TimingInfo) => void;
+
   constructor(pos: LJS.Vector2, leader: Microbe, number = 1, song?: Song) {
     super(pos, leader, number, song);
 
@@ -84,23 +89,27 @@ export class Player extends Microbe {
   }
 
   update(): void {
-    if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
-      const { accuracy } = currentSong.metronome.click();
+    LOG(this.pos);
+    if (
+      (this.interactive && LJS.mouseWasReleased(0)) ||
+      LJS.keyWasReleased("Space")
+    ) {
+      const info = currentSong.metronome.click();
+      const { accuracy } = info;
       this.song!.scoreDelta = accuracy;
+
+      this.onClick && this.onClick(info);
+
+      this.swim();
 
       const pos =
         (LJS.mouseWasReleased(0) && LJS.mousePosScreen) ||
         LJS.worldToScreen(this.pos).add(vec2(0, 100));
-      const speed = LJS.lerp(0.5, 1, accuracy);
-
-      this.swim();
-
-      LOG(accuracy.toFixed(2));
 
       if (accuracy >= perfectThreshold)
-        firework(pos, { accuracy, n: 10, speed, spin: 0.05 });
+        firework(pos, { accuracy, n: 10, spin: 0.05 });
       else if (accuracy >= goodThreshold)
-        firework(pos, { accuracy, n: 8, color: LJS.YELLOW, speed });
+        firework(pos, { accuracy, n: 8, color: LJS.YELLOW });
       else
         new MyParticle(pos, {
           tileInfo: spriteAtlas["hoop_click"],

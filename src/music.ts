@@ -34,14 +34,17 @@ export class Song {
   year: string;
   href: string;
 
-  // soung
+  // sound
   beat: Beat;
   sound: LJS.SoundWave;
   soundInstance?: LJS.SoundInstance;
+  loop: boolean;
+  loopStart = 0;
+  loopEnd = 0;
 
   // choreography
-  choreography: Pattern<number>;
-  orignalChoreo: Pattern<number>;
+  choreography!: Pattern<number>;
+  orignalChoreo!: Pattern<number>;
   totalSwims: number;
   swimCount = 0;
   scoreDelta = 0;
@@ -52,7 +55,7 @@ export class Song {
   unlocked = false;
   color: LJS.Color;
 
-  onEnd: Function;
+  onEnd: () => any;
 
   constructor(
     public filename: string,
@@ -67,13 +70,14 @@ export class Song {
       subs = 1,
       onLoad = () => {},
       onEnd = () => {},
+      loop = false,
       choreography = [] as Pattern<number>,
     } = {}
   ) {
     this.beat = new Beat(bpm, beats, subs);
     this.sound = new LJS.SoundWave(filename);
-    this.orignalChoreo = choreography;
-    this.choreography = choreography.slice(0);
+    this.loop = loop;
+    this.setChoreography(choreography);
     this.totalSwims = countSwimActions(choreography);
     this.color = color;
     this.sound.onloadCallback = (wav) => {
@@ -91,10 +95,15 @@ export class Song {
     this.metronome = new Metronome(metronomePos, this.beat);
   }
 
+  setChoreography(choreography: Pattern<number>) {
+    this.orignalChoreo = choreography;
+    this.choreography = choreography.slice(0);
+  }
+
   /**
    * Play the song immediately
    */
-  play() {
+  play(loop = false) {
     if (!this.sound?.isLoaded()) return;
 
     if (!this.unlocked) {
@@ -107,7 +116,12 @@ export class Song {
     }
 
     if (this.soundInstance) this.soundInstance.stop();
-    this.soundInstance = this.sound.playMusic(1, false);
+    this.soundInstance = this.sound.playMusic(1, loop);
+
+    if (loop) {
+      this.soundInstance.source.loopStart = this.loopStart;
+      this.soundInstance.source.loopEnd = this.loopEnd;
+    }
 
     this.beat.atbeat([0, 0, this.choreography.length], this.onEnd);
 

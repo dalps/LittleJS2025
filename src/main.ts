@@ -22,6 +22,8 @@ import {
 import { PatternWrapping } from "./beat";
 import { sfx } from "./sfx";
 import { pulse, sleep } from "./animUtils";
+import { hasDoneTutorial, tutorial } from "./tutorial";
+import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -29,6 +31,7 @@ enum GameState {
   AwaitClick,
   Title,
   Game,
+  Tutorial,
   Paused,
   GameResults,
 }
@@ -56,6 +59,12 @@ export const ratings = {
 
 export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
+
+export function setCurrentSong(song: Song) {
+  currentSong?.stop();
+  currentSong = song;
+}
+
 export let titleSong: keyof typeof songs = "paarynasAllrite";
 
 export const atlasCoords = {
@@ -100,12 +109,12 @@ let musicVolume = 1;
 let musicLoaded = false;
 let percentLoaded = 0;
 let player: Player;
-let autoMicrobes: Microbe[] = [];
+let row: Microbe[] = [];
 
 // ui
 export let pauseBtn: LJS.UIObject;
 export let titleObj: LJS.UIObject;
-let loadingBtn: LJS.UIButton;
+let loadingText: LJS.UIText;
 let foregroundCausticPos: LJS.Vector2 = vec2();
 let backgroundCausticPos: LJS.Vector2 = vec2();
 
@@ -117,7 +126,11 @@ function loadAssets() {
 
   (["swim", "idle", "bump", "blink"] as AtlasAnimationKey[]).forEach(
     (animKey, idx) => {
-      spriteAtlas[`${animKey}_tummy`] = tile(vec2(0, idx), tileSize, 1);
+      spriteAtlas[`${animKey}_tummy`] = tile(
+        atlasCoords[animKey][0],
+        tileSize,
+        1
+      );
     }
   );
 
@@ -145,39 +158,36 @@ function loadAssets() {
   titleText.addChild(subtitle);
   titleObj.addChild(titleText);
 
-  loadingBtn = new LJS.UIButton(
+  loadingText = new LJS.UIText(
     LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
     LJS.mainCanvasSize,
-    "",
-    rgba(0, 0, 0, 0)
+    ""
   );
-  loadingBtn.lineWidth = 0;
-  loadingBtn.hoverColor = LJS.CLEAR_WHITE;
-  loadingBtn.textColor = LJS.WHITE.copy();
-  loadingBtn.textHeight = 42;
+  loadingText.textColor = LJS.WHITE.copy();
+  loadingText.textHeight = 42;
+
   center = LJS.mainCanvasSize.scale(0.5);
 }
 
-// After loading finishes, await the user's click. This is essential to play
-// music in the title screen
+/**
+ * Called after loading completes to await the user's click, which is necessary to wake up the AudioContext.
+ */
 function awaitClick() {
   gameState = GameState.AwaitClick;
 
-  new Tween((t) => (loadingBtn.textColor.a = t), 1, 0.1, 10) //
+  new Tween((t) => (loadingText.textColor.a = t), 1, 0.1, 10) //
     .then(() => {
-      loadingBtn.text = "Click to start";
-      pulse(loadingBtn.textColor);
+      loadingText.text = "Click to start";
+      pulse(loadingText.textColor);
     });
 
-  loadingBtn.interactive = true;
-
-  loadingBtn.onClick = () => {
-    loadingBtn.destroy();
+  new ScreenButton(() => {
+    loadingText.destroy();
     titleScreen();
-  };
+  });
 }
 
-function makeRow({
+export function makeRow({
   angleDelta = 35 * DEG2RAD,
   startAngle = 0,
   startDist = 5,
@@ -186,21 +196,25 @@ function makeRow({
   wrapping = PatternWrapping.End,
 } = {}) {
   leader = new Microbe(vec2(0, startDist), undefined, 0, currentSong, wrapping);
-  autoMicrobes.push(leader);
+  row.push(leader);
 
   for (let i = 1; i < length; i++) {
     const startPos = polar(startAngle + angleDelta * -i, startDist);
+
     const m =
       i === playerIdx
         ? (player = new Player(startPos, leader, i, currentSong))
         : new Microbe(startPos, leader, i, currentSong, wrapping);
 
-    autoMicrobes.push(m);
+    row.push(m);
   }
+
+  return row;
 }
 
-function clearRow() {
-  autoMicrobes.forEach((m) => m.destroy());
+export function clearRow() {
+  row.forEach((m) => m.destroy());
+  row.splice(0);
   leader = undefined;
 }
 
@@ -246,7 +260,7 @@ function titleScreen() {
     renderOrder: -1e4,
   });
 
-  autoMicrobes[1].addChild(matrixParticles);
+  row[1].addChild(matrixParticles);
 
   // for (let i = 0; i < 100; i++)
   //   new MyParticle(LJS.randInCircle(100, 0), {
@@ -256,9 +270,15 @@ function titleScreen() {
 }
 
 function startGame() {
-  currentSong.stop();
+  if (!hasDoneTutorial) {
+    clearRow();
+    titleObj.destroy();
+    gameState = GameState.Tutorial;
+    return tutorial();
+  }
 
-  currentSong = songs.stardustMemories!;
+  setCurrentSong(songs.stardustMemories);
+
   currentSong.addMetronome();
   currentSong.onEnd = afterGame;
   currentSong.play();
@@ -452,6 +472,7 @@ function gameInit() {
 
   loadAssets();
   // titleScreen();
+  // tutorial();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -462,8 +483,9 @@ function gameUpdate() {
       break;
     case GameState.Title:
       // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
-      LJS.setCameraPos(autoMicrobes[1].pos);
+      LJS.setCameraPos(row[1].pos);
       break;
+    case GameState.Tutorial:
     case GameState.Game:
       // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
       LJS.setCameraPos(player.pos);
@@ -484,7 +506,7 @@ function gameRender() {
   switch (gameState) {
     case GameState.Loading:
       const loadedPercent = (currentSong.sound.loadedPercent * 100) | 0;
-      loadingBtn.text = `Loading music: ${loadedPercent}%`;
+      loadingText.text = `Loading music: ${loadedPercent}%`;
       break;
 
     case GameState.Game:

@@ -17,6 +17,7 @@ export enum PatternWrapping {
 }
 
 export interface TimingInfo {
+  count: BeatCount;
   timing: number;
   accuracy: number;
 }

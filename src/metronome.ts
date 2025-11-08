@@ -96,17 +96,16 @@ export class Metronome extends LJS.UIObject {
   click(): TimingInfo {
     // the distance from the current beat / subbeat
     const { timing, accuracy } = this.beat.getPercent();
-    const {
-      spacingSubBeat,
-      beat: {
-        count: [b, sub],
-      },
-    } = this;
+    const count = this.beat.count;
+    const [b, sub] = count;
+    const { spacingSubBeat } = this;
+
+    const res = { timing, accuracy, count };
 
     // update the score
     this._score += accuracy;
 
-    if (!this.visible) return { timing, accuracy };
+    if (!this.visible) return res;
 
     // visualize the timing with a ripple
     const colorStart = rgb(1 - accuracy, accuracy, 0, 1); // +accuracy -> -red +green
@@ -155,7 +154,7 @@ export class Metronome extends LJS.UIObject {
       }
     );
 
-    return { timing, accuracy };
+    return res;
   }
 
   show() {
