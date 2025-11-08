@@ -13,6 +13,7 @@ import {
   colorPickerBtn,
   createPauseMenu,
   createStartMenu,
+  IconButton,
   pauseMenu,
   quitBtn,
   resumeBtn,
@@ -20,6 +21,7 @@ import {
 } from "./ui";
 import { PatternWrapping } from "./beat";
 import { sfx } from "./sfx";
+import { pulse, sleep } from "./animUtils";
 const { vec2, rgb, tile, time } = LJS;
 
 enum GameState {
@@ -56,27 +58,37 @@ export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
 export let titleSong: keyof typeof songs = "paarynasAllrite";
 
-export type Atlas = {
-  swim: LJS.TileInfo;
-  idle: LJS.TileInfo;
-  bump: LJS.TileInfo;
-  blink: LJS.TileInfo;
-  bubble: LJS.TileInfo;
-  smiley_happy: LJS.TileInfo;
-  smiley_smile: LJS.TileInfo;
-  smiley_frown: LJS.TileInfo;
-  die: LJS.TileInfo;
-  microbe_bw: LJS.TileInfo;
-  hoop_metronome: LJS.TileInfo;
-  hoop_click: LJS.TileInfo;
-  star: LJS.TileInfo;
+export const atlasCoords = {
+  swim: [vec2(0, 0), 0],
+  idle: [vec2(0, 1), 0],
+  bump: [vec2(0, 2), 0],
+  blink: [vec2(8, 1), 0],
+  bubble: [vec2(0, 0), 2],
+  smiley_happy: [vec2(3, 1), 2],
+  smiley_smile: [vec2(4, 1), 2],
+  smiley_frown: [vec2(5, 1), 2],
+  die: [vec2(6, 1), 2],
+  microbe_bw: [vec2(9, 1), 2],
+  hoop_metronome: [vec2(1, 0), 2],
+  hoop_click: [vec2(2, 0), 2],
+  note1: [vec2(7, 1), 2],
+  note2: [vec2(8, 1), 2],
+  star: [vec2(2, 1), 2],
+  pause: [vec2(7, 0), 2],
+  play: [vec2(8, 0), 2],
 };
 
-export type AtlasKey = keyof Atlas;
+export type AtlasKey = keyof typeof atlasCoords;
+export type AtlasAnimationKey = keyof Pick<
+  typeof atlasCoords,
+  "blink" | "bump" | "swim" | "idle"
+>;
 
-export const spriteAtlas: Partial<
-  Atlas & Record<`${keyof Atlas}_tummy`, LJS.TileInfo>
+export const spriteAtlas: Record<
+  AtlasKey | `${AtlasAnimationKey}_tummy`,
+  LJS.TileInfo
 > = {};
+
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
@@ -88,7 +100,6 @@ let musicVolume = 1;
 let musicLoaded = false;
 let percentLoaded = 0;
 let player: Player;
-let bubbles: Bubble[] = [];
 let autoMicrobes: Microbe[] = [];
 
 // ui
@@ -100,23 +111,15 @@ let backgroundCausticPos: LJS.Vector2 = vec2();
 
 function loadAssets() {
   // init textures
-  (["swim", "idle", "bump"] as AtlasKey[]).forEach((animKey, idx) => {
-    spriteAtlas[animKey] = tile(vec2(0, idx), tileSize);
-    spriteAtlas[`${animKey}_tummy`] = tile(vec2(0, idx), tileSize, 1);
+  Object.entries(atlasCoords).forEach(([key, [coord, txtIdx]]) => {
+    spriteAtlas[key as AtlasKey] = tile(coord, tileSize, txtIdx as number);
   });
 
-  spriteAtlas["blink"] = tile(vec2(8, 1), tileSize);
-  spriteAtlas["blink_tummy"] = tile(vec2(8, 1), tileSize, 1);
-
-  spriteAtlas["bubble"] = tile(0, tileSize, 2);
-  spriteAtlas["hoop_metronome"] = tile(vec2(1, 0), tileSize, 2);
-  spriteAtlas["hoop_click"] = tile(vec2(2, 0), tileSize, 2);
-  spriteAtlas["star"] = tile(vec2(2, 1), tileSize, 2);
-  spriteAtlas["smiley_happy"] = tile(vec2(3, 1), tileSize, 2);
-  spriteAtlas["smiley_smile"] = tile(vec2(4, 1), tileSize, 2);
-  spriteAtlas["smiley_frown"] = tile(vec2(5, 1), tileSize, 2);
-  spriteAtlas["die"] = tile(vec2(6, 1), tileSize, 2);
-  spriteAtlas["microbe_bw"] = tile(vec2(9, 1), tileSize, 2);
+  (["swim", "idle", "bump", "blink"] as AtlasAnimationKey[]).forEach(
+    (animKey, idx) => {
+      spriteAtlas[`${animKey}_tummy`] = tile(vec2(0, idx), tileSize, 1);
+    }
+  );
 
   songs.initSongs();
   currentSong = songs.paarynasAllrite!;
@@ -163,14 +166,7 @@ function awaitClick() {
   new Tween((t) => (loadingBtn.textColor.a = t), 1, 0.1, 10) //
     .then(() => {
       loadingBtn.text = "Click to start";
-      new Tween((t) => (loadingBtn.textColor.a = t), 0, 1, 30) //
-        .then(Tween.PingPong);
-      // .setEase(
-      //   Ease.PIECEWISE(
-      //     () => 0,
-      //     () => 1
-      //   )
-      // );
+      pulse(loadingBtn.textColor);
     });
 
   loadingBtn.interactive = true;
@@ -270,23 +266,26 @@ function startGame() {
   // LOG(`Starting game...`);
   changeBackground();
 
-  pauseBtn = new LJS.UIButton(
+  pauseBtn = new IconButton(
     LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
-    vec2(50, 50),
-    "||"
+    "pause",
+    {
+      btnSize: vec2(50),
+      iconSize: vec2(30),
+      iconColor: LJS.BLACK,
+      onClick: () => {
+        gameState = GameState.Paused;
+
+        pauseMenu.visible = true;
+        pauseBtn.visible = false;
+
+        changeBackground(LJS.BLACK);
+        cameraZoom({ delta: -2, duration: 100 });
+
+        currentSong?.pause();
+      },
+    }
   );
-
-  pauseBtn.onClick = () => {
-    gameState = GameState.Paused;
-
-    pauseMenu.visible = true;
-    pauseBtn.visible = false;
-
-    changeBackground(LJS.BLACK);
-    cameraZoom({ delta: -2, duration: 100 });
-
-    currentSong?.pause();
-  };
 
   quitBtn.onClick = () => {
     clearRow();
@@ -433,15 +432,12 @@ function afterGame() {
 
         sleep(100).then(() => {
           backToTitleBtn.visible = true;
-          new Tween((t) => (backToTitleBtn.textColor.a = t), 0, 1, 30) //
-            .then(Tween.PingPong);
+          pulse(backToTitleBtn.textColor);
         });
       });
     })
   );
 }
-
-const sleep = (duration = 50) => new Tween(() => {}, 0, 0, duration);
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
@@ -492,7 +488,7 @@ function gameRender() {
       break;
 
     case GameState.Game:
-      // debugScore();
+    // debugScore();
 
     case GameState.Title:
       const t = LJS.timeReal * 0.3;

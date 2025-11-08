@@ -15,6 +15,7 @@ export class IconButton extends LJS.UIButton {
       btnSize = vec2(50, 50),
       iconPos = vec2(),
       iconSize = vec2(40),
+      iconColor = undefined as LJS.Color | undefined,
       onClick = () => {},
       onEnter = () => {},
       onLeave = () => {},
@@ -22,10 +23,17 @@ export class IconButton extends LJS.UIButton {
   ) {
     super(btnPos, btnSize);
 
-    let icon = new LJS.UITile(iconPos, iconSize, spriteAtlas[iconKey]);
+    let icon = new LJS.UITile(
+      iconPos,
+      iconSize,
+      spriteAtlas[iconKey],
+      iconColor
+    );
     this.addChild(icon);
 
     icon.interactive = true;
+
+    // TODO: use a Proxy to set both UIObjects's listeners
     this.onClick = icon.onClick = onClick.bind(this);
     this.onEnter = icon.onEnter = onEnter.bind(this);
     this.onLeave = icon.onLeave = onLeave.bind(this);

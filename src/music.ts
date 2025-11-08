@@ -5,7 +5,7 @@ import {
   defaultMetronomePattern,
   Metronome,
 } from "./metronome";
-import { tileSize } from "./main";
+import { spriteAtlas, tileSize } from "./main";
 import { Ease, Tween } from "./tween";
 import { DEG2RAD, LOG, rgba } from "./mathUtils";
 import { countSwimActions } from "./songs";
@@ -210,13 +210,13 @@ export class Song {
       new LJS.UITile(
         vec2(-45, 5),
         vec2(25),
-        tile(vec2(7, 1), tileSize, 2),
+        spriteAtlas.note1,
         musicalNoteColor
       ),
       new LJS.UITile(
         vec2(-25, 12.5),
         vec2(30),
-        tile(vec2(8, 1), tileSize, 2),
+        spriteAtlas.note2,
         musicalNoteColor
       ),
     ];

@@ -28,7 +28,7 @@ export const firework = (
   const size2 = LJS.lerp(20, 30, accuracy);
   const mkSizeFunc = (maxSize: number) => (t: number) =>
     Math.sin(t * Math.PI) * maxSize;
-  const tileInfo = LJS.tile(vec2(2, 1), tileSize, 2);
+  const tileInfo = spriteAtlas.star;
 
   for (let i = 0, phi = 0; i < n; i++, phi += (Math.PI * 2) / n) {
     const colorStart = color ?? LJS.randColor().add(rgba(50, 50, 50, 1));
@@ -84,7 +84,7 @@ export class Player extends Microbe {
   }
 
   update(): void {
-    if (LJS.mouseWasPressed(0) || LJS.keyWasReleased("Space")) {
+    if (LJS.mouseWasReleased(0) || LJS.keyWasReleased("Space")) {
       const { accuracy } = currentSong.metronome.click();
       this.song!.scoreDelta = accuracy;
 

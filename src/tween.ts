@@ -5,16 +5,18 @@ type t = number;
 type f = (x: n) => any;
 
 /**
- * Author: [EthanSuperior](https://github.com/EthanSuperior)
+ * Tween & Ease utilities by [EthanSuperior](https://github.com/EthanSuperior).
  *
- * Source: https://github.com/KilledByAPixel/LittleJS/issues/112
+ * Original code is pure JS, I guessed most of the TypeScript signatures to make the TS compiler happy.
+ *
+ * [source](https://github.com/KilledByAPixel/LittleJS/issues/112)
  */
 export class Tween {
   static active: Tween[] = [];
   life: t;
   delta: number;
   fn: (x: t) => any;
-  then: (f?: () => any) => this;
+  then: (f?: (...args: any[]) => any) => this;
   setEase: (f: f) => this;
   ease = (t: number) => t;
 
@@ -44,7 +46,7 @@ export class Tween {
     public duration = 100
   ) {
     // Properties for the Tween to function
-    this.life = this.duration;
+    this.life = this.duration >> 0;
     this.delta = this.end - this.start;
     this.fn = fn;
     // Callback for when Tween is completed
@@ -73,7 +75,7 @@ export class Tween {
     }
   }
 
-  static Loop = function (n: number) {
+  static Loop = function (this: any, n: number) {
     function repeat(this: any) {
       new Tween(this.fn, this.start, this.end, this.duration)
         .setEase(this.ease)
@@ -84,7 +86,7 @@ export class Tween {
     else Tween.Loop(Infinity)?.call(this);
   };
 
-  static PingPong = function (n: number) {
+  static PingPong = function (this: any, n: number) {
     function repeat(this: any) {
       new Tween(this.fn, this.end, this.start, this.duration)
         .setEase(this.ease)
