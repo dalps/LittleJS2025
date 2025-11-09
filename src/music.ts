@@ -248,14 +248,15 @@ export class Song {
   }
 
   hide() {
-    new Tween(
-      (t) => (this.songContainer!.pos.x = t),
-      LJS.mainCanvasSize.x * 0.1,
-      -200,
-      100
-    )
-      .then(() => this.songContainer?.destroy())
-      .setEase(Ease.OUT(Ease.EXPO));
+    this.songContainer &&
+      new Tween(
+        (t) => (this.songContainer!.pos.x = t),
+        LJS.mainCanvasSize.x * 0.1,
+        -200,
+        100
+      )
+        .then(() => this.songContainer?.destroy())
+        .setEase(Ease.OUT(Ease.EXPO));
   }
 
   getFinalScore() {

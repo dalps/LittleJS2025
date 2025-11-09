@@ -2,39 +2,21 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
+import { changeBackground, pulse, sleep } from "./animUtils";
+import { PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
+import { initLevels, levelSelection, pauseBtn, tutorialLevel } from "./levels";
 import { DEG2RAD, getQuadrant, LOG, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
-import { emitter, MyParticle } from "./particleUtils";
-import * as songs from "./songs";
-import { Ease, Tween } from "./tween";
-import {
-  colorPickerBtn,
-  createPauseMenu,
-  createStartMenu,
-  IconButton,
-  pauseMenu,
-  quitBtn,
-  resumeBtn,
-  startBtn,
-} from "./ui";
-import { PatternWrapping } from "./beat";
+import { emitter } from "./particleUtils";
 import { sfx } from "./sfx";
-import { pulse, sleep } from "./animUtils";
+import * as songs from "./songs";
 import { hasDoneTutorial, tutorial } from "./tutorial";
+import { Ease, Tween } from "./tween";
+import { createPauseMenu, createTitleMenu, pauseMenu, startBtn } from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
-
-enum GameState {
-  Loading,
-  AwaitClick,
-  Title,
-  Game,
-  Tutorial,
-  Paused,
-  GameResults,
-}
 
 export const DEBUG = false;
 
@@ -59,12 +41,28 @@ export const ratings = {
   },
 };
 
-export let gameState: GameState = GameState.Loading;
 export let currentSong: Song;
 
 export function setCurrentSong(song: Song) {
   currentSong?.stop();
   currentSong = song;
+}
+
+export enum GameState {
+  Loading,
+  AwaitClick,
+  Title,
+  Game,
+  LevelSelection,
+  Tutorial,
+  Paused,
+  GameResults,
+}
+
+export let gameState: GameState = GameState.Loading;
+
+export function setGameState(state: GameState) {
+  gameState = state;
 }
 
 export let titleSong: keyof typeof songs = "paarynasAllrite";
@@ -85,8 +83,10 @@ export const atlasCoords = {
   note1: [vec2(7, 1), 2],
   note2: [vec2(8, 1), 2],
   star: [vec2(2, 1), 2],
+  check: [vec2(6, 0), 2],
   pause: [vec2(7, 0), 2],
   play: [vec2(8, 0), 2],
+  github: [vec2(9, 0), 2],
 };
 
 export type AtlasKey = keyof typeof atlasCoords;
@@ -114,7 +114,6 @@ let player: Player;
 let row: Microbe[] = [];
 
 // ui
-export let pauseBtn: LJS.UIObject;
 export let titleMenu: LJS.UIObject;
 let loadingText: LJS.UIText;
 let foregroundCausticPos: LJS.Vector2 = vec2();
@@ -175,7 +174,7 @@ function loadAssets() {
  * Called after loading completes to await the user's click, which is necessary to wake up the AudioContext.
  */
 function awaitClick() {
-  gameState = GameState.AwaitClick;
+  setGameState(GameState.AwaitClick);
 
   new Tween((t) => (loadingText.textColor.a = t), 1, 0.1, 10) //
     .then(() => {
@@ -236,25 +235,16 @@ export function clearRow() {
   leader = undefined;
 }
 
-function changeBackground(color = currentSong.color) {
-  new Tween(
-    (t) => LJS.setCanvasClearColor(LJS.canvasClearColor.lerp(color, t)),
-    0,
-    1,
-    20
-  ).setEase(Ease.OUT(Ease.BOUNCE));
-}
-
 export function titleScreen() {
-  gameState = GameState.Title;
+  setGameState(GameState.Title);
 
-  createStartMenu();
+  createTitleMenu();
   pauseMenu.visible = false;
   titleMenu.visible = true;
 
   startBtn.onClick = startGame;
 
-  currentSong = songs.paarynasAllrite!;
+  setCurrentSong(songs.paarynasAllrite);
   currentSong.play({ loop: true });
 
   changeBackground();
@@ -285,193 +275,9 @@ export function titleScreen() {
 }
 
 function startGame() {
-  if (!hasDoneTutorial) {
-    clearRow();
-    titleMenu.visible = false;
-    gameState = GameState.Tutorial;
-    return tutorial();
-  }
+  if (!tutorialLevel.completed) return tutorial();
 
-  setCurrentSong(songs.stardustMemories);
-
-  currentSong.addMetronome();
-  currentSong.onEnd = afterGame;
-  currentSong.play();
-
-  // LOG(`Starting game...`);
-  changeBackground();
-
-  pauseBtn = new IconButton(
-    LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
-    "pause",
-    {
-      btnSize: vec2(50),
-      iconSize: vec2(30),
-      iconColor: LJS.BLACK,
-      onClick: () => {
-        gameState = GameState.Paused;
-
-        pauseMenu.visible = true;
-        pauseBtn.visible = false;
-
-        changeBackground(LJS.BLACK);
-        cameraZoom({ delta: -2, duration: 100 });
-
-        currentSong?.pause();
-      },
-    }
-  );
-
-  quitBtn.onClick = () => {
-    clearRow();
-    player.destroy();
-    currentSong?.stop();
-    currentSong = songs[titleSong];
-    titleScreen();
-  };
-
-  resumeBtn.onClick = () => {
-    gameState = GameState.Game;
-
-    pauseMenu.visible = false;
-    pauseBtn.visible = true;
-
-    changeBackground();
-    cameraZoom({ delta: 2 });
-
-    currentSong?.resume();
-  };
-
-  clearRow();
-  makeRow({ playerIdx: 1 });
-  // afterGame();
-
-  currentSong = songs.stardustMemories!;
-  currentSong.addMetronome();
-  player.color = colorPickerBtn.color;
-
-  titleMenu.visible = false;
-
-  gameState = GameState.Game;
-}
-
-export function cameraZoom({
-  delta = 1,
-  ease = Ease.OUT(Ease.POWER(3)),
-  duration = 10,
-} = {}) {
-  new Tween(
-    (v) => LJS.setCameraScale(v),
-    LJS.cameraScale,
-    LJS.cameraScale + delta,
-    duration
-  ).setEase(ease);
-}
-
-function afterGame() {
-  gameState = GameState.GameResults;
-
-  currentSong.hide();
-  let finalScore = currentSong.getFinalScore();
-  LOG(`finalScore: ${finalScore}`);
-
-  let resultsObj = new LJS.UIObject(
-    LJS.mainCanvasSize.scale(0.5),
-    vec2(580, 300)
-  );
-  let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm score:`);
-
-  title.textColor = rgba(217, 217, 217, 1);
-
-  let scoreText = new LJS.UIText(vec2(), vec2(200, 72), `0%`);
-  let ratingText = new LJS.UIText(vec2(100), vec2(200, 48), ``);
-  let backToTitleBtn = new LJS.UIButton(
-    vec2(0, 250),
-    LJS.mainCanvasSize,
-    "Back to title",
-    rgba(0, 0, 0, 0)
-  );
-
-  resultsObj.color = setAlpha(LJS.BLACK, 0.5);
-  resultsObj.cornerRadius = 50;
-  resultsObj.lineColor = LJS.YELLOW;
-  resultsObj.lineWidth = 10;
-  resultsObj.shadowOffset = vec2(20);
-  resultsObj.shadowBlur = 10;
-  resultsObj.shadowColor = setAlpha(LJS.BLACK, 0.5);
-
-  backToTitleBtn.visible = false;
-
-  backToTitleBtn.onClick = () => {
-    resultsObj.destroy();
-    currentSong.stop();
-    titleScreen();
-  };
-  backToTitleBtn.lineWidth = 0;
-  backToTitleBtn.hoverColor = LJS.CLEAR_WHITE;
-  backToTitleBtn.textColor = LJS.WHITE.copy();
-  backToTitleBtn.textHeight = 42;
-
-  pauseBtn.visible = false;
-
-  resultsObj.addChild(backToTitleBtn);
-  resultsObj.addChild(title);
-  resultsObj.addChild(scoreText);
-  resultsObj.addChild(ratingText);
-
-  ratingText.visible = false;
-  ratingText.textLineWidth = 5;
-  scoreText.textColor = ratingText.textColor = LJS.WHITE;
-
-  // const between = (value: number, a: number, b: number) =>
-  //   a < value && value <= b;
-
-  changeBackground(LJS.BLACK);
-  currentSong.metronome.hide();
-
-  sfx.blink.play(undefined, 1);
-
-  // const scoreTimerDelta = 1 / LJS.lerp(3, 10, finalScore);
-  // let scoreTimer = new LJS.Timer(scoreTimerDelta);
-
-  let prevT = 0;
-
-  // tally up the score
-  sleep(100).then(() =>
-    new Tween(
-      (t) => {
-        // play beep sound with pitch function of t
-        let intT = (t * 100) >> 0;
-        if (intT > prevT) {
-          sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
-          scoreText.text = `${intT}%`;
-          prevT = intT;
-        }
-      },
-      0,
-      finalScore,
-      LJS.lerp(100, 250, finalScore) >> 0
-    ).then(() => {
-      sleep(100).then(() => {
-        // show rating
-        sfx.blink.play(undefined, 1, LJS.clamp(1 + finalScore, 0, 2));
-
-        const { message, color1, color2 } = Object.values(ratings).find(
-          ({ threshold }) => threshold <= finalScore
-        )!;
-
-        ratingText.visible = true;
-        ratingText.text = message;
-        ratingText.textColor = color1;
-        ratingText.textLineColor = color2;
-
-        sleep(100).then(() => {
-          backToTitleBtn.visible = true;
-          pulse(backToTitleBtn.textColor);
-        });
-      });
-    })
-  );
+  levelSelection();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -486,8 +292,12 @@ function gameInit() {
   pauseMenu.visible = false;
 
   loadAssets();
-  // titleScreen();
+  initLevels();
+
+  // levelSelection();
   // tutorial();
+
+  center = LJS.mainCanvasSize.scale(0.5);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -496,14 +306,14 @@ function gameUpdate() {
     case GameState.Loading:
       if (currentSong?.sound?.isLoaded()) awaitClick();
       break;
+    // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
     case GameState.Title:
-      // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
-      LJS.setCameraPos(row[1].pos);
-      break;
     case GameState.Tutorial:
+    case GameState.LevelSelection:
     case GameState.Game:
       // LJS.setCameraPos(LJS.cameraPos.add(LJS.keyDirection()));
-      LJS.setCameraPos(player.pos);
+      // LJS.setCameraPos(player.pos);
+      LJS.setCameraPos(row[1].pos);
       break;
   }
 }

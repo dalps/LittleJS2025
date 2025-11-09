@@ -1,5 +1,6 @@
 import * as LJS from "littlejsengine";
 import { font, spriteAtlas, titleMenu, type AtlasKey } from "./main";
+import { rgba } from "./mathUtils";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
@@ -31,7 +32,7 @@ export class IconButton extends LJS.UIButton {
     );
     this.addChild(icon);
 
-    icon.interactive = true;
+    icon.interactive = icon.canBeHover = true;
 
     // TODO: use a Proxy to set both UIObjects's listeners
     this.onClick = icon.onClick = onClick.bind(this);
@@ -40,7 +41,7 @@ export class IconButton extends LJS.UIButton {
   }
 }
 
-export function createStartMenu() {
+export function createTitleMenu() {
   createColorPickerUI();
 
   const y = 150;
@@ -65,6 +66,29 @@ export function createStartMenu() {
   colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor;
   colorPickerBtn.cornerRadius = 10;
 
+  let credits = new LJS.UIText(
+    LJS.mainCanvasSize.multiply(vec2(0.8, 0.95)),
+    vec2(100, 15),
+    `dalps 2025`
+  );
+
+  let sourcecodeBtn = new IconButton(vec2(80, 0), "github");
+  // sourcecodeBtn.lineWidth = 3;
+  sourcecodeBtn.cornerRadius = 10;
+  sourcecodeBtn.lineColor = sourcecodeBtn.hoverColor = LJS.BLACK;
+
+  credits.addChild(sourcecodeBtn);
+
+  sourcecodeBtn.color = credits.textColor = rgba(235, 235, 235, 1);
+
+  credits.hoverColor = LJS.CLEAR_WHITE;
+
+  credits.interactive = credits.canBeHover = true;
+  credits.onClick = sourcecodeBtn.onClick = () => {
+    open(`https://github.com/dalps/LittleJS2025`, `_blank`);
+  };
+
+  titleMenu.addChild(credits);
   titleMenu.addChild(startBtn);
   titleMenu.addChild(colorPickerBtn);
 }

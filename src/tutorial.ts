@@ -4,8 +4,11 @@ import {
   center,
   clearRow,
   currentSong,
+  GameState,
   makeRow,
   setCurrentSong,
+  setGameState,
+  titleMenu,
   titleScreen,
 } from "./main";
 import type { Microbe } from "./entities/microbe";
@@ -17,9 +20,11 @@ import {
 } from "./songs";
 import { PatternWrapping, type TimingInfo } from "./beat";
 import { LOG } from "./mathUtils";
+import { tutorialLevel } from "./levels";
+import { changeBackground } from "./animUtils";
 const { vec2, rgb, tile } = LJS;
 
-export let hasDoneTutorial = false;
+export let hasDoneTutorial = true;
 const beatsToHit = 8;
 
 let score = 0;
@@ -30,6 +35,11 @@ let t1: LJS.UIText;
 let t2: LJS.UIText;
 
 export function tutorial() {
+  setGameState(GameState.Tutorial);
+
+  titleMenu.visible = false;
+  changeBackground(tutorialLevel.color);
+
   setCurrentSong(myFirstConsoleTutorial);
   currentSong.loopStart = 3.333; // 2 bar 1 beat 1 sub
 
@@ -148,7 +158,7 @@ export function tutorial() {
       });
     });
 
-  hasDoneTutorial = true;
+  tutorialLevel.completed = true;
 }
 
 function testPlayer(

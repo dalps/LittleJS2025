@@ -1,6 +1,6 @@
 import * as LJS from "littlejsengine";
 import { blink, sleep } from "./animUtils";
-import { spriteAtlas } from "./main";
+import { center, spriteAtlas } from "./main";
 import { DEG2RAD, LOG, setAlpha } from "./mathUtils";
 import { sfx } from "./sfx";
 const { vec2, rgb, tile } = LJS;
@@ -90,3 +90,20 @@ export class ScreenButton extends LJS.UIButton {
     };
   }
 }
+
+export const uitext = (
+  text: string,
+  {
+    pos = center,
+    fontSize = 20,
+    fontStyle = "",
+    textColor = LJS.WHITE,
+    align = "center" as CanvasTextAlign,
+  } = {}
+) => {
+  let t = new LJS.UIText(pos, vec2(1000, fontSize), text, align);
+  t.textColor = textColor;
+  t.fontStyle = fontStyle;
+  t.hoverColor = t.color = LJS.CLEAR_WHITE;
+  return t;
+};
