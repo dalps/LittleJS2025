@@ -35,17 +35,46 @@ const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
 
+export const storeKeyPrefix = `dalps-smallrow`;
+export const storeKey = (
+  ...parts: string[]
+): `${typeof storeKeyPrefix}-${string}` =>
+  `${storeKeyPrefix}-${parts.join("-")}`;
+
 export class Level {
-  completed = false;
-  highScore?: number;
+  private _completed = false;
+  public get completed(): boolean {
+    return this._completed;
+  }
+  public set completed(value: boolean) {
+    this._completed = value;
+    localStorage.setItem(this.getStoreKey("completed"), `${value}`);
+  }
+
+  private _highScore = 0;
+  public get highScore(): number {
+    return this._highScore;
+  }
+  public set highScore(value: number) {
+    this._highScore = value;
+    localStorage.setItem(this.getStoreKey("highScore"), `${value}`);
+  }
+
   onClick?: Function;
   onEnd?: Function;
   btn?: LJS.UIButton;
   color: LJS.Color;
 
+  getStoreKey = (...parts: (keyof this)[]) =>
+    storeKey(this.name, ...parts.map((p) => p.toString()));
+
   constructor(public name: string, public song: Song) {
     this.color = song.color;
-    this.highScore = 0;
+    this.highScore = Number.parseInt(
+      localStorage.getItem(this.getStoreKey("highScore")) ?? "0"
+    );
+    this.completed =
+      localStorage.getItem(this.getStoreKey("completed")) === "true";
   }
 
   show(pos = center) {
@@ -219,6 +248,8 @@ export class Level {
       })
     );
   }
+
+  save() {}
 }
 
 export const levelBtnSize = vec2(150, 200);

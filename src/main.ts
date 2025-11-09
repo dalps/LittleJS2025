@@ -6,7 +6,13 @@ import { changeBackground, pulse, sleep } from "./animUtils";
 import { PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
-import { initLevels, levelSelection, pauseBtn, tutorialLevel } from "./levels";
+import {
+  initLevels,
+  levelSelection,
+  pauseBtn,
+  storeKey,
+  tutorialLevel,
+} from "./levels";
 import { DEG2RAD, getQuadrant, LOG, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
 import { emitter } from "./particleUtils";
@@ -63,6 +69,13 @@ export let gameState: GameState = GameState.Loading;
 
 export function setGameState(state: GameState) {
   gameState = state;
+}
+
+export let playerColor: LJS.Color;
+
+export function setPlayerColor(color: LJS.Color) {
+  player && (player.color = color);
+  localStorage.setItem(storeKey("player", "color"), color.toString());
 }
 
 export let titleSong: keyof typeof songs = "paarynasAllrite";
@@ -287,6 +300,9 @@ function gameInit() {
 
   LJS.setFontDefault(font);
   LJS.uiSystem.defaultFont = font;
+
+  let storedColor = localStorage.getItem(storeKey("player", "color"));
+  playerColor = storedColor ? new LJS.Color().setHex(storedColor) : LJS.RED;
 
   createPauseMenu();
   pauseMenu.visible = false;
