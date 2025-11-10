@@ -115,6 +115,7 @@ export class MyParticle extends LJS.Particle {
       destroyCallback = undefined,
       velocity = vec2(),
       angleVelocity = 0,
+      damping = 0.89,
       spin = 0,
       sizeFunc = undefined as ((t: number) => number) | undefined,
       sizeEase = (t: number) => t,
@@ -142,6 +143,7 @@ export class MyParticle extends LJS.Particle {
 
     this.color = this.colorStart = colorStart.copy();
     this.velocity = velocity;
+    this.damping = damping;
     this.angleVelocity = angleVelocity;
     this.spin = spin;
     this.sizeFunc = sizeFunc;

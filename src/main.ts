@@ -3,7 +3,7 @@
 // import LittleJS module
 import * as LJS from "littlejsengine";
 import { changeBackground, impulse, pulse, sleep } from "./animUtils";
-import { PatternWrapping } from "./beat";
+import { beatCount, PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import {
@@ -258,6 +258,18 @@ export function titleScreen() {
   titleText.visible = titleMenu.visible = true;
 
   setCurrentSong(songs.paarynasAllrite);
+
+  row.forEach((m) => m.setCollision(false, false));
+  for (let i = 0; i < 10; i++)
+    currentSong.beat.atbar(beatCount({ bar: 8 + i * 4, beat: 1 }), () => {
+      const m = new Microbe(polar(35 * DEG2RAD * (i + 1), 8), {
+        song: currentSong,
+        startSwim: true,
+        wrapping: PatternWrapping.Loop,
+      });
+      m.setCollision(false, false);
+      row.push(m);
+    });
 
   startBtn.onClick = startGame;
   const startBtnSize = startBtn.size.copy();

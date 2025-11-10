@@ -6,6 +6,13 @@ import { accuracy, formatTime, LOG } from "./mathUtils";
 const { vec2, rgb } = LJS;
 
 export type BeatCount = [number, number, number];
+
+export const beatCount = ({ bar = 0, beat = 0, sub = 0 } = {}): BeatCount => [
+  beat,
+  sub,
+  bar,
+];
+
 export type BeatListener = ([beat, sub, bar]: BeatCount) => void;
 
 export type Pattern<T> = (T | undefined)[][][]; // bar, beat, sub-beat

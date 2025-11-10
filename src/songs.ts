@@ -1,6 +1,7 @@
-import type { Pattern } from "./beat";
-import { MicrobeAction as MicrobeAction } from "./entities/microbe";
-import { repeat, rgba } from "./mathUtils";
+import { LOG, vec2 } from "littlejsengine";
+import { beatCount, type Pattern } from "./beat";
+import { Microbe, MicrobeAction as MicrobeAction } from "./entities/microbe";
+import { polar, repeat, rgba } from "./mathUtils";
 import { Song } from "./music";
 
 export let paarynasAllrite: Song;
@@ -9,28 +10,28 @@ export let myFirstConsoleTutorial: Song;
 
 const { Idle: ____, Swim, Turn, Wink, Ding } = MicrobeAction;
 
-const idle1_3_ = [
+const I_I_ = [
   [____], //
   [],
   [____],
   [],
 ];
 
-const idle_2_4 = [
+const _I_I = [
   [____], //
   [],
   [____],
   [],
 ];
 
-const swim1_3_ = [
+const S_S_ = [
   [Swim], //
   [____],
   [Swim],
   [____],
 ];
 
-const swim_2_4 = [
+const _S_S = [
   [____], //
   [Swim],
   [____],
@@ -53,14 +54,14 @@ const ding2 = [
 
 export function initSongs() {
   {
-    const p2 = [
+    const _T_S = [
       [____], //
       [Turn],
       [____],
       [Swim],
     ];
 
-    const p4 = [
+    const SS__ = [
       [Swim], //
       [Swim],
       [____],
@@ -74,14 +75,14 @@ export function initSongs() {
       href: "https://modarchive.org/index.php?request=view_by_moduleid&query=90188",
       color: rgba(5, 52, 106, 1),
       choreography: [
-        repeat(idle1_3_, 4),
-        repeat(swim_2_4, 8),
-        [p2],
-        repeat(swim_2_4, 7),
-        [p2],
-        repeat([swim1_3_, p4], 7).flat(),
-        [p2],
-        repeat([swim1_3_, p4], 7).flat(),
+        repeat(I_I_, 4),
+        repeat(_S_S, 8),
+        [_T_S],
+        repeat(_S_S, 7),
+        [_T_S],
+        repeat([S_S_, SS__], 7).flat(),
+        [_T_S],
+        repeat([S_S_, SS__], 7).flat(),
       ].flat(),
     });
   }
@@ -154,17 +155,11 @@ export function initSongs() {
   }
 }
 
-export const tutorialChoreo1 = [
-  repeat(idle1_3_, 2),
-  repeat(swim1_3_, 8),
-].flat();
-export const tutorialChoreo2 = [
-  repeat(idle1_3_, 2),
-  repeat(swim_2_4, 8),
-].flat();
+export const tutorialChoreo1 = [repeat(I_I_, 2), repeat(S_S_, 8)].flat();
+export const tutorialChoreo2 = [repeat(I_I_, 2), repeat(_S_S, 8)].flat();
 export const tutorialChoreo3 = [
-  repeat(idle1_3_, 2),
-  repeat([swim1_3_, ding2], 32).flat(),
+  repeat(I_I_, 2),
+  repeat([S_S_, ding2], 32).flat(),
 ].flat();
 
 export const countSwimActions = (choreography: Pattern<MicrobeAction>) =>

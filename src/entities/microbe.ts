@@ -15,6 +15,7 @@ import {
 import { sfx } from "../sfx";
 import type { Song } from "../music";
 import { emitter, MyParticle } from "../particleUtils";
+import { Ease, Tween } from "../tween";
 const { vec2, rgb } = LJS;
 
 export enum MicrobeAction {
@@ -67,6 +68,7 @@ export class Microbe extends LJS.EngineObject {
       leader = undefined as Microbe | undefined,
       song = undefined as Song | undefined,
       wrapping = PatternWrapping.End,
+      startSwim = false,
     } = {}
   ) {
     super(polar2cart(polarPos));
@@ -124,6 +126,22 @@ export class Microbe extends LJS.EngineObject {
 
     this.bumpTimer = new LJS.Timer(this.bumpCooldown);
     this.setCollision();
+
+    if (startSwim) {
+      this.swim();
+      for (let i = 0; i < 20; i++) {
+        new MyParticle(this.pos.add(LJS.randVec2(1)), {
+          tileInfo: spriteAtlas.bubble,
+          colorStart: setAlpha(bubbleColor, 0.8),
+          colorEnd: setAlpha(bubbleColor, 0.8),
+          sizeStart: LJS.rand(0.4, 0.8),
+          sizeEnd: LJS.rand(0.8, 1.6),
+          velocity: LJS.randVec2(0.25),
+          lifeTime: LJS.rand(0.5, 1),
+          additive: true,
+        });
+      }
+    }
   }
 
   setChoreography() {
