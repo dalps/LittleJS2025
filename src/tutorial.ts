@@ -1,5 +1,5 @@
 import * as LJS from "littlejsengine";
-import { SpeechBubble } from "./uiUtils";
+import { speech, SpeechBubble } from "./uiUtils";
 import {
   center,
   clearRow,
@@ -22,6 +22,7 @@ import { PatternWrapping, type TimingInfo } from "./beat";
 import { LOG } from "./mathUtils";
 import { tutorialLevel } from "./levels";
 import { changeBackground } from "./animUtils";
+import { Tween } from "./tween";
 const { vec2, rgb, tile } = LJS;
 
 export let hasDoneTutorial = true;
@@ -34,7 +35,7 @@ let player: Player;
 let t1: LJS.UIText;
 let t2: LJS.UIText;
 
-export function tutorial() {
+export async function tutorial() {
   setGameState(GameState.Tutorial);
 
   titleMenu.visible = false;
@@ -46,7 +47,7 @@ export function tutorial() {
   let row = makeRow({
     playerIdx: 1,
     wrapping: PatternWrapping.HoldLast,
-  }) as [Microbe, Player];
+  }) as [Microbe, Player, Microbe];
   let [leader] = row;
 
   player = row[1];
@@ -63,101 +64,55 @@ export function tutorial() {
 
   const pos = () => LJS.worldToScreen(leader.pos).subtract(vec2(0, 100));
 
-  new SpeechBubble(pos(), "Hello there!") //
-    .then(() => {
-      leader.idle();
-      new SpeechBubble(
-        pos(),
-        `Let us teach you our moves.` // `Welcome to the mitochondrion. We are in charge of cellular respiration.`
-      ).then(() => {
-        //         leader.idle();
-        //         new SpeechBubble(
-        //           pos(),
-        //           `Our tiny march powers up the cell by burning oxygen.
-        // Let us show you the ropes.`
-        //         ).then(() => {
-        leader.idle();
-        new SpeechBubble(pos(), `Ready?`).then(() => {
-          t1.text = `Click on the 1st and 3rd beat.`;
-          testPlayer([1, 3], (finalScore) => {
-            LOG(`finalScore: ${finalScore}`);
+  new Tween((t) => t === 1 && row.forEach((m) => m.wink()), 0, 1, 360).then(
+    Tween.Loop
+  );
 
-            new SpeechBubble(
-              pos(),
-              finalScore >= 0.85 ? `Awesome!` : `That'll do.`
-            ).then(() =>
-              new SpeechBubble(pos(), `Let's try a different pattern.`).then(
-                () =>
-                  new SpeechBubble(
-                    pos(),
-                    `This time, we'll march to the offbeat.`
-                  ).then(() => {
-                    new SpeechBubble(pos(), `We ready?!`).then(() => {
-                      currentSong.setChoreography(tutorialChoreo2);
-                      row.forEach((m) => m.setChoreography()); // song should take care of this
+  await speech(pos(), "Hello there!");
+  leader.idle();
+  await speech(pos(), "Welcome to the mitochondrion.");
+  await speech(pos(), "We are in charge of cellular respiration.");
+  leader.idle();
+  await speech(pos(), "That means we burn oxygen\nto power up the cell!");
+  // await speech(pos(), "We march all day long to burn oxygen.");
+  // await speech(pos(), "It's a process called cellular respiration.");
+  await speech(pos(), `Let us show you our moves.`);
+  leader.idle();
+  await speech(pos(), `Get ready for the first pattern!`);
+  t1.text = `Click on the 1st and 3rd beat.`;
+  testPlayer([1, 3], async (finalScore) => {
+    LOG(`finalScore: ${finalScore}`);
 
-                      t1.text = `Click on the 2nd and 4th beat.`;
-                      testPlayer([2, 4], (finalScore) => {
-                        LOG(`finalScore: ${finalScore}`);
-                        new SpeechBubble(
-                          pos(),
-                          finalScore >= 0.85 ? `Sweet!` : `Not bad.`
-                        ).then(() =>
-                          new SpeechBubble(pos(), `One last pattern.`).then(
-                            () =>
-                              new SpeechBubble(
-                                pos(),
-                                `When you hear a bell ding...`
-                              ).then(() =>
-                                new SpeechBubble(
-                                  pos(),
-                                  `...swim for the next three beats!`
-                                ).then(() =>
-                                  new SpeechBubble(
-                                    pos(),
-                                    `Ok, here we go!`
-                                  ).then(() => {
-                                    currentSong.setChoreography(
-                                      tutorialChoreo3
-                                    );
-                                    row.forEach((m) => m.setChoreography());
+    await speech(pos(), finalScore >= 0.85 ? `Awesome!` : `That'll do.`);
+    await speech(pos(), `Now, let's try a different pattern.`);
+    await speech(pos(), `This time, we'll march to the offbeat.`);
+    await speech(pos(), `Ready?`);
+    currentSong.setChoreography(tutorialChoreo2);
+    row.forEach((m) => m.setChoreography()); // song should take care of this
 
-                                    t1.text = `Click on the 2nd, 3rd and 4th beat after the ding.`;
+    t1.text = `Click on the 2nd and 4th beat.`;
+    testPlayer([2, 4], async (finalScore) => {
+      LOG(`finalScore: ${finalScore}`);
+      await speech(pos(), finalScore >= 0.85 ? `Sweet!` : `Not bad.`);
+      await speech(pos(), `One last pattern.`);
+      await speech(pos(), `When you hear a bell ding...`);
+      await speech(pos(), `...swim for the next three beats!`);
+      await speech(pos(), `Ok, here we go!`);
+      currentSong.setChoreography(tutorialChoreo3);
+      row.forEach((m) => m.setChoreography());
 
-                                    testPlayer([2, 3, 4], () => {
-                                      new SpeechBubble(
-                                        pos(),
-                                        finalScore >= 0.85
-                                          ? `You got rhythm!`
-                                          : `I think you're ready.`
-                                      ).then(() =>
-                                        new SpeechBubble(
-                                          pos(),
-                                          `Congrats! You completed the tutorial!`
-                                        ).then(() =>
-                                          new SpeechBubble(
-                                            pos(),
-                                            `Now, march on to the main levels.`
-                                          ).then(titleScreen)
-                                        )
-                                      );
-                                    });
-                                  })
-                                )
-                              )
-                          )
-                        );
-                      });
-                    });
-                  })
-              )
-            );
-          });
-          // });
-        });
+      t1.text = `Click for three beats after the ding.`;
+      testPlayer([2, 3, 4], async () => {
+        await speech(
+          pos(),
+          finalScore >= 0.85 ? `You got rhythm!` : `I think you're ready.`
+        );
+        await speech(pos(), `Congrats!\nYou completed the tutorial!`);
+        await speech(pos(), `Now, march on to the main levels.`);
+        titleScreen();
       });
     });
-
+  });
   tutorialLevel.completed = true;
 }
 

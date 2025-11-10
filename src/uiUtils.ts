@@ -5,6 +5,11 @@ import { DEG2RAD, LOG, setAlpha } from "./mathUtils";
 import { sfx } from "./sfx";
 const { vec2, rgb, tile } = LJS;
 
+export const speech = (pos: LJS.Vector2, text: string) => {
+  let bubble = new SpeechBubble(pos, text);
+  return new Promise(bubble.then);
+};
+
 export class SpeechBubble extends LJS.UIText {
   then: (f?: (...args: any[]) => any) => this;
 
@@ -19,14 +24,21 @@ export class SpeechBubble extends LJS.UIText {
   ) {
     super(pos, size, text);
 
+    const lines = text.split(`\n`);
+    const longestLineLength = Math.max(...lines.map((l) => l.length));
+
     this.color = LJS.WHITE;
-    // this.textFitScale = 0.5;
     this.lineWidth = 4;
     this.lineColor = LJS.BLACK;
     this.cornerRadius = this.size.y * 0.25;
     this.textColor = LJS.BLACK;
-    this.textFitScale = 0.5;
-    this.textWidth = this.size.x;
+    this.textFitScale = 0.8;
+    this.textHeight = 30;
+    this.size = vec2(
+      longestLineLength * (this.textHeight / 2),
+      this.textHeight * lines.length
+    );
+    console.log(this.size);
     this.interactive = false;
     this.hoverColor = this.color;
     this.activeColor = this.lineColor;
