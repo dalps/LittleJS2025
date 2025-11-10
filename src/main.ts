@@ -255,7 +255,7 @@ export function titleScreen() {
   setGameState(GameState.Title);
 
   pauseMenu.visible = levelsMenu.visible = false;
-  titleMenu.visible = true;
+  titleText.visible = titleMenu.visible = true;
 
   setCurrentSong(songs.paarynasAllrite);
 

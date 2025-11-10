@@ -85,15 +85,15 @@ export async function tutorial() {
   // await speech(pos(), "We march all day long to burn oxygen.");
   // await speech(pos(), "It's a process called cellular respiration.");
   await speech(pos(), `We do that by marching to the rhythm of a beat.`);
-  await speech(pos(), `Let us teach you our tiny march.`);
+  await speech(pos(), `Let's practise single steps now.`);
+  await speech(pos(), `Use the metronome and the visual cues\non the screen to match the beat!`);
   leader.idle();
-  await speech(pos(), `Get ready for the first pattern!`);
+  await speech(pos(), `Ok, get ready for the first pattern!`);
   t1.text = `Click on the 1st and 3rd beat.`;
   testPlayer([1, 3], async (finalScore) => {
     LOG(`finalScore: ${finalScore}`);
 
-    await speech(pos(), finalScore >= 0.85 ? `Nice going!` : `.Not bad!`);
-    new LJS.UITile(pos(), vec2(50), spriteAtlas.hoop_metronome);
+    await speech(pos(), finalScore >= 0.85 ? `Nice going!` : `Not bad!`);
     await speech(pos(), `Now, let's try a different pattern.`);
     await speech(pos(), `This time, we'll march to the offbeat.`);
     await speech(pos(), `Ready?`);

@@ -19,6 +19,8 @@ export let colorPickerBtn: LJS.UIObject;
 export let startBtn: LJS.UIButton;
 
 export class IconButton extends LJS.UIButton {
+  icon: LJS.UITile;
+
   constructor(
     btnPos: LJS.Vector2,
     iconKey: AtlasKey,
@@ -35,21 +37,21 @@ export class IconButton extends LJS.UIButton {
   ) {
     super(btnPos, btnSize);
 
-    let icon = new LJS.UITile(
+    this.icon = new LJS.UITile(
       iconPos,
       iconSize,
       spriteAtlas[iconKey],
       iconColor,
       iconAngle
     );
-    this.addChild(icon);
+    this.addChild(this.icon);
 
-    icon.interactive = icon.canBeHover = true;
+    this.icon.interactive = this.icon.canBeHover = true;
 
     // TODO: use a Proxy to set both UIObjects's listeners
-    this.onClick = icon.onClick = onClick.bind(this);
-    this.onEnter = icon.onEnter = onEnter.bind(this);
-    this.onLeave = icon.onLeave = onLeave.bind(this);
+    this.onClick = this.icon.onClick = onClick.bind(this);
+    this.onEnter = this.icon.onEnter = onEnter.bind(this);
+    this.onLeave = this.icon.onLeave = onLeave.bind(this);
   }
 }
 
@@ -80,12 +82,21 @@ export function createTitleMenu() {
   colorPickerBtn.cornerRadius = 10;
 
   let credits = new LJS.UIText(
-    center.multiply(vec2(0, 0.9)),
+    center.multiply(vec2(0, 1.1)),
     vec2(100, 15),
     `dalps 2025`
   );
 
-  let sourcecodeBtn = new IconButton(center.subtract(vec2(-50)), "github");
+  let onClick = () => {
+    open(`https://github.com/dalps/LittleJS2025`, `_blank`);
+  };
+  let sourcecodeBtn = new IconButton(
+    center.subtract(vec2(50)).multiply(vec2(1, -1)),
+    "github",
+    {
+      onClick,
+    }
+  );
   // sourcecodeBtn.lineWidth = 3;
   sourcecodeBtn.cornerRadius = 10;
   sourcecodeBtn.lineColor = sourcecodeBtn.hoverColor = LJS.BLACK;
@@ -98,10 +109,7 @@ export function createTitleMenu() {
 
   credits.interactive = credits.canBeHover = true;
 
-  credits.onClick = sourcecodeBtn.onClick = () => {
-    open(`https://github.com/dalps/LittleJS2025`, `_blank`);
-  };
-
+  credits.onClick = onClick;
   titleMenu.addChild(credits);
   titleMenu.addChild(sourcecodeBtn);
   titleMenu.addChild(startBtn);

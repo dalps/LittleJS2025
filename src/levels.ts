@@ -94,7 +94,7 @@ export class Level {
     let [_, player] = makeRow({ playerIdx: 1 });
     player.color = colorPickerBtn.color;
 
-    titleMenu.visible = false;
+    titleText.visible = titleMenu.visible = false;
 
     setGameState(GameState.Game);
 

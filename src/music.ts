@@ -117,13 +117,12 @@ export class Song {
 
     if (this.soundInstance) this.soundInstance.stop();
     this.soundInstance = this.sound.playMusic(1, loop);
+    const songSrc = this.soundInstance.getSource();
 
-    const songSrc = this.soundInstance.source;
-
-    if (loop) {
-      this.soundInstance.source.loopStart = this.loopStart ?? 0;
-      this.soundInstance.source.loopEnd =
-        this.loopEnd ?? songSrc.buffer!.duration;
+    if (songSrc && loop) {
+      songSrc.loopStart = this.loopStart ?? 0;
+      songSrc.loopEnd =
+        this.loopEnd ?? (songSrc.buffer && songSrc.buffer.duration) ?? 0;
     }
 
     this.beat.atbar([0, 0, this.choreography.length], this.onEnd);

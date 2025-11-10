@@ -12,5 +12,5 @@ deploy: build
 zip:
     advzip -a game.zip dist/*
 
-publish:
+publish: build
     butler push dist dalps/smallrow:browser -v
