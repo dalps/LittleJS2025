@@ -1,11 +1,20 @@
 import * as LJS from "littlejsengine";
-import { font, spriteAtlas, titleMenu, type AtlasKey } from "./main";
-import { rgba } from "./mathUtils";
+import {
+  center,
+  currentSong,
+  playerColor,
+  setPlayerColor,
+  spriteAtlas,
+  titleMenu,
+  type AtlasKey,
+} from "./main";
+import { LOG, rgba } from "./mathUtils";
+import { uitext as uiText } from "./uiUtils";
+import { Tween } from "./tween";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
 export let colorPickerBtn: LJS.UIObject;
-export let playerColor: LJS.Color;
 export let startBtn: LJS.UIButton;
 
 export class IconButton extends LJS.UIButton {
@@ -17,6 +26,7 @@ export class IconButton extends LJS.UIButton {
       iconPos = vec2(),
       iconSize = vec2(40),
       iconColor = undefined as LJS.Color | undefined,
+      iconAngle = 0,
       onClick = () => {},
       onEnter = () => {},
       onLeave = () => {},
@@ -28,7 +38,8 @@ export class IconButton extends LJS.UIButton {
       iconPos,
       iconSize,
       spriteAtlas[iconKey],
-      iconColor
+      iconColor,
+      iconAngle
     );
     this.addChild(icon);
 
@@ -45,7 +56,8 @@ export function createTitleMenu() {
   createColorPickerUI();
 
   const y = 150;
-  startBtn = new LJS.UIButton(vec2(0, y), vec2(200, 50), "Start", LJS.CYAN);
+  const startBtnSize = vec2(200, 50);
+  startBtn = new LJS.UIButton(vec2(0, y), startBtnSize, "Start", LJS.CYAN);
 
   // startBtn.pos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.8));
 
@@ -67,28 +79,30 @@ export function createTitleMenu() {
   colorPickerBtn.cornerRadius = 10;
 
   let credits = new LJS.UIText(
-    LJS.mainCanvasSize.multiply(vec2(0.8, 0.95)),
+    center.multiply(vec2(0, 0.9)),
     vec2(100, 15),
     `dalps 2025`
   );
 
-  let sourcecodeBtn = new IconButton(vec2(80, 0), "github");
+  let sourcecodeBtn = new IconButton(center.subtract(vec2(-50)), "github");
   // sourcecodeBtn.lineWidth = 3;
   sourcecodeBtn.cornerRadius = 10;
   sourcecodeBtn.lineColor = sourcecodeBtn.hoverColor = LJS.BLACK;
 
-  credits.addChild(sourcecodeBtn);
+  // credits.addChild(sourcecodeBtn);
 
   sourcecodeBtn.color = credits.textColor = rgba(235, 235, 235, 1);
 
   credits.hoverColor = LJS.CLEAR_WHITE;
 
   credits.interactive = credits.canBeHover = true;
+
   credits.onClick = sourcecodeBtn.onClick = () => {
     open(`https://github.com/dalps/LittleJS2025`, `_blank`);
   };
 
   titleMenu.addChild(credits);
+  titleMenu.addChild(sourcecodeBtn);
   titleMenu.addChild(startBtn);
   titleMenu.addChild(colorPickerBtn);
 }
@@ -100,7 +114,7 @@ function createColorPickerUI() {
   colorPickerMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
   colorPickerMenu.visible = false;
 
-  colorPickerMenu.color = LJS.GRAY;
+  colorPickerMenu.color = playerColor;
   colorPickerMenu.lineColor = LJS.BLACK;
 
   let mkColorBtn = (
@@ -126,10 +140,9 @@ function createColorPickerUI() {
     };
 
     const onClick = () => {
-      colorPickerBtn.hoverColor =
-        colorPickerBtn.color =
-        playerColor =
-          color ?? LJS.randColor();
+      colorPickerBtn.hoverColor = colorPickerBtn.color =
+        color ?? LJS.randColor();
+      setPlayerColor(colorPickerBtn.color);
       colorPickerMenu.visible = false;
       titleMenu.visible = true;
       btn.lineColor = LJS.BLACK;
@@ -201,14 +214,21 @@ export let resumeBtn: LJS.UIObject;
 export function createPauseMenu() {
   pauseMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
 
-  const text = new LJS.UIText(vec2(0, -100), vec2(1000, 50), "PAUSE");
+  const title = uiText("PAUSE", {
+    pos: vec2(0, -100),
+    fontSize: 50,
+  });
 
-  text.textColor = LJS.WHITE;
+  // resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
+  quitBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Quit", LJS.RED);
 
-  resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
-  quitBtn = new LJS.UIButton(vec2(0, 215), vec2(200, 50), "Quit", LJS.RED);
-
-  pauseMenu.addChild(text);
+  quitBtn.addChild(
+    uiText(`(no resume for now, sorry!)`, {
+      pos: vec2(0, -60),
+      fontSize: 20,
+    })
+  );
+  pauseMenu.addChild(title);
   pauseMenu.addChild(quitBtn);
-  pauseMenu.addChild(resumeBtn);
+  // pauseMenu.addChild(resumeBtn);
 }

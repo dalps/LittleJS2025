@@ -127,17 +127,17 @@ export class Level {
       titleScreen();
     };
 
-    resumeBtn.onClick = () => {
-      setGameState(GameState.Game);
+    // resumeBtn.onClick = () => {
+    //   setGameState(GameState.Game);
 
-      pauseMenu.visible = false;
-      pauseBtn.visible = true;
+    //   pauseMenu.visible = false;
+    //   pauseBtn.visible = true;
 
-      changeBackground();
-      cameraZoom({ delta: 2 });
+    //   changeBackground();
+    //   cameraZoom({ delta: 2 });
 
-      currentSong.resume();
-    };
+    //   currentSong.resume();
+    // };
   }
 
   end() {
@@ -265,11 +265,22 @@ export function initLevels() {
   level1 = new Level("Stardust\nMemories", stardustMemories);
 }
 
-export function levelSelection() {
-  setGameState(GameState.LevelSelection);
-  let levelsMenu = new LJS.UIObject(center);
+export let levelsMenu: LJS.UIObject;
 
-  titleMenu.visible = false;
+export function createLevelsMenu() {
+  levelsMenu = new LJS.UIObject(center);
+
+  let backToTitleBtn = new IconButton(center.scale(-1).add(vec2(60)), "play", {
+    btnSize: vec2(50),
+    iconAngle: Math.PI,
+    iconColor: LJS.BLACK,
+    onClick: () => {
+      levelsMenu.visible = false;
+      titleMenu.visible = true;
+    },
+  });
+
+  levelsMenu.addChild(backToTitleBtn);
 
   levelsMenu.addChild(uitext("Levels", { pos: vec2(0, -160), fontSize: 70 }));
   levelsMenu.addChild(

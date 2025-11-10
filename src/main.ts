@@ -2,13 +2,14 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import { changeBackground, pulse, sleep } from "./animUtils";
+import { changeBackground, impulse, pulse, sleep } from "./animUtils";
 import { PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import {
   initLevels,
-  levelSelection,
+  createLevelsMenu,
+  levelsMenu,
   pauseBtn,
   storeKey,
   tutorialLevel,
@@ -24,7 +25,7 @@ import { createPauseMenu, createTitleMenu, pauseMenu, startBtn } from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
 
-export const DEBUG = false;
+export const DEBUG = true;
 
 export const ratings = {
   superb: {
@@ -149,7 +150,7 @@ function loadAssets() {
   );
 
   songs.initSongs();
-  currentSong = songs.paarynasAllrite!;
+  setCurrentSong(songs.paarynasAllrite);
 
   titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
   let titleText = new LJS.UIText(
@@ -251,19 +252,24 @@ export function clearRow() {
 export function titleScreen() {
   setGameState(GameState.Title);
 
-  createTitleMenu();
-  pauseMenu.visible = false;
+  pauseMenu.visible = levelsMenu.visible = false;
   titleMenu.visible = true;
 
-  startBtn.onClick = startGame;
-
   setCurrentSong(songs.paarynasAllrite);
+
+  startBtn.onClick = startGame;
+  const startBtnSize = startBtn.size.copy();
+  const setSize = (t: number) => {
+    startBtn.size = startBtnSize.scale(t);
+  };
+  let scaleDelta = 0.1;
+  currentSong.beat.onbeat(() =>
+    impulse({ start: 1, end: 1 + scaleDelta, fn: setSize })
+  );
+
   currentSong.play({ loop: true });
 
   changeBackground();
-
-  LJS.setTouchInputEnable(true);
-  LJS.setSoundVolume(1);
 
   makeRow({ wrapping: PatternWrapping.Loop });
 
@@ -290,7 +296,8 @@ export function titleScreen() {
 function startGame() {
   if (!tutorialLevel.completed) return tutorial();
 
-  levelSelection();
+  levelsMenu.visible = true;
+  titleMenu.visible = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -304,12 +311,17 @@ function gameInit() {
   let storedColor = localStorage.getItem(storeKey("player", "color"));
   playerColor = storedColor ? new LJS.Color().setHex(storedColor) : LJS.RED;
 
-  createPauseMenu();
-  pauseMenu.visible = false;
-
   loadAssets();
   initLevels();
+  createPauseMenu();
+  createTitleMenu();
+  createLevelsMenu();
 
+  LJS.setTouchInputEnable(true);
+  LJS.setSoundVolume(1);
+
+  pauseMenu.visible = titleMenu.visible = levelsMenu.visible = false;
+  // titleScreen();
   // levelSelection();
   // tutorial();
 

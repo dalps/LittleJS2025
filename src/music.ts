@@ -1,14 +1,14 @@
 import * as LJS from "littlejsengine";
 import { Beat, type Pattern } from "./beat";
+import { spriteAtlas } from "./main";
+import { DEG2RAD, LOG, rgba } from "./mathUtils";
 import {
   countInMetronomePattern,
   defaultMetronomePattern,
   Metronome,
 } from "./metronome";
-import { spriteAtlas, tileSize } from "./main";
-import { Ease, Tween } from "./tween";
-import { DEG2RAD, LOG, rgba } from "./mathUtils";
 import { countSwimActions } from "./songs";
+import { Ease, Tween } from "./tween";
 const { vec2, rgb, tile } = LJS;
 
 // prettier-ignore
@@ -242,7 +242,16 @@ export class Song {
       new Tween((t) => (n.angle = t), -15 * DEG2RAD, 15 * DEG2RAD, 50).then(
         Tween.PingPong
       );
+      //     this.beat.onbeat(([beat]) =>
+      //   new Tween(
+      //     (t) => (n.angle = (beat % 2 === 0 ? 1 : -1) * t),
+      //     -15 * DEG2RAD,
+      //     15 * DEG2RAD,
+      //     20
+      //   ).setEase(Ease.IN_OUT(Ease.SINE))
+      // );
     });
+
     this.songContainer.addChild(titleText);
     this.songContainer.addChild(authorText);
   }

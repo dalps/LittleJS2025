@@ -35,3 +35,12 @@ export const cameraZoom = ({
     LJS.cameraScale + delta,
     duration
   ).setEase(ease);
+
+export const impulse = ({
+  start = 1,
+  end = 1.2,
+  duration = 3,
+  fn = (t: number) => {},
+} = {}) => {
+  new Tween(fn, start, end, duration).then(Tween.PingPong(2));
+};

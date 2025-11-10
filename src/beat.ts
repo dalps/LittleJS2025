@@ -128,7 +128,7 @@ export class Beat {
     //     (res * 100) >> 0
     //   }%`
     // );
-    return { timing, accuracy: accuracy(timing) };
+    return { timing, accuracy: accuracy(timing), count: this.count };
   }
 
   private getId() {
@@ -161,19 +161,6 @@ export class Beat {
     });
     return id;
   }
-  /**
-   * Register a callback to be executed at a specific beat count
-   */
-  atbeat([beat, sub]: BeatCount, fn: () => void): string {
-    let id = this.getId();
-    this.listeners.set(id, ([b, s, br]) => {
-      if (b === beat && s === sub) {
-        fn();
-        this.removeListener(id);
-      }
-    });
-    return id;
-  }
 
   /**
    * Register a callback to be executed once at a specific beat count
@@ -199,9 +186,11 @@ export class Beat {
     }
 
     let id = this.getId();
+    console.log(this.listeners);
     this.listeners.set(id, ([beat, sub, bar]) =>
       listener(ptn.at(barPicker(bar))?.at(beat)?.at(sub))
     );
+    console.log(this.listeners);
     return id;
   }
 
