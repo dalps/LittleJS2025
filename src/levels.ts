@@ -17,6 +17,7 @@ import {
   spriteAtlas,
   titleMenu,
   titleScreen,
+  titleText,
 } from "./main";
 import { cameraZoom, changeBackground, pulse, sleep } from "./animUtils";
 import {
@@ -276,7 +277,7 @@ export function createLevelsMenu() {
     iconColor: LJS.BLACK,
     onClick: () => {
       levelsMenu.visible = false;
-      titleMenu.visible = true;
+      titleText.visible = titleMenu.visible = true;
     },
   });
 

@@ -50,10 +50,10 @@ export const formatDegrees = (d: number) =>
 export const formatPolar = ({ x: phi, y: dist }: LJS.Vector2) =>
   `(${formatDegrees(phi)}°, ${dist.toFixed(3)})`;
 
-export const LOG = (msg: string) => {
+export const LOG = (...args: any[]) => {
   if (!DEBUG) return;
   const t = LJS.audioContext.currentTime;
-  console.log(`[${formatTime(t)}] ${msg}`);
+  console.log(`[${formatTime(t)}] ${args.map((arg) => `${arg}`).join(" ")}`);
 };
 
 export const lerpVec2 = (start: LJS.Vector2, end: LJS.Vector2, value: number) =>

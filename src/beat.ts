@@ -186,11 +186,9 @@ export class Beat {
     }
 
     let id = this.getId();
-    console.log(this.listeners);
     this.listeners.set(id, ([beat, sub, bar]) =>
       listener(ptn.at(barPicker(bar))?.at(beat)?.at(sub))
     );
-    console.log(this.listeners);
     return id;
   }
 

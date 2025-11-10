@@ -20,25 +20,24 @@ export class SpeechBubble extends LJS.UIText {
       duration = 30,
       size = vec2(200, 50),
       align = "center" as CanvasTextAlign,
+      padding = 20,
     } = {}
   ) {
-    super(pos, size, text);
+    super(pos, size, text, align);
 
     const lines = text.split(`\n`);
     const longestLineLength = Math.max(...lines.map((l) => l.length));
 
     this.color = LJS.WHITE;
-    this.lineWidth = 4;
+    this.lineWidth = 3;
     this.lineColor = LJS.BLACK;
     this.cornerRadius = this.size.y * 0.25;
     this.textColor = LJS.BLACK;
-    this.textFitScale = 0.8;
-    this.textHeight = 30;
+    this.textHeight = 24;
     this.size = vec2(
       longestLineLength * (this.textHeight / 2),
       this.textHeight * lines.length
-    );
-    console.log(this.size);
+    ).add(vec2(padding));
     this.interactive = false;
     this.hoverColor = this.color;
     this.activeColor = this.lineColor;

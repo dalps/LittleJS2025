@@ -8,8 +8,10 @@ import {
   makeRow,
   setCurrentSong,
   setGameState,
+  spriteAtlas,
   titleMenu,
   titleScreen,
+  titleText,
 } from "./main";
 import type { Microbe } from "./entities/microbe";
 import { goodThreshold, type Player } from "./entities/player";
@@ -38,7 +40,7 @@ let t2: LJS.UIText;
 export async function tutorial() {
   setGameState(GameState.Tutorial);
 
-  titleMenu.visible = false;
+  titleText.visible = titleMenu.visible = false;
   changeBackground(tutorialLevel.color);
 
   setCurrentSong(myFirstConsoleTutorial);
@@ -62,7 +64,13 @@ export async function tutorial() {
   t1.textColor = t2.textColor = LJS.WHITE;
   t1.shadowColor = t2.shadowColor = LJS.BLACK;
 
-  const pos = () => LJS.worldToScreen(leader.pos).subtract(vec2(0, 100));
+  const pos = () => {
+    LOG(leader.pos, LJS.worldToScreen(leader.pos));
+    // this sometimes ends up in a different place, possibly due to camera motion?
+    // return LJS.worldToScreen(leader.pos).subtract(vec2(0, 100));
+
+    return center.multiply(vec2(1, 0.3));
+  };
 
   new Tween((t) => t === 1 && row.forEach((m) => m.wink()), 0, 1, 360).then(
     Tween.Loop
@@ -73,17 +81,19 @@ export async function tutorial() {
   await speech(pos(), "Welcome to the mitochondrion.");
   await speech(pos(), "We are in charge of cellular respiration.");
   leader.idle();
-  await speech(pos(), "That means we burn oxygen\nto power up the cell!");
+  await speech(pos(), "That means we must burn calories\nto fuel up the cell!");
   // await speech(pos(), "We march all day long to burn oxygen.");
   // await speech(pos(), "It's a process called cellular respiration.");
-  await speech(pos(), `Let us show you our moves.`);
+  await speech(pos(), `We do that by marching to the rhythm of a beat.`);
+  await speech(pos(), `Let us teach you our tiny march.`);
   leader.idle();
   await speech(pos(), `Get ready for the first pattern!`);
   t1.text = `Click on the 1st and 3rd beat.`;
   testPlayer([1, 3], async (finalScore) => {
     LOG(`finalScore: ${finalScore}`);
 
-    await speech(pos(), finalScore >= 0.85 ? `Awesome!` : `That'll do.`);
+    await speech(pos(), finalScore >= 0.85 ? `Nice going!` : `.Not bad!`);
+    new LJS.UITile(pos(), vec2(50), spriteAtlas.hoop_metronome);
     await speech(pos(), `Now, let's try a different pattern.`);
     await speech(pos(), `This time, we'll march to the offbeat.`);
     await speech(pos(), `Ready?`);
@@ -93,7 +103,7 @@ export async function tutorial() {
     t1.text = `Click on the 2nd and 4th beat.`;
     testPlayer([2, 4], async (finalScore) => {
       LOG(`finalScore: ${finalScore}`);
-      await speech(pos(), finalScore >= 0.85 ? `Sweet!` : `Not bad.`);
+      await speech(pos(), finalScore >= 0.85 ? `Sweet!` : `Good effort.`);
       await speech(pos(), `One last pattern.`);
       await speech(pos(), `When you hear a bell ding...`);
       await speech(pos(), `...swim for the next three beats!`);
@@ -101,7 +111,7 @@ export async function tutorial() {
       currentSong.setChoreography(tutorialChoreo3);
       row.forEach((m) => m.setChoreography());
 
-      t1.text = `Click for three beats after the ding.`;
+      t1.text = `Click for the next three beats after the ding.`;
       testPlayer([2, 3, 4], async () => {
         await speech(
           pos(),

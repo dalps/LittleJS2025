@@ -6,6 +6,7 @@ import {
   setPlayerColor,
   spriteAtlas,
   titleMenu,
+  titleText,
   type AtlasKey,
 } from "./main";
 import { LOG, rgba } from "./mathUtils";
@@ -64,7 +65,7 @@ export function createTitleMenu() {
   colorPickerBtn = new IconButton(vec2(100 + 60, y), "microbe_bw", {
     onClick: () => {
       colorPickerMenu.visible = true;
-      titleMenu.visible = false;
+      titleText.visible = titleMenu.visible = false;
       colorPickerBtn.lineColor = LJS.BLACK;
     },
     onEnter: () => {
@@ -144,7 +145,7 @@ function createColorPickerUI() {
         color ?? LJS.randColor();
       setPlayerColor(colorPickerBtn.color);
       colorPickerMenu.visible = false;
-      titleMenu.visible = true;
+      titleText.visible = titleMenu.visible = true;
       btn.lineColor = LJS.BLACK;
     };
 

@@ -129,6 +129,7 @@ let row: Microbe[] = [];
 
 // ui
 export let titleMenu: LJS.UIObject;
+export let titleText: LJS.UIText;
 let loadingText: LJS.UIText;
 let foregroundCausticPos: LJS.Vector2 = vec2();
 let backgroundCausticPos: LJS.Vector2 = vec2();
@@ -152,9 +153,12 @@ function loadAssets() {
   songs.initSongs();
   setCurrentSong(songs.paarynasAllrite);
 
+  // game title & loading screen UI
+  center = LJS.mainCanvasSize.scale(0.5);
+
   titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
-  let titleText = new LJS.UIText(
-    vec2(0, -100),
+  titleText = new LJS.UIText(
+    center.add(vec2(0, -100)),
     vec2(900, 90),
     "Small Row",
     "center"
@@ -171,7 +175,7 @@ function loadAssets() {
   titleText.textColor = subtitle.textColor = LJS.WHITE;
 
   titleText.addChild(subtitle);
-  titleMenu.addChild(titleText);
+  // titleMenu.addChild(titleText);
 
   loadingText = new LJS.UIText(
     LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
@@ -180,8 +184,6 @@ function loadAssets() {
   );
   loadingText.textColor = LJS.WHITE.copy();
   loadingText.textHeight = 42;
-
-  center = LJS.mainCanvasSize.scale(0.5);
 }
 
 /**
@@ -297,7 +299,7 @@ function startGame() {
   if (!tutorialLevel.completed) return tutorial();
 
   levelsMenu.visible = true;
-  titleMenu.visible = false;
+  titleText.visible = titleMenu.visible = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
