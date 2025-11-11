@@ -10,7 +10,7 @@ import { PatternWrapping, type TimingInfo } from "../beat";
 const { vec2, rgb } = LJS;
 
 export const perfectThreshold = 0.75;
-export const goodThreshold = 0.3;
+export const goodThreshold = 0.15;
 
 export const firework = (
   pos: LJS.Vector2,
@@ -107,10 +107,10 @@ export class Player extends Microbe {
   }
 
   update(): void {
-    if (
-      (this.interactive && LJS.mouseWasReleased(0)) ||
-      LJS.keyWasReleased("Space")
-    ) {
+    const mouseInput = LJS.mouseWasPressed(0);
+    const keybdInput = LJS.keyWasPressed("Space");
+
+    if (this.interactive && (mouseInput || keybdInput)) {
       const info = currentSong.metronome.click();
       const { accuracy } = info;
       this.song!.scoreDelta = accuracy;
@@ -120,7 +120,7 @@ export class Player extends Microbe {
       this.swim();
 
       const pos =
-        (LJS.mouseWasReleased(0) && LJS.mousePosScreen) ||
+        (mouseInput && LJS.mousePosScreen) ||
         LJS.worldToScreen(this.pos).add(vec2(0, 100));
 
       if (accuracy >= perfectThreshold)
