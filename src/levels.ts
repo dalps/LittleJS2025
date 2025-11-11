@@ -283,9 +283,13 @@ export function createLevelsMenu() {
 
   levelsMenu.addChild(backToTitleBtn);
 
-  levelsMenu.addChild(uitext("Levels", { pos: vec2(0, -160), fontSize: 70 }));
+  const levelsText = uitext("Levels", { pos: vec2(0, -160), fontSize: 70 });
+  levelsText.shadowColor = setAlpha(LJS.BLACK, 0.5);
+  levelsText.shadowOffset = vec2(0, 10);
+
+  levelsMenu.addChild(levelsText);
   levelsMenu.addChild(
-    uitext("More levels coming soon", { pos: vec2(0, 200), fontSize: 20 })
+    uitext("More levels coming soon", { pos: vec2(0, 180), fontSize: 20 })
   );
 
   // level layout

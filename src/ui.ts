@@ -61,6 +61,7 @@ export function createTitleMenu() {
   const y = 150;
   const startBtnSize = vec2(200, 50);
   startBtn = new LJS.UIButton(vec2(0, y), startBtnSize, "Start", LJS.CYAN);
+  startBtn.hoverColor = LJS.WHITE;
 
   // startBtn.pos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.8));
 
@@ -103,7 +104,10 @@ export function createTitleMenu() {
 
   // credits.addChild(sourcecodeBtn);
 
-  sourcecodeBtn.color = credits.textColor = rgba(235, 235, 235, 1);
+  sourcecodeBtn.hoverColor =
+    sourcecodeBtn.color =
+    credits.textColor =
+      rgba(235, 235, 235, 1);
 
   credits.hoverColor = LJS.CLEAR_WHITE;
 

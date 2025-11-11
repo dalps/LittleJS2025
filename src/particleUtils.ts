@@ -115,7 +115,7 @@ export class MyParticle extends LJS.Particle {
       destroyCallback = undefined,
       velocity = vec2(),
       angleVelocity = 0,
-      damping = 0.89,
+      damping = 1,
       spin = 0,
       sizeFunc = undefined as ((t: number) => number) | undefined,
       sizeEase = (t: number) => t,

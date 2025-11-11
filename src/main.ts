@@ -173,6 +173,8 @@ function loadAssets() {
   titleText.textLineColor = LJS.WHITE;
   titleText.textLineWidth = 2;
   titleText.textColor = subtitle.textColor = LJS.WHITE;
+  titleText.shadowColor = setAlpha(rgba(15, 38, 95, 1), 0.5);
+  titleText.shadowOffset = vec2(0, 10);
 
   titleText.addChild(subtitle);
   // titleMenu.addChild(titleText);
@@ -323,7 +325,9 @@ function gameInit() {
   LJS.uiSystem.defaultFont = font;
 
   let storedColor = localStorage.getItem(storeKey("player", "color"));
-  playerColor = storedColor ? new LJS.Color().setHex(storedColor) : LJS.RED;
+  playerColor = storedColor
+    ? new LJS.Color().setHex(storedColor)
+    : rgba(255, 85, 85, 1);
 
   loadAssets();
   initLevels();

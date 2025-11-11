@@ -138,6 +138,7 @@ export class Microbe extends LJS.EngineObject {
           sizeEnd: LJS.rand(0.8, 1.6),
           velocity: LJS.randVec2(0.25),
           lifeTime: LJS.rand(0.5, 1),
+          damping: 0.89,
           additive: true,
         });
       }
