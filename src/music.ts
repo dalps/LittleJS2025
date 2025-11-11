@@ -1,7 +1,7 @@
 import * as LJS from "littlejsengine";
 import { Beat, type Pattern } from "./beat";
 import { spriteAtlas } from "./main";
-import { DEG2RAD, LOG, rgba } from "./mathUtils";
+import { DEG2RAD, LOG, rgba, setAlpha } from "./mathUtils";
 import {
   countInMetronomePattern,
   defaultMetronomePattern,
@@ -59,32 +59,36 @@ export class Song {
 
   constructor(
     public filename: string,
-    public bpm: number,
     {
       title = "",
       author = "",
       year = "",
       href = "",
       color = LJS.randColor(),
+      bpm = 144,
       beats = 4,
       subs = 1,
       onLoad = () => {},
       onEnd = () => {},
       loop = false,
+      loopStart = 0,
+      loopEnd = 0,
       choreography = [] as Pattern<number>,
     } = {}
   ) {
     this.beat = new Beat(bpm, beats, subs);
-    this.sound = new LJS.SoundWave(filename);
     this.loop = loop;
     this.setChoreography(choreography);
     this.totalSwims = countSwimActions(choreography);
     this.color = color;
+
+    this.sound = new LJS.SoundWave(filename);
     this.sound.onloadCallback = (wav) => {
       this.sound = wav;
       onLoad.call(this);
       return this.sound;
     };
+
     this.onEnd = onEnd;
     this.title = title;
     this.author = author;
@@ -178,6 +182,9 @@ export class Song {
   show(pos = LJS.mainCanvasSize.multiply(vec2(0.1, 0.8))) {
     const size = vec2(200, 50);
     this.songContainer = new LJS.UIButton(pos, size);
+
+    // this.songContainer.shadowColor = setAlpha(LJS.BLACK, 0.5);
+    // this.songContainer.shadowOffset = vec2(10);
 
     new Tween(
       (t) => (this.songContainer!.pos.x = t),

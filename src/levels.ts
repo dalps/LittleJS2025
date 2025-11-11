@@ -1,6 +1,7 @@
 import * as LJS from "littlejsengine";
 import type { Song } from "./music";
 import {
+  myFirstConsole,
   myFirstConsoleTutorial,
   paarynasAllrite,
   stardustMemories,
@@ -58,6 +59,7 @@ export class Level {
   }
   public set highScore(value: number) {
     this._highScore = value;
+    LOG(`Setting highScore to ${value}`);
     localStorage.setItem(this.getStoreKey("highScore"), `${value}`);
   }
 
@@ -144,6 +146,7 @@ export class Level {
   end() {
     setGameState(GameState.GameResults);
 
+    currentSong.stop();
     currentSong.hide();
     let finalScore = currentSong.getFinalScore();
     LOG(`finalScore: ${finalScore}`);
@@ -256,14 +259,22 @@ export class Level {
 export const levelBtnSize = vec2(150, 200);
 export const levelBtnSpacing = levelBtnSize.scale(1.2);
 
+export let LEVELS: Level[] = [];
 export let tutorialLevel: Level;
-export let level1: Level;
+export let levelSM: Level;
+export let levelMFC: Level;
 
 export function initLevels() {
   tutorialLevel = new Level("Tutorial", myFirstConsoleTutorial);
   tutorialLevel.start = tutorial; // overrides default behavior
   tutorialLevel.highScore = undefined; // don't show this stat for tutorial
-  level1 = new Level("Stardust\nMemories", stardustMemories);
+  levelSM = new Level("Stardust\nMemories", stardustMemories);
+  levelMFC = new Level("My First\nConsole", myFirstConsole);
+  LEVELS.push(
+    tutorialLevel, //
+    levelSM,
+    levelMFC
+  );
 }
 
 export let levelsMenu: LJS.UIObject;
@@ -293,12 +304,10 @@ export function createLevelsMenu() {
   );
 
   // level layout
-  let levelsArr = [tutorialLevel, level1];
-  let startPos = levelBtnSpacing.multiply(
-    vec2(-(levelsArr.length - 1) * 0.5, 0)
-  );
 
-  levelsArr.forEach((lvl, idx) => {
+  let startPos = levelBtnSpacing.multiply(vec2(-(LEVELS.length - 1) * 0.5, 0));
+
+  LEVELS.forEach((lvl, idx) => {
     let btn = new LJS.UIButton(startPos, levelBtnSize, lvl.name, lvl.color);
 
     levelsMenu.addChild(btn);
@@ -307,7 +316,7 @@ export function createLevelsMenu() {
       levelsMenu.visible = false;
       lvl.start();
     };
-    btn.textFitScale = 0.5;
+    btn.textWidth = btn.size.x - 10;
     btn.textHeight = 30;
     btn.shadowColor = setAlpha(LJS.BLACK, 0.5);
     btn.shadowBlur = 10;
@@ -328,12 +337,14 @@ export function createLevelsMenu() {
         )
       );
 
-    if (lvl.highScore !== undefined)
+    if (lvl.highScore !== undefined) {
+      LOG(lvl.highScore);
       btn.addChild(
         uitext(`${Math.round(lvl.highScore * 100)}%`, {
           pos: vec2(0, 50),
           fontSize: 30,
         })
       );
+    }
   });
 }

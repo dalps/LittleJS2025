@@ -173,8 +173,11 @@ function loadAssets() {
   titleText.textLineColor = LJS.WHITE;
   titleText.textLineWidth = 2;
   titleText.textColor = subtitle.textColor = LJS.WHITE;
-  titleText.shadowColor = setAlpha(rgba(15, 38, 95, 1), 0.5);
-  titleText.shadowOffset = vec2(0, 10);
+  subtitle.shadowColor = titleText.shadowColor = setAlpha(
+    rgba(15, 38, 95, 1),
+    0.5
+  );
+  subtitle.shadowOffset = titleText.shadowOffset = vec2(0, 10);
 
   titleText.addChild(subtitle);
   // titleMenu.addChild(titleText);

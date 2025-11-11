@@ -1,12 +1,15 @@
-import { LOG, vec2 } from "littlejsengine";
-import { beatCount, type Pattern } from "./beat";
-import { Microbe, MicrobeAction as MicrobeAction } from "./entities/microbe";
-import { polar, repeat, rgba } from "./mathUtils";
+import { type Pattern } from "./beat";
+import { MicrobeAction } from "./entities/microbe";
+import { repeat, rgba } from "./mathUtils";
 import { Song } from "./music";
 
 export let paarynasAllrite: Song;
 export let stardustMemories: Song;
+export let myFirstConsole: Song;
 export let myFirstConsoleTutorial: Song;
+export let tryAgainTune: Song;
+export let goodEnoughTune: Song;
+export let superbTune: Song;
 
 const { Idle: ____, Swim, Turn, Wink, Ding } = MicrobeAction;
 
@@ -38,19 +41,28 @@ const _S_S = [
   [Swim],
 ];
 
-const ding1 = [
+const DSSS = [
   [Ding], //
   [Swim],
   [Swim],
   [Swim],
 ];
 
-const ding2 = [
+const SDSS = [
   [Swim], //
   [Ding],
   [Swim],
   [Swim],
 ];
+
+const IIII = [
+  [____], //
+  [____],
+  [____],
+  [____],
+];
+
+const empty = repeat([,], 4);
 
 export function initSongs() {
   {
@@ -68,7 +80,8 @@ export function initSongs() {
       [____],
     ];
 
-    paarynasAllrite = new Song("./songs/paarynas-allrite.mp3", 102.4, {
+    paarynasAllrite = new Song("./songs/paarynas-allrite.mp3", {
+      bpm: 102.4,
       title: "Paaryna's allrite",
       author: "by DIZZY / CNDC",
       year: "1995",
@@ -88,78 +101,99 @@ export function initSongs() {
   }
 
   {
-    // prettier-ignore
-    const idle = [
-      [____, ],
-      [____, ],
-      [____, ],
-      [____, ],
-    ];
-
-    // prettier-ignore
-    const mid = [
-      [____, ],
-      [Swim, ],
-      [____, ],
-      [Swim, ],
-    ];
-
-    // prettier-ignore
-    const mid2 = [
-      [____, ],
-      [Swim, ],
-      [____, ],
-      [Swim, ],
-    ];
-
-    // prettier-ignore
     const end = [
-      [____, ],
-      [____, ],
-      [ , ],
-      [Wink, ],
+      [____], //
+      [____],
+      [],
+      [Wink],
     ];
 
-    // prettier-ignore
-    const empty = [
-      [ , ],
-      [ , ],
-      [ , ],
-      [ , ],
-    ];
-
-    stardustMemories = new Song("./songs/stardustmemories.mp3", 125, {
+    stardustMemories = new Song("./songs/stardustmemories.mp3", {
+      bpm: 125,
       title: "Stardust Memories",
       author: "by Jester / Sanity",
       year: "1992",
       href: "https://modarchive.org/index.php?request=view_by_moduleid&query=59344",
       color: rgba(93, 14, 76, 1),
       choreography: [
-        repeat(idle, 4),
-        repeat(mid, 7),
-        [mid2],
-        repeat(mid, 8),
-        repeat([mid, ding1], 4).flat(),
-        [mid, mid2, mid, mid],
-        [idle, end, empty],
+        repeat(IIII, 4),
+        repeat(_S_S, 7),
+        [_S_S],
+        repeat(_S_S, 8),
+        repeat([_S_S, DSSS], 4).flat(),
+        [_S_S, _S_S, _S_S, _S_S],
+        [IIII, end, empty],
       ].flat(),
     });
+  }
 
-    myFirstConsoleTutorial = new Song("./songs/myfirstconsole.mp3", 144, {
-      title: "My First Console",
-      author: "by aceman",
-      href: "https://modarchive.org/index.php?request=view_by_moduleid&query=157368",
-      color: rgba(135, 101, 6, 1),
-      choreography: tutorialChoreo1,
+  let myFirstConsoleData = {
+    bpm: 144,
+    title: "My First Console",
+    author: "by aceman",
+    href: "https://modarchive.org/index.php?request=view_by_moduleid&query=157368",
+  };
+  myFirstConsoleTutorial = new Song("./songs/myfirstconsole.mp3", {
+    ...myFirstConsoleTutorial,
+    color: rgba(135, 101, 6, 1),
+    choreography: tutorialChoreo1,
+  });
+
+  {
+    const end = [
+      [], //
+      [Wink],
+      [],
+      [],
+    ];
+
+    myFirstConsole = new Song("./songs/myfirstconsole_extended.mp3", {
+      ...myFirstConsoleData,
+      color: rgba(6, 135, 133, 1),
+      choreography: [
+        repeat(I_I_, 2),
+        repeat(S_S_, 7),
+        [SDSS], // 10
+        repeat(S_S_, 7),
+        [SDSS], // 18
+        repeat(S_S_, 7),
+        [SDSS], // 26
+        repeat(S_S_, 7),
+        [DSSS], // 34
+        repeat(_S_S, 15), // 35-50
+        [
+          [
+            [Swim], //
+            [],
+            [____],
+            [],
+          ],
+        ],
+        [I_I_, end, empty],
+      ].flat(),
     });
   }
+
+  tryAgainTune = new Song("./songs/0_percent_oxygen.mp3", {
+    title: "0% oxygen",
+    author: "mildewy",
+    href: "https://modarchive.org/index.php?request=view_by_moduleid&query=210337",
+  });
+
+  goodEnoughTune = new Song("", { bpm: 0 });
+
+  superbTune = new Song("./songs/hlorophobia_snip.mp3", {
+    title: "!!! hlorofobia !!!",
+    author: "klaf",
+    href: "https://modarchive.org/index.php?request=view_by_moduleid&query=106734",
+  });
 }
 
 export const tutorialChoreo1 = [repeat(I_I_, 2), repeat(S_S_, 8)].flat();
 export const tutorialChoreo2 = [repeat(I_I_, 2), repeat(_S_S, 8)].flat();
 export const tutorialChoreo3 = [
   repeat(I_I_, 2),
-  repeat([S_S_, ding2], 32).flat(),
+  repeat([S_S_, SDSS], 32).flat(),
 ].flat();
 
 export const countSwimActions = (choreography: Pattern<MicrobeAction>) =>
