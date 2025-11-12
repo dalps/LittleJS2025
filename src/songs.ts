@@ -5,6 +5,7 @@ import { Song } from "./music";
 
 export let paarynasAllrite: Song;
 export let stardustMemories: Song;
+export let woodenShoes: Song;
 export let myFirstConsole: Song;
 export let myFirstConsoleTutorial: Song;
 export let tryAgainTune: Song;
@@ -21,10 +22,10 @@ const I_I_ = [
 ];
 
 const _I_I = [
+  [],
   [____], //
   [],
   [____],
-  [],
 ];
 
 const S_S_ = [
@@ -50,6 +51,13 @@ const DSSS = [
 
 const SDSS = [
   [Swim], //
+  [Ding],
+  [Swim],
+  [Swim],
+];
+
+const _DSS = [
+  [____], //
   [Ding],
   [Swim],
   [Swim],
@@ -170,6 +178,56 @@ export function initSongs() {
           ],
         ],
         [I_I_, end, empty],
+      ].flat(),
+    });
+  }
+
+  {
+    const end = [
+      [], //
+      [Wink],
+      [],
+      [],
+    ];
+    woodenShoes = new Song("./songs/wooden_shoes.mp3", {
+      bpm: 160,
+      title: "wooden shoes",
+      author: "woolter",
+      href: "https://modarchive.org/index.php?request=view_by_moduleid&query=65483",
+      color: rgba(164, 168, 101, 1),
+      choreography: [
+        // bars: 39
+        repeat(I_I_, 3),
+        [
+          [
+            [____],
+            [], //
+            [____],
+            [____],
+          ],
+        ],
+        repeat([repeat(_S_S, 3), [DSSS]].flat(), 5).flat(),
+        repeat(_S_S, 3),
+        [_DSS], // 28
+        repeat(S_S_, 9),
+        [DSSS], // 32
+        // [
+        //   [
+        //     [Swim], //
+        //     [],
+        //     [Swim],
+        //     [Ding],
+        //   ],
+        // ],
+        // [
+        //   [
+        //     [Swim], //
+        //     [Swim],
+        //     [Swim],
+        //     [],
+        //   ],
+        // ],
+        [empty, end, empty],
       ].flat(),
     });
   }

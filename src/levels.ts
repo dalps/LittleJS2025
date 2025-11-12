@@ -5,6 +5,7 @@ import {
   myFirstConsoleTutorial,
   paarynasAllrite,
   stardustMemories,
+  woodenShoes,
 } from "./songs";
 import {
   center,
@@ -263,17 +264,22 @@ export let LEVELS: Level[] = [];
 export let tutorialLevel: Level;
 export let levelSM: Level;
 export let levelMFC: Level;
+export let levelWS: Level;
 
 export function initLevels() {
   tutorialLevel = new Level("Tutorial", myFirstConsoleTutorial);
   tutorialLevel.start = tutorial; // overrides default behavior
   tutorialLevel.highScore = undefined; // don't show this stat for tutorial
+
   levelSM = new Level("Stardust\nMemories", stardustMemories);
   levelMFC = new Level("My First\nConsole", myFirstConsole);
+  levelWS = new Level("Wooden\nShoes", woodenShoes);
+
   LEVELS.push(
     tutorialLevel, //
     levelSM,
-    levelMFC
+    levelMFC,
+    levelWS
   );
 }
 
