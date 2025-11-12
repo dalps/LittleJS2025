@@ -19,6 +19,7 @@ import {
   pauseBtn,
   storeKey,
   tutorialLevel,
+  showLevels,
 } from "./levels";
 import { DEG2RAD, getQuadrant, LOG, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
@@ -324,6 +325,7 @@ function startGame() {
   if (!tutorialLevel.completed) return tutorial();
 
   levelsMenu.visible = true;
+  showLevels();
   titleText.visible = titleMenu.visible = false;
 }
 

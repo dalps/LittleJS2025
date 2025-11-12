@@ -146,8 +146,9 @@ export function initSongs() {
     author: "aceman",
     href: "https://modarchive.org/index.php?request=view_by_moduleid&query=157368",
   };
+
   myFirstConsoleTutorial = new Song("./songs/myfirstconsole.mp3", {
-    ...myFirstConsoleTutorial,
+    ...myFirstConsoleData,
     color: rgba(6, 135, 66, 1),
     choreography: tutorialChoreo1,
   });

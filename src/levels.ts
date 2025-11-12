@@ -55,18 +55,25 @@ export class Level {
   }
 
   private _highScore = 0;
+
   public get highScore(): number {
-    return this._highScore;
+    const storedValue = localStorage.getItem(this.getStoreKey("highScore"));
+    return (storedValue && Number.parseFloat(storedValue)) || this._highScore;
   }
+
   public set highScore(value: number) {
     this._highScore = value;
-    LOG(`Setting highScore to ${value}`);
+    LOG(`Setting highScore for ${this.name} to ${value}`);
     localStorage.setItem(this.getStoreKey("highScore"), `${value}`);
   }
 
   onClick?: Function;
   onEnd?: Function;
+
+  // ui
   btn?: LJS.UIButton;
+  scoreText?: LJS.UIText;
+  completedTile?: LJS.UITile;
   color: LJS.Color;
 
   getStoreKey = (...parts: (keyof this)[]) =>
@@ -74,15 +81,62 @@ export class Level {
 
   constructor(public name: string, public song: Song) {
     this.color = song.color;
-    this.highScore = Number.parseInt(
-      localStorage.getItem(this.getStoreKey("highScore")) ?? "0"
-    );
+
     this.completed =
       localStorage.getItem(this.getStoreKey("completed")) === "true";
   }
 
   show(pos = center) {
-    this.btn = new LJS.UIButton(pos);
+    if (!this.btn) {
+      // init UI
+      let btn = new LJS.UIButton(pos, levelBtnSize, this.name, this.color);
+
+      this.btn = btn;
+      levelsMenu.addChild(btn);
+
+      btn.onClick = () => {
+        hideLevels();
+        levelsMenu.visible = false;
+        this.start();
+      };
+
+      btn.textColor = LJS.WHITE;
+      btn.textWidth = btn.size.x - 10;
+      btn.textHeight = 30;
+      btn.shadowColor = setAlpha(LJS.BLACK, 0.5);
+      btn.shadowBlur = 10;
+      btn.shadowOffset = vec2(0, 10);
+      btn.textShadow = vec2(0, 2);
+      btn.textOffset = vec2(0, -20);
+      btn.lineColor = this.color.copy().setHSLA(this.color.HSLA()[0], 0.5, 0.6);
+      btn.hoverColor = this.color
+        .copy()
+        .setHSLA(this.color.HSLA()[0], 0.5, 0.4);
+
+      this.btn.addChild(
+        (this.completedTile = new LJS.UITile(
+          levelBtnSize.multiply(vec2(0.5)).subtract(vec2(20)),
+          vec2(20),
+          spriteAtlas["check"]
+        ))
+      );
+
+      this.btn.addChild(
+        (this.scoreText = uitext("", {
+          pos: vec2(0, 50),
+          fontSize: 30,
+        }))
+      );
+    }
+
+    this.btn.visible = true;
+    this.completedTile!.visible = this.completed;
+    this.highScore !== undefined &&
+      (this.scoreText!.text = `${Math.round(this.highScore * 100)}%`);
+  }
+
+  hide() {
+    if (this.btn) this.btn.visible = false;
   }
 
   load() {}
@@ -150,7 +204,6 @@ export class Level {
     currentSong.stop();
     currentSong.hide();
     let finalScore = currentSong.getFinalScore();
-    LOG(`finalScore: ${finalScore}`);
 
     let resultsObj = new LJS.UIObject(
       LJS.mainCanvasSize.scale(0.5),
@@ -239,7 +292,7 @@ export class Level {
           )!;
 
           this.completed = finalScore >= ratings.ok.threshold;
-          this.highScore = LJS.max(this.highScore ?? 0, finalScore);
+          this.highScore = Math.max(this.highScore, finalScore);
 
           ratingText.visible = true;
           ratingText.text = message;
@@ -311,47 +364,16 @@ export function createLevelsMenu() {
   );
 
   // level layout
+  showLevels();
+}
 
+export const showLevels = () => {
   let startPos = levelBtnSpacing.multiply(vec2(-(LEVELS.length - 1) * 0.5, 0));
 
-  LEVELS.forEach((lvl, idx) => {
-    let btn = new LJS.UIButton(startPos, levelBtnSize, lvl.name, lvl.color);
-
-    levelsMenu.addChild(btn);
-    btn.textColor = LJS.WHITE;
-    btn.onClick = () => {
-      levelsMenu.visible = false;
-      lvl.start();
-    };
-    btn.textWidth = btn.size.x - 10;
-    btn.textHeight = 30;
-    btn.shadowColor = setAlpha(LJS.BLACK, 0.5);
-    btn.shadowBlur = 10;
-    btn.shadowOffset = vec2(0, 10);
-    btn.textShadow = vec2(0, 2);
-    btn.textOffset = vec2(0, -20);
-    btn.lineColor = lvl.color.copy().setHSLA(lvl.color.HSLA()[0], 0.5, 0.6);
-    btn.hoverColor = lvl.color.copy().setHSLA(lvl.color.HSLA()[0], 0.5, 0.4);
-
+  LEVELS.forEach((lvl) => {
+    lvl.show(startPos);
     startPos = startPos.add(vec2(levelBtnSpacing.x, 0));
-
-    if (lvl.completed)
-      btn.addChild(
-        new LJS.UITile(
-          levelBtnSize.multiply(vec2(0.5)).subtract(vec2(20)),
-          vec2(20),
-          spriteAtlas["check"]
-        )
-      );
-
-    if (lvl.highScore !== undefined) {
-      LOG(lvl.highScore);
-      btn.addChild(
-        uitext(`${Math.round(lvl.highScore * 100)}%`, {
-          pos: vec2(0, 50),
-          fontSize: 30,
-        })
-      );
-    }
   });
-}
+};
+
+export const hideLevels = () => LEVELS.forEach((lvl) => lvl.hide());
