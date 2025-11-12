@@ -32,7 +32,7 @@ import { createPauseMenu, createTitleMenu, pauseMenu, startBtn } from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 export const ratings = {
   superb: {
@@ -108,6 +108,7 @@ export const atlasCoords = {
   pause: [vec2(7, 0), 2],
   play: [vec2(8, 0), 2],
   github: [vec2(9, 0), 2],
+  lock: [vec2(10, 0), 2],
 };
 
 export type AtlasKey = keyof typeof atlasCoords;
@@ -354,7 +355,7 @@ function gameInit() {
   LJS.setSoundVolume(1);
 
   pauseMenu.visible = titleMenu.visible = levelsMenu.visible = false;
-  // titleScreen();
+  DEBUG && titleScreen();
   // levelSelection();
   // tutorial();
 

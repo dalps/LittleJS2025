@@ -21,7 +21,7 @@ import {
   titleScreen,
   titleText,
 } from "./main";
-import { cameraZoom, changeBackground, pulse, sleep } from "./animUtils";
+import { cameraZoom, changeBackground, pulse, shake, sleep } from "./animUtils";
 import {
   colorPickerBtn,
   IconButton,
@@ -30,13 +30,14 @@ import {
   resumeBtn,
 } from "./ui";
 import { uitext } from "./uiUtils";
-import { LOG, rgba, setAlpha } from "./mathUtils";
+import { LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import { tutorial } from "./tutorial";
 import { sfx } from "./sfx";
 import { Tween } from "./tween";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
+export let levelsMessage: LJS.UIText;
 
 export const storeKeyPrefix = `dalps-smallrow`;
 export const storeKey = (
@@ -53,6 +54,10 @@ export class Level {
     this._completed = value;
     localStorage.setItem(this.getStoreKey("completed"), `${value}`);
   }
+
+  locked = true;
+  lockMessage: string;
+  unlockFn: () => boolean;
 
   private _highScore = 0;
 
@@ -74,33 +79,36 @@ export class Level {
   btn?: LJS.UIButton;
   scoreText?: LJS.UIText;
   completedTile?: LJS.UITile;
+  lockedTile?: LJS.UITile;
   color: LJS.Color;
 
-  getStoreKey = (...parts: (keyof this)[]) =>
-    storeKey(this.name, ...parts.map((p) => p.toString()));
-
-  constructor(public name: string, public song: Song) {
+  constructor(
+    public name: string,
+    public song: Song,
+    { locked = true, lockMessage = "", unlockFn = () => false } = {}
+  ) {
     this.color = song.color;
+    this.locked = locked;
+    this.lockMessage = lockMessage;
+    this.unlockFn = unlockFn;
 
     this.completed =
       localStorage.getItem(this.getStoreKey("completed")) === "true";
   }
 
+  getStoreKey = (...parts: (keyof this)[]) =>
+    storeKey(this.name, ...parts.map((p) => p.toString()));
+
   show(pos = center) {
-    if (!this.btn) {
+    let btn = this.btn;
+
+    if (!btn) {
       // init UI
-      let btn = new LJS.UIButton(pos, levelBtnSize, this.name, this.color);
+      btn = new LJS.UIButton(pos, levelBtnSize, this.name, this.color);
 
       this.btn = btn;
       levelsMenu.addChild(btn);
 
-      btn.onClick = () => {
-        hideLevels();
-        levelsMenu.visible = false;
-        this.start();
-      };
-
-      btn.textColor = LJS.WHITE;
       btn.textWidth = btn.size.x - 10;
       btn.textHeight = 30;
       btn.shadowColor = setAlpha(LJS.BLACK, 0.5);
@@ -108,28 +116,61 @@ export class Level {
       btn.shadowOffset = vec2(0, 10);
       btn.textShadow = vec2(0, 2);
       btn.textOffset = vec2(0, -20);
-      btn.lineColor = this.color.copy().setHSLA(this.color.HSLA()[0], 0.5, 0.6);
-      btn.hoverColor = this.color
-        .copy()
-        .setHSLA(this.color.HSLA()[0], 0.5, 0.4);
 
-      this.btn.addChild(
+      btn.addChild(
         (this.completedTile = new LJS.UITile(
           levelBtnSize.multiply(vec2(0.5)).subtract(vec2(20)),
           vec2(20),
-          spriteAtlas["check"]
+          spriteAtlas.check
         ))
       );
 
-      this.btn.addChild(
+      btn.addChild(
         (this.scoreText = uitext("", {
           pos: vec2(0, 50),
           fontSize: 30,
         }))
       );
+
+      btn.addChild(
+        (this.lockedTile = new LJS.UITile(vec2(), vec2(50), spriteAtlas.lock))
+      );
+
+      this.lockedTile.interactive = this.lockedTile.canBeHover = true;
+      this.lockedTile.shadowColor = setAlpha(LJS.BLACK, 0.5);
+      this.lockedTile.shadowOffset = vec2(0, 5);
+      this.lockedTile.color = LJS.GRAY;
     }
 
-    this.btn.visible = true;
+    if ((this.locked = this.unlockFn())) {
+      this.lockedTile!.onClick = btn.onClick = () => {
+        shake(btn.localPos);
+        levelsMessage.text = this.lockMessage;
+        return;
+      };
+
+      btn.color = btn.hoverColor = setHSLA(this.color, {
+        s: 0.5,
+        l: 0.2,
+      });
+      btn.textColor = rgba(115, 115, 115, 1);
+      btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.1 });
+    } else {
+      btn.onClick = () => {
+        hideLevels();
+        levelsMenu.visible = false;
+        this.start();
+      };
+
+      btn.color = this.color;
+      btn.hoverColor = setHSLA(this.color, { s: 0.5, l: 0.4 });
+      btn.textColor = LJS.WHITE;
+      btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.6 });
+    }
+
+    btn.visible = true;
+    this.scoreText!.visible = !this.locked;
+    this.lockedTile!.visible = this.locked;
     this.completedTile!.visible = this.completed;
     this.highScore !== undefined &&
       (this.scoreText!.text = `${Math.round(this.highScore * 100)}%`);
@@ -321,13 +362,28 @@ export let levelMFC: Level;
 export let levelWS: Level;
 
 export function initLevels() {
-  tutorialLevel = new Level("Tutorial", myFirstConsoleTutorial);
+  tutorialLevel = new Level("Tutorial", myFirstConsoleTutorial, {
+    locked: false,
+  });
   tutorialLevel.start = tutorial; // overrides default behavior
   tutorialLevel.highScore = undefined; // don't show this stat for tutorial
 
-  levelSM = new Level("Stardust\nMemories", stardustMemories);
-  levelMFC = new Level("My First\nConsole", myFirstConsole);
-  levelWS = new Level("Wooden\nShoes", woodenShoes);
+  const printRequirement = (lvlname: string) =>
+    `Get a rhythm score of at least 50%\nin ${lvlname.replace("\n", " ")}`;
+
+  levelSM = new Level("Stardust\nMemories", stardustMemories, {
+    lockMessage: `Do the tutorial!`,
+    unlockFn: () => !tutorialLevel.completed,
+  });
+  levelMFC = new Level("My First\nConsole", myFirstConsole, {
+    // just pass a whole level as a prerequisite instead of these
+    lockMessage: printRequirement(levelSM.name),
+    unlockFn: () => !levelSM.completed,
+  });
+  levelWS = new Level("Wooden\nShoes", woodenShoes, {
+    lockMessage: printRequirement(levelMFC.name),
+    unlockFn: () => !levelMFC.completed,
+  });
 
   LEVELS.push(
     tutorialLevel, //
@@ -355,13 +411,17 @@ export function createLevelsMenu() {
   levelsMenu.addChild(backToTitleBtn);
 
   const levelsText = uitext("Levels", { pos: vec2(0, -160), fontSize: 70 });
-  levelsText.shadowColor = setAlpha(LJS.BLACK, 0.5);
-  levelsText.shadowOffset = vec2(0, 10);
 
   levelsMenu.addChild(levelsText);
   levelsMenu.addChild(
-    uitext("More levels coming soon", { pos: vec2(0, 180), fontSize: 20 })
+    (levelsMessage = uitext("", {
+      pos: vec2(0, 180),
+      fontSize: 20,
+    }))
   );
+
+  levelsMessage.shadowColor = levelsText.shadowColor = setAlpha(LJS.BLACK, 0.5);
+  levelsMessage.shadowOffset = levelsText.shadowOffset = vec2(0, 5);
 
   // level layout
   showLevels();
@@ -374,6 +434,8 @@ export const showLevels = () => {
     lvl.show(startPos);
     startPos = startPos.add(vec2(levelBtnSpacing.x, 0));
   });
+
+  levelsMessage.text = "Stay tuned for more levels!";
 };
 
 export const hideLevels = () => LEVELS.forEach((lvl) => lvl.hide());

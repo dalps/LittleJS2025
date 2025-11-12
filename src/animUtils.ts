@@ -16,6 +16,17 @@ export const blink = (colorRef: LJS.Color, period = 30) =>
     )
   );
 
+export const shake = (
+  posRef: LJS.Vector2,
+  { period = 5, delta = vec2(5, 0), times = 5 } = {}
+) =>
+  new Tween(
+    (t) => posRef.setFrom(posRef.add(delta.scale(t))),
+    -1,
+    1,
+    period
+  ).then(Tween.PingPong(times));
+
 export const changeBackground = (color = currentSong.color) =>
   new Tween(
     (t) => LJS.setCanvasClearColor(LJS.canvasClearColor.lerp(color, t)),
