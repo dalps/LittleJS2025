@@ -204,6 +204,7 @@ export class Level {
     //   a < value && value <= b;
 
     changeBackground(LJS.BLACK);
+    cameraZoom({ delta: -2 });
     currentSong.metronome.hide();
 
     sfx.blink.play(undefined, 1);

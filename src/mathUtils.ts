@@ -16,6 +16,15 @@ export const rgba = (r: number, g: number, b: number, a = 1) =>
 export const setAlpha = (c: LJS.Color, a: number) =>
   c.copy().set(c.r, c.g, c.b, a);
 
+/** Returns a new color preserving the HSLA values of the color passed in. */
+export const setHSLA = (
+  c: LJS.Color,
+  { h, s, l, a }: { h?: number; s?: number; l?: number; a?: number } = {}
+) => {
+  const [ch, cs, cl, ca] = c.HSLA();
+  return c.copy().setHSLA(h ?? ch, s ?? cs, l ?? cl, a ?? ca);
+};
+
 // https://www.desmos.com/calculator/r4gs7wf5lq
 export const accuracy = (t: number) => 1 - Math.sin(t * Math.PI) ** 0.5;
 

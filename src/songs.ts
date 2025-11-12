@@ -89,12 +89,17 @@ export function initSongs() {
     ];
 
     paarynasAllrite = new Song("./songs/paarynas-allrite.mp3", {
-      bpm: 102.4,
+      bpm: 102.45,
       title: "Paaryna's allrite",
-      author: "by DIZZY / CNDC",
+      author: "DIZZY / CNDC",
       year: "1995",
       href: "https://modarchive.org/index.php?request=view_by_moduleid&query=90188",
       color: rgba(5, 52, 106, 1),
+      // choreography: [
+      //   repeat(I_I_, 4),
+      //   repeat(_S_S, 8),
+      //   repeat([_T_S, repeat(_S_S, 7).flat()], 3).flat(),
+      // ].flat(),
       choreography: [
         repeat(I_I_, 4),
         repeat(_S_S, 8),
@@ -119,7 +124,7 @@ export function initSongs() {
     stardustMemories = new Song("./songs/stardustmemories.mp3", {
       bpm: 125,
       title: "Stardust Memories",
-      author: "by Jester / Sanity",
+      author: "Jester / Sanity",
       year: "1992",
       href: "https://modarchive.org/index.php?request=view_by_moduleid&query=59344",
       color: rgba(93, 14, 76, 1),
@@ -138,12 +143,12 @@ export function initSongs() {
   let myFirstConsoleData = {
     bpm: 144,
     title: "My First Console",
-    author: "by aceman",
+    author: "aceman",
     href: "https://modarchive.org/index.php?request=view_by_moduleid&query=157368",
   };
   myFirstConsoleTutorial = new Song("./songs/myfirstconsole.mp3", {
     ...myFirstConsoleTutorial,
-    color: rgba(135, 101, 6, 1),
+    color: rgba(6, 135, 66, 1),
     choreography: tutorialChoreo1,
   });
 
@@ -191,7 +196,7 @@ export function initSongs() {
     ];
     woodenShoes = new Song("./songs/wooden_shoes.mp3", {
       bpm: 160,
-      title: "wooden shoes",
+      title: "Wooden Shoes",
       author: "woolter",
       href: "https://modarchive.org/index.php?request=view_by_moduleid&query=65483",
       color: rgba(164, 168, 101, 1),

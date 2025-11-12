@@ -2,7 +2,13 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import { changeBackground, impulse, pulse, sleep } from "./animUtils";
+import {
+  cameraZoom,
+  changeBackground,
+  impulse,
+  pulse,
+  sleep,
+} from "./animUtils";
 import { beatCount, PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
@@ -117,6 +123,7 @@ export const spriteAtlas: Record<
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
+export let startCameraScale: number;
 export let center: LJS.Vector2;
 let leader: Microbe | undefined;
 
@@ -289,6 +296,7 @@ export function titleScreen() {
   currentSong.play({ loop: true });
 
   changeBackground();
+  cameraZoom({ delta: 2 });
 
   makeRow({ wrapping: PatternWrapping.Loop });
 
@@ -337,6 +345,8 @@ function gameInit() {
   createPauseMenu();
   createTitleMenu();
   createLevelsMenu();
+
+  startCameraScale = LJS.cameraScale;
 
   LJS.setTouchInputEnable(true);
   LJS.setSoundVolume(1);

@@ -218,7 +218,11 @@ export class Song {
     };
 
     let titleText = new LJS.UIText(vec2(), vec2(100, 20), this.title);
-    let authorText = new LJS.UIText(vec2(0, 20), vec2(100, 14), this.author);
+    let authorText = new LJS.UIText(
+      vec2(0, 20),
+      vec2(100, 14),
+      `by ${this.author}`
+    );
 
     titleText.fontStyle = "italic";
     titleText.align = authorText.align = "left";

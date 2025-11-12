@@ -233,7 +233,8 @@ export function createPauseMenu() {
   });
 
   // resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
-  quitBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Quit", LJS.RED);
+  quitBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Quit", rgba(255, 56, 56, 1));
+  quitBtn.hoverColor = rgba(255, 128, 128, 1);
 
   quitBtn.addChild(
     uiText(`(no resume for now, sorry!)`, {
