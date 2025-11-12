@@ -13,4 +13,4 @@ zip:
     advzip -a game.zip dist/*
 
 publish: build
-    butler push dist dalps/smallrow:browser -v
+    butler push dist dalps/smallrow:browser # -v

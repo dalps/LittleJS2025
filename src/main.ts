@@ -2,32 +2,24 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import {
-  cameraZoom,
-  changeBackground,
-  impulse,
-  pulse,
-  sleep,
-} from "./animUtils";
+import { cameraZoom, changeBackground, impulse, pulse } from "./animUtils";
 import { beatCount, PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import {
-  initLevels,
   createLevelsMenu,
+  initLevels,
   levelsMenu,
-  pauseBtn,
+  showLevels,
   storeKey,
   tutorialLevel,
-  showLevels,
 } from "./levels";
-import { DEG2RAD, getQuadrant, LOG, polar, rgba, setAlpha } from "./mathUtils";
+import { DEG2RAD, getQuadrant, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
 import { emitter } from "./particleUtils";
-import { sfx } from "./sfx";
 import * as songs from "./songs";
-import { hasDoneTutorial, tutorial } from "./tutorial";
-import { Ease, Tween } from "./tween";
+import { beginTutorial, tutorial } from "./tutorial";
+import { Tween } from "./tween";
 import { createPauseMenu, createTitleMenu, pauseMenu, startBtn } from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
@@ -323,7 +315,7 @@ export function titleScreen() {
 }
 
 function startGame() {
-  if (!tutorialLevel.completed) return tutorial();
+  if (!tutorialLevel.completed && beginTutorial) return tutorial();
 
   levelsMenu.visible = true;
   showLevels();
@@ -355,6 +347,7 @@ function gameInit() {
   LJS.setSoundVolume(1);
 
   pauseMenu.visible = titleMenu.visible = levelsMenu.visible = false;
+
   DEBUG && titleScreen();
   // levelSelection();
   // tutorial();

@@ -1,12 +1,5 @@
 import * as LJS from "littlejsengine";
-import type { Song } from "./music";
-import {
-  myFirstConsole,
-  myFirstConsoleTutorial,
-  paarynasAllrite,
-  stardustMemories,
-  woodenShoes,
-} from "./songs";
+import { cameraZoom, changeBackground, pulse, shake, sleep } from "./animUtils";
 import {
   center,
   clearRow,
@@ -21,19 +14,19 @@ import {
   titleScreen,
   titleText,
 } from "./main";
-import { cameraZoom, changeBackground, pulse, shake, sleep } from "./animUtils";
-import {
-  colorPickerBtn,
-  IconButton,
-  pauseMenu,
-  quitBtn,
-  resumeBtn,
-} from "./ui";
-import { uitext } from "./uiUtils";
 import { LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
-import { tutorial } from "./tutorial";
+import type { Song } from "./music";
 import { sfx } from "./sfx";
+import {
+  myFirstConsole,
+  myFirstConsoleTutorial,
+  stardustMemories,
+  woodenShoes,
+} from "./songs";
+import { tutorial, tutorialMessage } from "./tutorial";
 import { Tween } from "./tween";
+import { colorPickerBtn, IconButton, pauseMenu, quitBtn } from "./ui";
+import { uitext } from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -109,6 +102,7 @@ export class Level {
       this.btn = btn;
       levelsMenu.addChild(btn);
 
+      btn.cornerRadius = 5;
       btn.textWidth = btn.size.x - 10;
       btn.textHeight = 30;
       btn.shadowColor = setAlpha(LJS.BLACK, 0.5);
@@ -193,53 +187,14 @@ export class Level {
     player.color = colorPickerBtn.color;
 
     titleText.visible = titleMenu.visible = false;
+    pauseBtn.visible = true;
 
     setGameState(GameState.Game);
 
-    // LOG(`Starting game...`);
     changeBackground(this.color);
-
-    pauseBtn = new IconButton(
-      LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
-      "pause",
-      {
-        btnSize: vec2(50),
-        iconSize: vec2(30),
-        iconColor: LJS.BLACK,
-        onClick: () => {
-          setGameState(GameState.Paused);
-
-          pauseMenu.visible = true;
-          pauseBtn.visible = false;
-
-          changeBackground(LJS.BLACK);
-          cameraZoom({ delta: -2, duration: 100 });
-
-          currentSong.pause();
-        },
-      }
-    );
-
-    quitBtn.onClick = () => {
-      clearRow();
-      player.destroy();
-      titleScreen();
-    };
-
-    // resumeBtn.onClick = () => {
-    //   setGameState(GameState.Game);
-
-    //   pauseMenu.visible = false;
-    //   pauseBtn.visible = true;
-
-    //   changeBackground();
-    //   cameraZoom({ delta: 2 });
-
-    //   currentSong.resume();
-    // };
   }
 
-  end() {
+  async end() {
     setGameState(GameState.GameResults);
 
     currentSong.stop();
@@ -306,50 +261,45 @@ export class Level {
     // const scoreTimerDelta = 1 / LJS.lerp(3, 10, finalScore);
     // let scoreTimer = new LJS.Timer(scoreTimerDelta);
 
-    let prevT = 0;
-
     // tally up the score
-    sleep(100).then(() =>
-      new Tween(
-        (t) => {
-          // play beep sound with pitch function of t
-          let intT = (t * 100) >> 0;
-          if (intT > prevT) {
-            sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
-            scoreText.text = `${intT}%`;
-            prevT = intT;
-          }
-        },
-        0,
-        finalScore,
-        LJS.lerp(100, 250, finalScore) >> 0
-      ).then(() => {
-        sleep(100).then(() => {
-          // show rating
-          sfx.blink.play(undefined, 1, LJS.clamp(1 + finalScore, 0, 2));
+    await sleep(100);
 
-          const { message, color1, color2 } = Object.values(ratings).find(
-            ({ threshold }) => threshold <= finalScore
-          )!;
-
-          this.completed = finalScore >= ratings.ok.threshold;
-          this.highScore = Math.max(this.highScore, finalScore);
-
-          ratingText.visible = true;
-          ratingText.text = message;
-          ratingText.textColor = color1;
-          ratingText.textLineColor = color2;
-
-          sleep(100).then(() => {
-            backToTitleBtn.visible = true;
-            pulse(backToTitleBtn.textColor);
-          });
-        });
-      })
+    let prevT = 0;
+    await new Tween(
+      (t) => {
+        // play beep sound with pitch function of t
+        let intT = (t * 100) >> 0;
+        if (intT > prevT) {
+          sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
+          scoreText.text = `${intT}%`;
+          prevT = intT;
+        }
+      },
+      0,
+      finalScore,
+      LJS.lerp(100, 250, finalScore) >> 0
     );
-  }
 
-  save() {}
+    // show rating
+    await sleep(100);
+    sfx.blink.play(undefined, 1, LJS.clamp(1 + finalScore, 0, 2));
+
+    const { message, color1, color2 } = Object.values(ratings).find(
+      ({ threshold }) => threshold <= finalScore
+    )!;
+
+    this.completed = finalScore >= ratings.ok.threshold;
+    this.highScore = Math.max(this.highScore, finalScore);
+
+    ratingText.visible = true;
+    ratingText.text = message;
+    ratingText.textColor = color1;
+    ratingText.textLineColor = color2;
+
+    await sleep(100);
+    backToTitleBtn.visible = true;
+    pulse(backToTitleBtn.textColor);
+  }
 }
 
 export const levelBtnSize = vec2(150, 200);
@@ -423,8 +373,47 @@ export function createLevelsMenu() {
   levelsMessage.shadowColor = levelsText.shadowColor = setAlpha(LJS.BLACK, 0.5);
   levelsMessage.shadowOffset = levelsText.shadowOffset = vec2(0, 5);
 
-  // level layout
-  showLevels();
+  // shared by all levels
+  pauseBtn = new IconButton(
+    LJS.mainCanvasSize.multiply(vec2(0.9, 0.1)),
+    "pause",
+    {
+      btnSize: vec2(50),
+      iconSize: vec2(30),
+      iconColor: LJS.BLACK,
+      onClick: () => {
+        setGameState(GameState.Paused);
+
+        pauseMenu.visible = true;
+        pauseBtn.visible = false;
+        tutorialMessage && (tutorialMessage.visible = false);
+
+        changeBackground(LJS.BLACK);
+        cameraZoom({ delta: -2, duration: 100 });
+
+        currentSong.pause();
+      },
+    }
+  );
+
+  quitBtn.onClick = () => {
+    clearRow();
+    titleScreen();
+  };
+
+  // resumeBtn.onClick = () => {
+  //   setGameState(GameState.Game);
+
+  //   pauseMenu.visible = false;
+  //   pauseBtn.visible = true;
+
+  //   changeBackground();
+  //   cameraZoom({ delta: 2 });
+
+  //   currentSong.resume();
+  // };
+
+  pauseBtn.visible = pauseMenu.visible = false;
 }
 
 export const showLevels = () => {
