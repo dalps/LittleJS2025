@@ -482,5 +482,5 @@ LJS.engineInit(
   gameUpdatePost,
   gameRender,
   gameRenderPost,
-  ["frames.png", "frames_tummy.png", "objects.png", "caustic4.png"]
+  ["frames.png", "frames_tummy.png", "objects.png", "caustic.png"]
 );
