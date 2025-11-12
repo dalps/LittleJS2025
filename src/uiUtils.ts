@@ -5,10 +5,8 @@ import { DEG2RAD, LOG, setAlpha } from "./mathUtils";
 import { sfx } from "./sfx";
 const { vec2, rgb, tile } = LJS;
 
-export const speech = (pos: LJS.Vector2, text: string) => {
-  let bubble = new SpeechBubble(pos, text);
-  return new Promise(bubble.then);
-};
+export const speech = (pos: LJS.Vector2, text: string) =>
+  new SpeechBubble(pos, text);
 
 export class SpeechBubble extends LJS.UIText {
   then: (f?: (...args: any[]) => any) => this;
