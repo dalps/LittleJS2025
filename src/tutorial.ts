@@ -14,6 +14,7 @@ import {
   titleMenu,
   titleScreen,
   titleText,
+  vignette,
 } from "./main";
 import { LOG } from "./mathUtils";
 import {
@@ -36,6 +37,8 @@ export let tutorialMessage: LJS.UIText;
 let t2: LJS.UIText;
 
 export async function tutorial() {
+  await vignette.fade({ duration: 100 });
+
   setGameState(GameState.Tutorial);
 
   titleText.visible = titleMenu.visible = pauseBtn.visible = false;
@@ -71,9 +74,9 @@ export async function tutorial() {
     return center.multiply(vec2(1, 0.3));
   };
 
-  new Tween((t) => t === 1 && row.forEach((m) => m.wink()), 0, 1, 360).then(
-    Tween.Loop
-  );
+  await vignette.circleMask({
+    endRadius: LJS.mainCanvasSize.x,
+  });
 
   await speech(pos(), "Hello there!");
   leader.idle();

@@ -252,86 +252,69 @@ export function createPauseMenu() {
   // pauseMenu.addChild(resumeBtn);
 }
 
-export class CircleVignetteLayer extends LJS.CanvasLayer {
-  radius: number;
-
-  constructor(startRadius = 300) {
-    const canvasSize = LJS.mainCanvasSize;
-    super(vec2(), LJS.screenToWorld(canvasSize), 0, 3e3);
-
-    const { context: ctx } = this;
-    ctx.fillStyle = LJS.BLUE;
-    ctx.fillRect(0, 0, canvasSize.x, canvasSize.y);
-
-    this.radius = startRadius;
-    // ctx.clip(clipPath);
-    const clipPath = new Path2D();
-    clipPath.ellipse(
-      canvasSize.x * 0.5,
-      canvasSize.y * 0.5,
-      this.radius,
-      this.radius,
-      0,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.clip(clipPath);
-
-    ctx.beginPath();
-    ctx.rect(canvasSize.x * 0.4, canvasSize.y * 0.5, 30, 300);
-    ctx.fillStyle = LJS.YELLOW;
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.rect(canvasSize.x * 0.4, canvasSize.y * 0.5, 300, 30);
-    ctx.fillStyle = LJS.RED;
-    ctx.fill();
-
-    // ctx.fillRect(0, 0, canvasSize.x, canvasSize.y);
-  }
-}
-
 export class CircleVignette {
   canvas: HTMLCanvasElement;
-  context: CanvasRenderingContext2D;
+  ctx: CanvasRenderingContext2D;
+  canvasSize: LJS.Vector2;
   radius = 0;
 
   constructor() {
-    const canvasSize = LJS.mainCanvasSize;
+    this.canvasSize = LJS.mainCanvasSize.copy();
     this.canvas = document.createElement("canvas");
-    this.context = this.canvas.getContext("2d")!;
+    this.ctx = this.canvas.getContext("2d")!;
 
-    const { context: ctx, canvas: cvs } = this;
-    cvs.width = canvasSize.x;
-    cvs.height = canvasSize.y;
+    const { canvas: cvs } = this;
+    cvs.width = this.canvasSize.x;
+    cvs.height = this.canvasSize.y;
     cvs.style =
       "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); image-rendering: pixelated;";
 
     document.body.appendChild(cvs);
+  }
 
-    // ctx.fillStyle = setAlpha(LJS.BLUE, 0.5);
-    ctx.clearRect(0, 0, canvasSize.x, canvasSize.y);
-
-    this.radius = 30;
-    // // ctx.clip(clipPath);
-    // const clipPath = new Path2D();
-    ctx.beginPath();
-    ctx.rect(0, 0, canvasSize.x, canvasSize.y);
-    ctx.ellipse(
-      canvasSize.x * 0.5,
-      canvasSize.y * 0.5,
-      this.radius,
-      this.radius,
-      0,
-      0,
-      Math.PI * 2,
-      true // punch a hole
+  fade({ start = 0, end = 1, duration = 80 } = {}) {
+    const { ctx: ctx, canvasSize } = this;
+    return new Tween(
+      (t) => {
+        ctx.fillStyle = setAlpha(LJS.BLACK, t);
+        ctx.fillRect(0, 0, canvasSize.x, canvasSize.y);
+      },
+      start,
+      end,
+      duration
     );
+  }
 
-    // ctx.clip(clipPath);
+  fadeOut = ({ duration = 80 } = {}) =>
+    this.fade({ start: 1, end: 0, duration });
 
-    ctx.fillStyle = LJS.BLACK;
-    ctx.fill();
+  circleMask({ startRadius = 0, endRadius = 100, duration = 100 } = {}) {
+    const { ctx, canvasSize } = this;
+    return new Tween(
+      (t) => {
+        ctx.clearRect(0, 0, canvasSize.x, canvasSize.y);
+
+        ctx.beginPath();
+        ctx.rect(0, 0, canvasSize.x, canvasSize.y);
+        ctx.ellipse(
+          canvasSize.x * 0.5,
+          canvasSize.y * 0.5,
+          t,
+          t,
+          0,
+          0,
+          Math.PI * 2,
+          true // counterclockwise
+        );
+
+        // ctx.clip(clipPath);
+
+        ctx.fillStyle = LJS.BLACK;
+        ctx.fill();
+      },
+      startRadius,
+      endRadius,
+      duration
+    );
   }
 }

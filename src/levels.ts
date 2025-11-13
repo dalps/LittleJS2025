@@ -13,6 +13,7 @@ import {
   titleMenu,
   titleScreen,
   titleText,
+  vignette,
 } from "./main";
 import { LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import type { Song } from "./music";
@@ -24,7 +25,7 @@ import {
   woodenShoes,
 } from "./songs";
 import { tutorial, tutorialMessage } from "./tutorial";
-import { Tween } from "./tween";
+import { Ease, Tween } from "./tween";
 import { colorPickerBtn, IconButton, pauseMenu, quitBtn } from "./ui";
 import { uitext } from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
@@ -176,12 +177,15 @@ export class Level {
 
   load() {}
 
-  start() {
-    setCurrentSong(this.song);
+  async start() {
+    // currentSong.stop();
 
-    currentSong.addMetronome();
+    await vignette.fade({ duration: 100 });
+
+    setGameState(GameState.Game);
+
+    setCurrentSong(this.song);
     currentSong.onEnd = this.end.bind(this);
-    currentSong.play();
 
     let [_, player] = makeRow({ playerIdx: 1 });
     player.color = colorPickerBtn.color;
@@ -189,9 +193,17 @@ export class Level {
     titleText.visible = titleMenu.visible = false;
     pauseBtn.visible = true;
 
-    setGameState(GameState.Game);
-
     changeBackground(this.color);
+
+    await vignette
+      .circleMask({
+        startRadius: 0,
+        endRadius: LJS.mainCanvasSize.x,
+      })
+      .setEase(Ease.POWER(5));
+
+    currentSong.addMetronome();
+    currentSong.play();
   }
 
   async end() {
@@ -396,10 +408,7 @@ export function createLevelsMenu() {
     }
   );
 
-  quitBtn.onClick = () => {
-    clearRow();
-    titleScreen();
-  };
+  quitBtn.onClick = titleScreen;
 
   // resumeBtn.onClick = () => {
   //   setGameState(GameState.Game);

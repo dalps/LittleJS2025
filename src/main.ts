@@ -19,13 +19,13 @@ import type { Song } from "./music";
 import { emitter } from "./particleUtils";
 import * as songs from "./songs";
 import { beginTutorial, tutorial } from "./tutorial";
-import { Tween } from "./tween";
+import { Ease, Tween } from "./tween";
 import {
   CircleVignette,
   createPauseMenu,
   createTitleMenu,
   pauseMenu,
-  startBtn
+  startBtn,
 } from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
@@ -120,6 +120,7 @@ export const spriteAtlas: Record<
   LJS.TileInfo
 > = {};
 
+export let vignette: CircleVignette;
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
@@ -263,7 +264,8 @@ export function clearRow() {
   leader = undefined;
 }
 
-export function titleScreen() {
+export async function titleScreen() {
+  await vignette.fade();
   setGameState(GameState.Title);
 
   pauseMenu.visible = levelsMenu.visible = false;
@@ -293,8 +295,6 @@ export function titleScreen() {
     impulse({ start: 1, end: 1 + scaleDelta, fn: setSize })
   );
 
-  currentSong.play({ loop: true });
-
   changeBackground();
   cameraZoom({ delta: 2 });
 
@@ -313,11 +313,9 @@ export function titleScreen() {
 
   row[1].addChild(matrixParticles);
 
-  // for (let i = 0; i < 100; i++)
-  //   new MyParticle(LJS.randInCircle(100, 0), {
-  //     tileInfo: spriteAtlas["bubble"],
-  //     sizeStart: LJS.rand(1, 10),
-  //   });
+  currentSong.play({ loop: true });
+
+  await vignette.circleMask({ endRadius: LJS.mainCanvasSize.x });
 }
 
 function startGame() {
@@ -354,13 +352,12 @@ function gameInit() {
 
   pauseMenu.visible = titleMenu.visible = levelsMenu.visible = false;
 
-  DEBUG && titleScreen();
+  center = LJS.mainCanvasSize.scale(0.5);
+  vignette = new CircleVignette();
+
+  // DEBUG && titleScreen();
   // levelSelection();
   // tutorial();
-
-  center = LJS.mainCanvasSize.scale(0.5);
-
-  new CircleVignette();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
