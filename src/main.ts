@@ -20,11 +20,17 @@ import { emitter } from "./particleUtils";
 import * as songs from "./songs";
 import { beginTutorial, tutorial } from "./tutorial";
 import { Tween } from "./tween";
-import { createPauseMenu, createTitleMenu, pauseMenu, startBtn } from "./ui";
+import {
+  CircleVignette,
+  createPauseMenu,
+  createTitleMenu,
+  pauseMenu,
+  startBtn
+} from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
 
-export const DEBUG = false;
+export const DEBUG = true;
 
 export const ratings = {
   superb: {
@@ -353,6 +359,8 @@ function gameInit() {
   // tutorial();
 
   center = LJS.mainCanvasSize.scale(0.5);
+
+  new CircleVignette();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
