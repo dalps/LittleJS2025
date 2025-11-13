@@ -255,6 +255,11 @@ export function makeRow({
     row.push(m);
   }
 
+  // persistent blink animation
+  row.forEach((m) =>
+    new Tween((t) => t === 1 && m.wink(), 0, 1, 360).then(Tween.Loop)
+  );
+
   return row;
 }
 

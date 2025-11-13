@@ -7,13 +7,18 @@ export class Animation {
   private timer: LJS.Timer;
   private repeats = 0;
   private playing = false;
+  private delta: number;
+  public priority: number;
 
   constructor(
+    /** A label for the animation */
     public name: string,
+    /** How many frames does the animation consist of? */
     public duration: number,
-    private delta: number,
-    public priority: number
+    { delta = 1 / LJS.frameRate, priority = 0 } = {}
   ) {
+    this.delta = delta;
+    this.priority = priority;
     this.timer = new Timer(delta);
   }
 

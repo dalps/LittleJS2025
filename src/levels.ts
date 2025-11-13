@@ -197,7 +197,6 @@ export class Level {
 
     await vignette
       .circleMask({
-        startRadius: 0,
         endRadius: LJS.mainCanvasSize.x,
       })
       .setEase(Ease.POWER(5));

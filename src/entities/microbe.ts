@@ -36,10 +36,10 @@ export class Microbe extends LJS.EngineObject {
   direction = 1; // counterclockwise
 
   animations = {
-    swim: new Animation("swim", 10, 1 / 30, 1),
-    idle: new Animation("idle", 5, 1 / 12, 0),
-    bump: new Animation("bump", 12, 1 / 30, 1),
-    blink: new Animation("blink", 4, 1 / 30, 1),
+    swim: new Animation("swim", 10, { delta: 1 / 30 }),
+    idle: new Animation("idle", 5, { delta: 1 / 12, priority: 1 }),
+    bump: new Animation("bump", 12, { delta: 1 / 30 }),
+    blink: new Animation("blink", 4, { delta: 1 / 30, priority: 2 }),
   };
 
   currentAnim: keyof typeof this.animations = "idle";
@@ -317,7 +317,7 @@ export class Microbe extends LJS.EngineObject {
     const current = this.animations[this.currentAnim];
     const desired = this.animations[desiredAnim];
 
-    if (current.priority > desired.priority && current.isPlaying())
+    if (current.priority < desired.priority && current.isPlaying())
       return false;
 
     this.currentAnim = desiredAnim;
