@@ -269,12 +269,17 @@ export function clearRow() {
   leader = undefined;
 }
 
-export async function titleScreen() {
-  await vignette.fade();
+export async function titleScreen(levels = false) {
+  await (levels
+    ? vignette.circleMask({ startRadius: LJS.mainCanvasSize.x, endRadius: 0 })
+    : vignette.fade());
+
   setGameState(GameState.Title);
 
-  pauseMenu.visible = levelsMenu.visible = false;
-  titleText.visible = titleMenu.visible = true;
+  loadingText.visible = pauseMenu.visible = false;
+  levelsMenu.visible = levels;
+  levels && showLevels();
+  titleText.visible = titleMenu.visible = !levels;
 
   setCurrentSong(songs.paarynasAllrite);
 
@@ -320,7 +325,9 @@ export async function titleScreen() {
 
   currentSong.play({ loop: true });
 
-  await vignette.circleMask({ endRadius: LJS.mainCanvasSize.x });
+  await (levels
+    ? vignette.fadeOut()
+    : vignette.circleMask({ endRadius: LJS.mainCanvasSize.x }));
 }
 
 function startGame() {

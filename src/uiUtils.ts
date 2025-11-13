@@ -8,6 +8,8 @@ const { vec2, rgb, tile } = LJS;
 export const speech = (pos: LJS.Vector2, text: string) =>
   new SpeechBubble(pos, text);
 
+const minBubbleWidth = 180;
+
 export class SpeechBubble extends LJS.UIText {
   then: (f?: (...args: any[]) => any) => this;
 
@@ -26,6 +28,7 @@ export class SpeechBubble extends LJS.UIText {
     const lines = text.split(`\n`);
     const longestLineLength = Math.max(...lines.map((l) => l.length));
 
+    const arrowWidth = 15;
     this.color = LJS.WHITE;
     this.lineWidth = 3;
     this.lineColor = LJS.BLACK;
@@ -33,7 +36,10 @@ export class SpeechBubble extends LJS.UIText {
     this.textColor = LJS.BLACK;
     this.textHeight = 24;
     this.size = vec2(
-      longestLineLength * (this.textHeight / 2),
+      LJS.max(
+        minBubbleWidth,
+        longestLineLength * (this.textHeight / 2) + arrowWidth
+      ),
       this.textHeight * lines.length
     ).add(vec2(padding));
     this.interactive = false;
@@ -45,7 +51,7 @@ export class SpeechBubble extends LJS.UIText {
     sfx.blink.play();
 
     sleep(duration).then(() => {
-      const arrowSize = vec2(15);
+      const arrowSize = vec2(arrowWidth);
       const nextBtn = new LJS.UITile(
         this.pos.add(this.size.scale(0.5).subtract(arrowSize)),
         arrowSize,

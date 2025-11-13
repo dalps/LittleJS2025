@@ -180,7 +180,7 @@ export class Level {
   async start() {
     // currentSong.stop();
 
-    await vignette.fade({ duration: 100 });
+    await vignette.fade({ duration: 60 });
 
     setGameState(GameState.Game);
 

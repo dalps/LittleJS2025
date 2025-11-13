@@ -1,5 +1,5 @@
 import * as LJS from "littlejsengine";
-import { changeBackground } from "./animUtils";
+import { changeBackground, sleep } from "./animUtils";
 import { PatternWrapping, type TimingInfo } from "./beat";
 import type { Microbe } from "./entities/microbe";
 import { goodThreshold, type Player } from "./entities/player";
@@ -37,7 +37,7 @@ export let tutorialMessage: LJS.UIText;
 let t2: LJS.UIText;
 
 export async function tutorial() {
-  await vignette.fade({ duration: 100 });
+  await vignette.fade({ duration: 60 });
 
   setGameState(GameState.Tutorial);
 
@@ -74,6 +74,7 @@ export async function tutorial() {
     return center.multiply(vec2(1, 0.3));
   };
 
+  await sleep(50);
   await vignette.circleMask({
     endRadius: LJS.mainCanvasSize.x,
   });
@@ -124,7 +125,7 @@ export async function tutorial() {
         await speech(pos(), `Now march on to the main levels.`);
 
         tutorialLevel.completed = true;
-        titleScreen();
+        titleScreen(true);
       });
     });
   });

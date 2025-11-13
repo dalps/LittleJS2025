@@ -252,6 +252,8 @@ export function createPauseMenu() {
   // pauseMenu.addChild(resumeBtn);
 }
 
+const defaultFadeDuration = 30;
+
 export class CircleVignette {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -272,11 +274,18 @@ export class CircleVignette {
     document.body.appendChild(cvs);
   }
 
-  fade({ start = 0, end = 1, duration = 80 } = {}) {
+  fade({
+    start = 0,
+    end = 1,
+    duration = defaultFadeDuration,
+    color = LJS.BLACK,
+  } = {}) {
     const { ctx: ctx, canvasSize } = this;
     return new Tween(
       (t) => {
-        ctx.fillStyle = setAlpha(LJS.BLACK, t);
+        // there must be a better way of flooding the canvas
+        ctx.clearRect(0, 0, canvasSize.x, canvasSize.y);
+        ctx.fillStyle = setAlpha(color, t);
         ctx.fillRect(0, 0, canvasSize.x, canvasSize.y);
       },
       start,
@@ -285,7 +294,7 @@ export class CircleVignette {
     );
   }
 
-  fadeOut = ({ duration = 80 } = {}) =>
+  fadeOut = ({ duration = defaultFadeDuration } = {}) =>
     this.fade({ start: 1, end: 0, duration });
 
   circleMask({ startRadius = 0, endRadius = 100, duration = 100 } = {}) {
