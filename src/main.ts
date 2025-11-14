@@ -30,7 +30,7 @@ import {
   pauseMenu,
   startBtn,
 } from "./ui";
-import { ScreenButton, toggleVisibility } from "./uiUtils";
+import { ScreenButton, toggleVisible } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
 
 export const DEBUG = false;
@@ -168,7 +168,7 @@ function loadAssets() {
   // game title & loading screen UI
   center = LJS.mainCanvasSize.scale(0.5);
 
-  toggleVisibility(loadingText);
+  toggleVisible(loadingText);
 }
 
 /**
@@ -306,6 +306,10 @@ export async function titleScreen(levels = false) {
 function startGame() {
   if (!tutorialLevel.completed && beginTutorial) return tutorial();
 
+  levelSelection();
+}
+
+function levelSelection() {
   levelsMenu.visible = true;
   showLevels();
   titleText.visible = titleMenu.visible = false;
@@ -375,12 +379,9 @@ function gameInit() {
   createTitleMenu();
   createLevelsMenu();
 
-  toggleVisibility(loadingText, pauseMenu, pauseBtn, titleMenu, levelsMenu);
+  toggleVisible(loadingText, pauseMenu, pauseBtn, titleMenu, levelsMenu);
 
-  // DEBUG && titleScreen();
-  // levelSelection();
-  // levelMFC.start();
-  // tutorial();
+  DEBUG && titleScreen();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

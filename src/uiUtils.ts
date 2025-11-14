@@ -5,8 +5,11 @@ import { DEG2RAD, LOG, setAlpha } from "./mathUtils";
 import { sfx } from "./sfx";
 const { vec2, rgb, tile } = LJS;
 
-export const toggleVisibility = (...objs: LJS.UIObject[]) =>
+export const toggleVisible = (...objs: LJS.UIObject[]) =>
   objs.forEach((o) => (o.visible = !o.visible));
+
+export const setVisible = (value: boolean, ...objs: LJS.UIObject[]) =>
+  objs.forEach((o) => (o.visible = value));
 
 export const speech = (pos: LJS.Vector2, text: string) =>
   new SpeechBubble(pos, text);

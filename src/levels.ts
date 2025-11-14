@@ -35,7 +35,7 @@ import {
   UIProgressbar,
   type UIShadowConfig,
 } from "./ui";
-import { uitext } from "./uiUtils";
+import { setVisible, uitext } from "./uiUtils";
 import { emitter } from "./particleUtils";
 import type { Player } from "./entities/player";
 const { vec2, rgb, tile } = LJS;
@@ -86,6 +86,7 @@ export class Level {
   // ui
   btn?: LJS.UIButton;
   scoreText?: LJS.UIText;
+  scoreBar?: UIProgressbar;
   completedTile?: LJS.UITile;
   lockedTile?: LJS.UITile;
   color: LJS.Color;
@@ -135,11 +136,24 @@ export class Level {
       );
 
       btn.addChild(
+        (this.scoreBar = new UIProgressbar(
+          vec2(0, 50),
+          vec2(btn.size.x - 15, 22)
+        ))
+      );
+
+      btn.addChild(
         (this.scoreText = uitext("", {
           pos: vec2(0, 50),
-          fontSize: 30,
+          fontSize: 20,
         }))
       );
+
+      this.scoreBar.color = setHSLA(btn.color, { l: 0.15 });
+      this.scoreBar.lineWidth = 2;
+      this.scoreText.textLineWidth = 4;
+      this.scoreBar.cornerRadius = 5;
+      this.scoreBar.value = this.highScore ?? 0;
 
       btn.addChild(
         (this.lockedTile = new LJS.UITile(vec2(), vec2(50), spriteAtlas.lock))
@@ -165,7 +179,7 @@ export class Level {
       btn.textColor = rgba(115, 115, 115, 1);
       btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.1 });
     } else {
-      btn.onClick = () => {
+      this.scoreBar!.onClick = btn.onClick = () => {
         hideLevels();
         levelsMenu.visible = false;
         this.start();
@@ -175,12 +189,20 @@ export class Level {
       btn.hoverColor = setHSLA(this.color, { s: 0.5, l: 0.4 });
       btn.textColor = LJS.WHITE;
       btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.6 });
+      // btn.onEnter = () => (this.scoreBar!.color = btn.hoverColor);
+      // this.scoreBar!.lineColor = btn.lineColor;
     }
 
     btn.visible = true;
-    this.scoreText!.visible = !this.locked;
+    setVisible(!this.locked, this.completedTile!);
+    setVisible(
+      this.highScore !== undefined && !this.locked,
+      this.scoreText!,
+      this.scoreBar!,
+      this.completedTile!
+    );
     this.lockedTile!.visible = this.locked;
-    this.completedTile!.visible = this.completed;
+    this.completedTile!.visible = this.completed && !this.locked;
     this.highScore !== undefined &&
       (this.scoreText!.text = `${(this.highScore * 100) >> 0}%`);
   }
@@ -280,7 +302,7 @@ export class Level {
 
     ratingText.visible = false;
     ratingText.textLineWidth = 5;
-    scoreText.textColor = ratingText.textColor = LJS.WHITE;
+    scoreText.textColor = ratingText.textColor = scoreBar.barColor = LJS.WHITE;
 
     // const between = (value: number, a: number, b: number) =>
     //   a < value && value <= b;
@@ -317,6 +339,7 @@ export class Level {
         // play beep sound with pitch function of t
         let intT = (t * 100) >> 0;
         scoreBar.value = t;
+        scoreBar.barColor = LJS.WHITE.lerp(LJS.YELLOW, t);
         if (intT > prevT) {
           // starEmitter.emitRate = intT * 2;
           sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
