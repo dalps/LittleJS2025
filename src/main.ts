@@ -19,13 +19,13 @@ import type { Song } from "./music";
 import { emitter } from "./particleUtils";
 import * as songs from "./songs";
 import { beginTutorial, tutorial } from "./tutorial";
-import { Ease, Tween } from "./tween";
+import { Tween } from "./tween";
 import {
   CircleVignette,
   createPauseMenu,
   createTitleMenu,
   pauseMenu,
-  startBtn,
+  startBtn
 } from "./ui";
 import { ScreenButton } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
@@ -275,6 +275,7 @@ export async function titleScreen(levels = false) {
     : vignette.fade());
 
   setGameState(GameState.Title);
+  startBtn.interactive = true;
 
   loadingText.visible = pauseMenu.visible = false;
   levelsMenu.visible = levels;

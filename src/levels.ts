@@ -31,14 +31,21 @@ import {
   IconButton,
   pauseMenu,
   quitBtn,
+  setShadow,
   UIProgressbar,
+  type UIShadowConfig,
 } from "./ui";
 import { uitext } from "./uiUtils";
 import { emitter } from "./particleUtils";
+import type { Player } from "./entities/player";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
 export let levelsMessage: LJS.UIText;
+export let uiShadow: UIShadowConfig = {
+  color: setAlpha(LJS.BLACK, 0.5),
+  offset: vec2(0, 5),
+};
 
 export const storeKeyPrefix = `dalps-smallrow`;
 export const storeKey = (
@@ -187,27 +194,30 @@ export class Level {
   async start() {
     // currentSong.stop();
 
-    // await vignette.fade({ duration: 60 });
+    await vignette.fade({ duration: 60 });
 
     setGameState(GameState.Game);
 
     setCurrentSong(this.song);
     currentSong.onEnd = this.end.bind(this);
 
-    let [_, player] = makeRow({ playerIdx: 1 });
+    let row = makeRow({ playerIdx: 1 });
+    let player = row[1] as Player;
     player.color = colorPickerBtn.color;
-
+    player.interactive = false;
+    
     titleText.visible = titleMenu.visible = false;
     pauseBtn.visible = true;
-
+    
     changeBackground(this.color);
-
+    
     await vignette
-      .circleMask({
-        endRadius: LJS.mainCanvasSize.x,
-      })
-      .setEase(Ease.POWER(5));
-
+    .circleMask({
+      endRadius: LJS.mainCanvasSize.x,
+    })
+    .setEase(Ease.POWER(5));
+    
+    player.interactive = true;
     currentSong.addMetronome();
     currentSong.play();
   }
@@ -409,8 +419,8 @@ export function createLevelsMenu() {
     }))
   );
 
-  levelsMessage.shadowColor = levelsText.shadowColor = setAlpha(LJS.BLACK, 0.5);
-  levelsMessage.shadowOffset = levelsText.shadowOffset = vec2(0, 5);
+  setShadow(levelsMessage, uiShadow);
+  setShadow(levelsText, uiShadow);
 
   // shared by all levels
   pauseBtn = new IconButton(
@@ -425,6 +435,7 @@ export function createLevelsMenu() {
 
         pauseMenu.visible = true;
         pauseBtn.visible = false;
+        quitBtn.interactive = true;
         tutorialMessage && (tutorialMessage.visible = false);
 
         changeBackground(LJS.BLACK);
@@ -435,7 +446,10 @@ export function createLevelsMenu() {
     }
   );
 
-  quitBtn.onClick = titleScreen;
+  quitBtn.onClick = () => {
+    quitBtn.interactive = false;
+    titleScreen();
+  };
 
   // resumeBtn.onClick = () => {
   //   setGameState(GameState.Game);

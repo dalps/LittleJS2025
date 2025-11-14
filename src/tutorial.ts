@@ -24,6 +24,7 @@ import {
 } from "./songs";
 import { Tween } from "./tween";
 import { speech } from "./uiUtils";
+import { startBtn } from "./ui";
 const { vec2, rgb, tile } = LJS;
 
 export let beginTutorial = true;
@@ -37,6 +38,7 @@ export let tutorialMessage: LJS.UIText;
 let t2: LJS.UIText;
 
 export async function tutorial() {
+  startBtn.interactive = false; // important
   await vignette.fade({ duration: 60 });
 
   setGameState(GameState.Tutorial);

@@ -12,6 +12,7 @@ import {
 import { LOG, rgba, setAlpha } from "./mathUtils";
 import { uitext as uiText } from "./uiUtils";
 import { Tween } from "./tween";
+import { uiShadow } from "./levels";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
@@ -177,7 +178,8 @@ function createColorPickerUI() {
     return btn;
   };
 
-  let cue = new LJS.UIText(vec2(0, -100), vec2(1000, 50), "Character color");
+  let cue = new LJS.UIText(vec2(0, -100), vec2(1000, 50), "Player color");
+  setShadow(cue, uiShadow);
   cue.textColor = LJS.WHITE;
 
   let randomColorBtn = mkColorBtn(
@@ -231,6 +233,7 @@ export function createPauseMenu() {
     pos: vec2(0, -100),
     fontSize: 50,
   });
+  setShadow(title, uiShadow);
 
   // resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
   quitBtn = new LJS.UIButton(
@@ -365,3 +368,18 @@ export class UIProgressbar extends LJS.UIObject {
     );
   }
 }
+
+export interface UIShadowConfig {
+  color?: LJS.Color;
+  offset?: LJS.Vector2;
+  blur?: number;
+}
+
+export const setShadow = (
+  obj: LJS.UIObject,
+  { color = LJS.BLACK, offset = vec2(10), blur = 5 }: UIShadowConfig = {}
+) => {
+  obj.shadowColor = color;
+  obj.shadowOffset = offset;
+  obj.shadowBlur = blur;
+};
