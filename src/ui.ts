@@ -327,3 +327,41 @@ export class CircleVignette {
     );
   }
 }
+
+export class UIProgressbar extends LJS.UIObject {
+  value = 0;
+  barColor: LJS.Color;
+
+  constructor(
+    pos: LJS.Vector2,
+    size: LJS.Vector2,
+    startValue = 0,
+    barColor = LJS.YELLOW
+  ) {
+    super(pos, size);
+    this.value = startValue;
+    this.barColor = barColor;
+  }
+
+  render(): void {
+    super.render();
+
+    const barWidth = LJS.max(
+      this.cornerRadius * 2,
+      LJS.lerp(0, this.size.x, this.value)
+    );
+    const barPos = this.pos.copy();
+
+    barPos.x -= this.size.x * 0.5 - barWidth * 0.5;
+
+    LJS.uiSystem.drawRect(
+      barPos,
+      vec2(barWidth, this.size.y),
+      this.barColor,
+      this.lineWidth,
+      this.lineColor,
+      this.cornerRadius,
+      this.gradientColor
+    );
+  }
+}

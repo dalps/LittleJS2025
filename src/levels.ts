@@ -26,8 +26,15 @@ import {
 } from "./songs";
 import { tutorial, tutorialMessage } from "./tutorial";
 import { Ease, Tween } from "./tween";
-import { colorPickerBtn, IconButton, pauseMenu, quitBtn } from "./ui";
+import {
+  colorPickerBtn,
+  IconButton,
+  pauseMenu,
+  quitBtn,
+  UIProgressbar,
+} from "./ui";
 import { uitext } from "./uiUtils";
+import { emitter } from "./particleUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -180,7 +187,7 @@ export class Level {
   async start() {
     // currentSong.stop();
 
-    await vignette.fade({ duration: 60 });
+    // await vignette.fade({ duration: 60 });
 
     setGameState(GameState.Game);
 
@@ -212,22 +219,26 @@ export class Level {
     currentSong.hide();
     let finalScore = currentSong.getFinalScore();
 
-    let resultsObj = new LJS.UIObject(
-      LJS.mainCanvasSize.scale(0.5),
-      vec2(580, 300)
-    );
+    let resultsObj = new LJS.UIObject(center.add(vec2(0, -30)), vec2(580, 300));
     let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm score:`);
 
     title.textColor = rgba(217, 217, 217, 1);
 
-    let scoreText = new LJS.UIText(vec2(), vec2(200, 72), `0%`);
-    let ratingText = new LJS.UIText(vec2(100), vec2(200, 48), ``);
+    let scoreBar = new UIProgressbar(vec2(), vec2(500, 65));
+
+    let scoreText = new LJS.UIText(vec2(), vec2(200, 60), `0%`);
+    let ratingText = new LJS.UIText(vec2(100), vec2(500, 48), ``);
     let backToTitleBtn = new LJS.UIButton(
-      vec2(0, 250),
+      center.multiply(vec2(0, 0.9)),
       LJS.mainCanvasSize,
       "Back to title",
       rgba(0, 0, 0, 0)
     );
+
+    scoreText.textLineWidth = 5;
+    scoreText.textLineColor = LJS.BLACK;
+    scoreBar.color = rgba(99, 99, 99, 1);
+    scoreBar.cornerRadius = 5;
 
     resultsObj.color = setAlpha(LJS.BLACK, 0.5);
     resultsObj.cornerRadius = 50;
@@ -253,6 +264,7 @@ export class Level {
 
     resultsObj.addChild(backToTitleBtn);
     resultsObj.addChild(title);
+    resultsObj.addChild(scoreBar);
     resultsObj.addChild(scoreText);
     resultsObj.addChild(ratingText);
 
@@ -275,12 +287,28 @@ export class Level {
     // tally up the score
     await sleep(100);
 
+    // let starEmitter = emitter({
+    //   emitSize: 1,
+    //   tileInfo: spriteAtlas.star,
+    //   sizeStart: 2,
+    //   sizeEnd: 2,
+    //   speed: 0.01,
+    //   damping: 0.99,
+    //   colorStartA: LJS.WHITE,
+    //   colorEndA: LJS.WHITE,
+    //   gravityScale: 0.1,
+    // });
+
+    // starEmitter.emitTime = 20;
+
     let prevT = 0;
     await new Tween(
       (t) => {
         // play beep sound with pitch function of t
         let intT = (t * 100) >> 0;
+        scoreBar.value = t;
         if (intT > prevT) {
+          // starEmitter.emitRate = intT * 2;
           sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
           scoreText.text = `${intT}%`;
           prevT = intT;
@@ -376,7 +404,7 @@ export function createLevelsMenu() {
   levelsMenu.addChild(levelsText);
   levelsMenu.addChild(
     (levelsMessage = uitext("", {
-      pos: vec2(0, 180),
+      pos: vec2(0, 155),
       fontSize: 20,
     }))
   );
