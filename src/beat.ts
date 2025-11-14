@@ -158,7 +158,7 @@ export class Beat {
   /**
    * Register a callback to be executed once at a specific beat count
    */
-  atbar([beat, sub, bar]: BeatCount, fn: () => void): string {
+  at([beat, sub, bar]: BeatCount, fn: () => void): string {
     let id = this.getId();
     this.listeners.set(id, ([b, s, br]) => {
       if (b === beat && s === sub && bar === br) {

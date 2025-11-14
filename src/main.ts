@@ -9,7 +9,10 @@ import { Player } from "./entities/player";
 import {
   createLevelsMenu,
   initLevels,
+  levelMFC,
   levelsMenu,
+  levelWS,
+  pauseBtn,
   showLevels,
   storeKey,
   tutorialLevel,
@@ -25,12 +28,12 @@ import {
   createPauseMenu,
   createTitleMenu,
   pauseMenu,
-  startBtn
+  startBtn,
 } from "./ui";
-import { ScreenButton } from "./uiUtils";
+import { ScreenButton, toggleVisibility } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 export const ratings = {
   superb: {
@@ -78,6 +81,7 @@ export function setGameState(state: GameState) {
 }
 
 export let playerColor: LJS.Color;
+export let defaultSpeechBubblePos: LJS.Vector2;
 
 export function setPlayerColor(color: LJS.Color) {
   player && (player.color = color);
@@ -164,39 +168,7 @@ function loadAssets() {
   // game title & loading screen UI
   center = LJS.mainCanvasSize.scale(0.5);
 
-  titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
-  titleText = new LJS.UIText(
-    center.add(vec2(0, -100)),
-    vec2(900, 90),
-    "Small Row",
-    "center"
-  );
-  let subtitle = new LJS.UIText(
-    vec2(0, 70),
-    vec2(900, 20),
-    "Rhythm Heaven copycat · made for LittleJS 2025",
-    "center"
-  );
-
-  titleText.textLineColor = LJS.WHITE;
-  titleText.textLineWidth = 2;
-  titleText.textColor = subtitle.textColor = LJS.WHITE;
-  subtitle.shadowColor = titleText.shadowColor = setAlpha(
-    rgba(15, 38, 95, 1),
-    0.5
-  );
-  subtitle.shadowOffset = titleText.shadowOffset = vec2(0, 10);
-
-  titleText.addChild(subtitle);
-  // titleMenu.addChild(titleText);
-
-  loadingText = new LJS.UIText(
-    LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
-    LJS.mainCanvasSize,
-    ""
-  );
-  loadingText.textColor = LJS.WHITE.copy();
-  loadingText.textHeight = 42;
+  toggleVisibility(loadingText);
 }
 
 /**
@@ -286,7 +258,7 @@ export async function titleScreen(levels = false) {
 
   row.forEach((m) => m.setCollision(false, false));
   for (let i = 0; i < 10; i++)
-    currentSong.beat.atbar(beatCount({ bar: 8 + i * 4, beat: 1 }), () => {
+    currentSong.beat.at(beatCount({ bar: 8 + i * 4, beat: 1 }), () => {
       const m = new Microbe(polar(35 * DEG2RAD * (i + 1), 8), {
         song: currentSong,
         startSwim: true,
@@ -352,24 +324,62 @@ function gameInit() {
     ? new LJS.Color().setHex(storedColor)
     : rgba(255, 85, 85, 1);
 
+  startCameraScale = LJS.cameraScale;
+
+  LJS.setTouchInputEnable(true);
+  LJS.setSoundVolume(1);
+
+  center = LJS.mainCanvasSize.scale(0.5);
+  vignette = new CircleVignette();
+
+  titleMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
+  titleText = new LJS.UIText(
+    center.add(vec2(0, -100)),
+    vec2(900, 90),
+    "Small Row",
+    "center"
+  );
+  let subtitle = new LJS.UIText(
+    vec2(0, 70),
+    vec2(900, 20),
+    "Rhythm Heaven copycat · made for LittleJS 2025",
+    "center"
+  );
+
+  titleText.textLineColor = LJS.WHITE;
+  titleText.textLineWidth = 2;
+  titleText.textColor = subtitle.textColor = LJS.WHITE;
+  subtitle.shadowColor = titleText.shadowColor = setAlpha(
+    rgba(15, 38, 95, 1),
+    0.5
+  );
+  subtitle.shadowOffset = titleText.shadowOffset = vec2(0, 10);
+
+  titleText.addChild(subtitle);
+  // titleMenu.addChild(titleText);
+
+  loadingText = new LJS.UIText(
+    LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
+    LJS.mainCanvasSize,
+    ""
+  );
+
+  loadingText.textColor = LJS.WHITE.copy();
+  loadingText.textHeight = 42;
+
+  defaultSpeechBubblePos = center.multiply(vec2(1, 0.3));
+
   loadAssets();
   initLevels();
   createPauseMenu();
   createTitleMenu();
   createLevelsMenu();
 
-  startCameraScale = LJS.cameraScale;
-
-  LJS.setTouchInputEnable(true);
-  LJS.setSoundVolume(1);
-
-  pauseMenu.visible = titleMenu.visible = levelsMenu.visible = false;
-
-  center = LJS.mainCanvasSize.scale(0.5);
-  vignette = new CircleVignette();
+  toggleVisibility(loadingText, pauseMenu, pauseBtn, titleMenu, levelsMenu);
 
   // DEBUG && titleScreen();
   // levelSelection();
+  // levelMFC.start();
   // tutorial();
 }
 

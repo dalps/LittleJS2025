@@ -129,7 +129,7 @@ export class Song {
         this.loopEnd ?? (songSrc.buffer && songSrc.buffer.duration) ?? 0;
     }
 
-    this.beat.atbar([0, 0, this.choreography.length], this.onEnd);
+    this.beat.at([0, 0, this.choreography.length], this.onEnd);
 
     LOG(`Now playing: ${this}`);
     this.beat.play();
@@ -149,7 +149,7 @@ export class Song {
       ];
 
     this.choreography = [...countInPattern, ...this.orignalChoreo];
-    this.beat.atbar([0, 0, bars], this.play.bind(this));
+    this.beat.at([0, 0, bars], this.play.bind(this));
     this.metronome.start();
     this.beat.play();
   }

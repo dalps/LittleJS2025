@@ -5,6 +5,9 @@ import { DEG2RAD, LOG, setAlpha } from "./mathUtils";
 import { sfx } from "./sfx";
 const { vec2, rgb, tile } = LJS;
 
+export const toggleVisibility = (...objs: LJS.UIObject[]) =>
+  objs.forEach((o) => (o.visible = !o.visible));
+
 export const speech = (pos: LJS.Vector2, text: string) =>
   new SpeechBubble(pos, text);
 
@@ -17,10 +20,11 @@ export class SpeechBubble extends LJS.UIText {
     pos: LJS.Vector2,
     text: string,
     {
-      duration = 30,
+      duration = 3,
       size = vec2(200, 50),
       align = "center" as CanvasTextAlign,
       padding = 20,
+      clickMode = true,
     } = {}
   ) {
     super(pos, size, text, align);
@@ -48,25 +52,29 @@ export class SpeechBubble extends LJS.UIText {
     this.canBeHover = true;
     this.then = (f) => ((this.then = f!), this);
 
-    sfx.blink.play();
+    clickMode && sfx.blink.play();
 
-    sleep(duration).then(() => {
-      const arrowSize = vec2(arrowWidth);
-      const nextBtn = new LJS.UITile(
-        this.pos.add(this.size.scale(0.5).subtract(arrowSize)),
-        arrowSize,
-        spriteAtlas.play,
-        LJS.BLACK
-      );
-      blink(nextBtn.color, 20);
-      new ScreenButton(() => {
-        nextBtn.destroy();
-        this.destroy();
-        this.then();
-      });
+    sleep(duration).then(
+      clickMode
+        ? () => {
+            const arrowSize = vec2(arrowWidth);
+            const nextBtn = new LJS.UITile(
+              this.pos.add(this.size.scale(0.5).subtract(arrowSize)),
+              arrowSize,
+              spriteAtlas.play,
+              LJS.BLACK
+            );
+            blink(nextBtn.color, 20);
+            new ScreenButton(() => {
+              nextBtn.destroy();
+              this.destroy();
+              this.then();
+            });
 
-      // nextBtn.interactive = this.interactive = true;
-    });
+            // nextBtn.interactive = this.interactive = true;
+          }
+        : () => this.destroy()
+    );
   }
 
   render(): void {

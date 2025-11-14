@@ -7,6 +7,7 @@ import { pauseBtn, tutorialLevel } from "./levels";
 import {
   center,
   currentSong,
+  defaultSpeechBubblePos,
   GameState,
   makeRow,
   setCurrentSong,
@@ -69,11 +70,9 @@ export async function tutorial() {
   tutorialMessage.shadowColor = t2.shadowColor = LJS.BLACK;
 
   const pos = () => {
-    LOG(leader.pos, LJS.worldToScreen(leader.pos));
     // this sometimes ends up in a different place, possibly due to camera motion?
     // return LJS.worldToScreen(leader.pos).subtract(vec2(0, 100));
-
-    return center.multiply(vec2(1, 0.3));
+    return defaultSpeechBubblePos;
   };
 
   await sleep(50);

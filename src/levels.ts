@@ -182,7 +182,7 @@ export class Level {
     this.lockedTile!.visible = this.locked;
     this.completedTile!.visible = this.completed;
     this.highScore !== undefined &&
-      (this.scoreText!.text = `${Math.round(this.highScore * 100)}%`);
+      (this.scoreText!.text = `${(this.highScore * 100) >> 0}%`);
   }
 
   hide() {
@@ -205,18 +205,18 @@ export class Level {
     let player = row[1] as Player;
     player.color = colorPickerBtn.color;
     player.interactive = false;
-    
+
     titleText.visible = titleMenu.visible = false;
     pauseBtn.visible = true;
-    
+
     changeBackground(this.color);
-    
+
     await vignette
-    .circleMask({
-      endRadius: LJS.mainCanvasSize.x,
-    })
-    .setEase(Ease.POWER(5));
-    
+      .circleMask({
+        endRadius: LJS.mainCanvasSize.x,
+      })
+      .setEase(Ease.POWER(5));
+
     player.interactive = true;
     currentSong.addMetronome();
     currentSong.play();
@@ -462,8 +462,6 @@ export function createLevelsMenu() {
 
   //   currentSong.resume();
   // };
-
-  pauseBtn.visible = pauseMenu.visible = false;
 }
 
 export const showLevels = () => {

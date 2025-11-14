@@ -1,7 +1,10 @@
+import { frameRate, vec2 } from "littlejsengine";
 import { type Pattern } from "./beat";
 import { MicrobeAction } from "./entities/microbe";
+import { center, defaultSpeechBubblePos as defaultBubblePos } from "./main";
 import { repeat, rgba } from "./mathUtils";
 import { Song } from "./music";
+import { SpeechBubble } from "./uiUtils";
 
 export let paarynasAllrite: Song;
 export let stardustMemories: Song;
@@ -130,11 +133,9 @@ export function initSongs() {
       color: rgba(93, 14, 76, 1),
       choreography: [
         repeat(IIII, 4),
-        repeat(_S_S, 7),
-        [_S_S],
-        repeat(_S_S, 8),
+        repeat(_S_S, 16),
         repeat([_S_S, DSSS], 4).flat(),
-        [_S_S, _S_S, _S_S, _S_S],
+        repeat(_S_S, 4),
         [IIII, end, empty],
       ].flat(),
     });
@@ -179,24 +180,36 @@ export function initSongs() {
         repeat(_S_S, 7), // 50
         [
           [
-            [],
-            [Swim], //
-            [],
             [____],
+            [Swim], //
+            [____],
+            [],
           ],
         ],
-        [empty, end, empty],
+        [end, empty],
       ].flat(),
     });
+
+    let { beat } = myFirstConsole;
+
+    beat.at(
+      [3, 0, 32],
+      () =>
+        new SpeechBubble(defaultBubblePos, `Tempo change!`, {
+          duration: beat.delta * 3 * frameRate,
+          clickMode: false,
+        })
+    );
   }
 
   {
     const end = [
       [], //
+      [],
+      [],
       [Wink],
-      [],
-      [],
     ];
+
     woodenShoes = new Song("./songs/wooden_shoes.mp3", {
       bpm: 160,
       title: "Wooden Shoes",
@@ -218,7 +231,7 @@ export function initSongs() {
         repeat(_S_S, 3),
         [_DSS], // 28
         repeat(S_S_, 9),
-        [DSSS], // 32
+        [DSSS], // 38
         // [
         //   [
         //     [Swim], //
@@ -235,9 +248,29 @@ export function initSongs() {
         //     [],
         //   ],
         // ],
-        [empty, end, empty],
+        [end, empty],
       ].flat(),
     });
+
+    let { beat } = woodenShoes;
+
+    beat.at(
+      [3, 0, 26],
+      () =>
+        new SpeechBubble(defaultBubblePos, `Hold it!`, {
+          duration: beat.delta * 3 * frameRate,
+          clickMode: false,
+        })
+    );
+
+    beat.at(
+      [3, 0, 36],
+      () =>
+        new SpeechBubble(defaultBubblePos, `One more time!`, {
+          duration: beat.delta * 3 * frameRate,
+          clickMode: false,
+        })
+    );
   }
 
   tryAgainTune = new Song("./songs/0_percent_oxygen.mp3", {
