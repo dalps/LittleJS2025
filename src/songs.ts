@@ -174,16 +174,18 @@ export function initSongs() {
         [SDSS], // 26
         repeat(S_S_, 7),
         [DSSS], // 34
-        repeat(_S_S, 15), // 35-50
+        repeat(_S_S, 7), // 35 on
+        [DSSS],
+        repeat(_S_S, 7), // 50
         [
           [
+            [],
             [Swim], //
             [],
             [____],
-            [],
           ],
         ],
-        [I_I_, end, empty],
+        [empty, end, empty],
       ].flat(),
     });
   }
