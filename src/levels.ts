@@ -205,6 +205,7 @@ export class Level {
     this.completedTile!.visible = this.completed && !this.locked;
     this.highScore !== undefined &&
       (this.scoreText!.text = `${(this.highScore * 100) >> 0}%`);
+    this.scoreBar!.value = this.highScore ?? 0;
   }
 
   hide() {
