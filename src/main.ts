@@ -2,21 +2,24 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import { cameraZoom, changeBackground, impulse, pulse } from "./animUtils";
+import {
+  cameraZoom,
+  changeBackground,
+  pulse,
+  uiBopScale
+} from "./animUtils";
 import { beatCount, PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import {
   createLevelsMenu,
   initLevels,
-  levelMFC,
   levelSM,
   levelsMenu,
-  levelWS,
   pauseBtn,
   showLevels,
   storeKey,
-  tutorialLevel,
+  tutorialLevel
 } from "./levels";
 import { DEG2RAD, getQuadrant, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
@@ -40,7 +43,7 @@ export const ratings = {
   superb: {
     message: `Superb!`,
     threshold: 0.8,
-    color1: rgba(203, 26, 138, 1),
+    color1: rgba(157, 28, 138, 1),
     color2: rgba(243, 21, 209, 1),
   },
   ok: {
@@ -106,6 +109,8 @@ export const atlasCoords = {
   hoop_click: [vec2(2, 0), 2],
   note1: [vec2(7, 1), 2],
   note2: [vec2(8, 1), 2],
+  star_simple: [vec2(0, 1), 2],
+  star_outline: [vec2(1, 1), 2],
   star: [vec2(2, 1), 2],
   check: [vec2(6, 0), 2],
   pause: [vec2(7, 0), 2],
@@ -270,14 +275,7 @@ export async function titleScreen(levels = false) {
     });
 
   startBtn.onClick = startGame;
-  const startBtnSize = startBtn.size.copy();
-  const setSize = (t: number) => {
-    startBtn.size = startBtnSize.scale(t);
-  };
-  let scaleDelta = 0.1;
-  currentSong.beat.onbeat(() =>
-    impulse({ start: 1, end: 1 + scaleDelta, fn: setSize })
-  );
+  uiBopScale(startBtn, { delta: 0.1 });
 
   changeBackground();
   cameraZoom({ delta: 2 });

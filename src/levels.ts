@@ -1,8 +1,15 @@
 import * as LJS from "littlejsengine";
-import { cameraZoom, changeBackground, pulse, shake, sleep } from "./animUtils";
+import {
+  cameraZoom,
+  changeBackground,
+  pulse,
+  shake,
+  sleep,
+  uiBopScale,
+} from "./animUtils";
+import type { Player } from "./entities/player";
 import {
   center,
-  clearRow,
   currentSong,
   GameState,
   makeRow,
@@ -16,8 +23,9 @@ import {
   titleText,
   vignette,
 } from "./main";
-import { LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
+import { DEG2RAD, LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import type { Song } from "./music";
+import { emitter } from "./particleUtils";
 import { sfx } from "./sfx";
 import {
   myFirstConsole,
@@ -38,8 +46,6 @@ import {
   type UIShadowConfig,
 } from "./ui";
 import { setVisible, uitext } from "./uiUtils";
-import { emitter } from "./particleUtils";
-import type { Player } from "./entities/player";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -269,6 +275,8 @@ export class Level {
       "Back to title",
       rgba(0, 0, 0, 0)
     );
+    let bgStars: LJS.ParticleEmitter;
+    let uiStars: LJS.UITile[] = [];
 
     scoreText.textLineWidth = 5;
     scoreText.textLineColor = LJS.BLACK;
@@ -287,6 +295,7 @@ export class Level {
 
     backToTitleBtn.onClick = () => {
       resultsObj.destroy();
+      bgStars?.destroy();
       currentSong.stop();
       titleScreen();
     };
@@ -368,6 +377,63 @@ export class Level {
     if (finalScore >= ratings.superb.threshold) {
       setCurrentSong(superbTune);
       currentSong.play({ loop: true });
+      uiBopScale(ratingText);
+
+      uiStars.push(
+        new LJS.UITile(
+          vec2(100, 10),
+          vec2(30),
+          spriteAtlas.star,
+          setHSLA(LJS.YELLOW, { l: 0.8 }),
+          15 * DEG2RAD
+        ),
+
+        new LJS.UITile(
+          vec2(-100, -10),
+          vec2(35),
+          spriteAtlas.star,
+          LJS.WHITE,
+          -10 * DEG2RAD
+        ),
+
+        new LJS.UITile(
+          vec2(20, 30),
+          vec2(25),
+          spriteAtlas.star,
+          setHSLA(color1, { l: 0.8 }),
+          35 * DEG2RAD
+        ),
+        new LJS.UITile(
+          vec2(-20, -30),
+          vec2(20),
+          spriteAtlas.star,
+          setHSLA(color2, { l: 0.8 }),
+          -75 * DEG2RAD
+        )
+      );
+
+      uiStars.forEach((s) => {
+        ratingText.addChild(s);
+        uiBopScale(s);
+      });
+
+      bgStars = emitter({
+        pos: LJS.cameraPos,
+        tileInfo: spriteAtlas.star,
+        colorStartA: LJS.WHITE,
+        colorStartB: LJS.WHITE,
+        colorEndA: color2,
+        colorEndB: LJS.YELLOW,
+        sizeStart: 4,
+        sizeEnd: 5,
+        emitTime: 200,
+        emitSize: LJS.screenToWorld(LJS.mainCanvasSize).x * 2,
+        particleTime: 2,
+        angle: 0,
+        randomness: 0,
+      });
+
+      bgStars.emitRate = 10;
     }
 
     this.completed = finalScore >= ratings.ok.threshold;

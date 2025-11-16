@@ -199,7 +199,7 @@ export function initSongs() {
     beat.at(
       [3, 0, 32],
       () =>
-        new SpeechBubble(defaultBubblePos, `Tempo change!`, {
+        new SpeechBubble(defaultBubblePos, `Hold it!`, {
           duration: beat.delta * 3 * frameRate,
           clickMode: false,
         })

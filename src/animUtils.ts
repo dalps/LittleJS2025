@@ -55,3 +55,14 @@ export const impulse = ({
 } = {}) => {
   new Tween(fn, start, end, duration).then(Tween.PingPong(2));
 };
+
+export const uiBopScale = (
+  obj: LJS.UIObject,
+  { song = currentSong, delta = 0.2 } = {}
+) => {
+  const startSize = obj.size.copy();
+  const setSize = (t: number) => {
+    obj.size = startSize.scale(t);
+  };
+  song.beat.onbeat(() => impulse({ start: 1, end: 1 + delta, fn: setSize }));
+};
