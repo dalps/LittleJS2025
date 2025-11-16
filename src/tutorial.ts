@@ -49,7 +49,6 @@ export async function tutorial() {
   changeBackground(tutorialLevel.color);
 
   setCurrentSong(myFirstConsoleTutorial);
-  currentSong.loopStart = 3.333; // 2 bar 1 beat 1 sub
 
   let row = makeRow({
     playerIdx: 1,

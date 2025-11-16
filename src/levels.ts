@@ -6,6 +6,7 @@ import {
   currentSong,
   GameState,
   makeRow,
+  player,
   ratings,
   setCurrentSong,
   setGameState,
@@ -22,6 +23,7 @@ import {
   myFirstConsole,
   myFirstConsoleTutorial,
   stardustMemories,
+  superbTune,
   woodenShoes,
 } from "./songs";
 import { tutorial, tutorialMessage } from "./tutorial";
@@ -355,11 +357,18 @@ export class Level {
 
     // show rating
     await sleep(100);
+
     sfx.blink.play(undefined, 1, LJS.clamp(1 + finalScore, 0, 2));
 
     const { message, color1, color2 } = Object.values(ratings).find(
       ({ threshold }) => threshold <= finalScore
     )!;
+
+    // superb ceremony
+    if (finalScore >= ratings.superb.threshold) {
+      setCurrentSong(superbTune);
+      currentSong.play({ loop: true });
+    }
 
     this.completed = finalScore >= ratings.ok.threshold;
     this.highScore = Math.max(this.highScore, finalScore);
@@ -461,6 +470,7 @@ export function createLevelsMenu() {
         pauseBtn.visible = false;
         quitBtn.interactive = true;
         tutorialMessage && (tutorialMessage.visible = false);
+        player && (player.interactive = false);
 
         changeBackground(LJS.BLACK);
         cameraZoom({ delta: -2, duration: 100 });

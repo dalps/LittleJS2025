@@ -221,4 +221,7 @@ export class Beat {
     this.listeners.clear();
     this._isPlaying = false;
   }
+
+  getTime = ([b, s, bar]: BeatCount): number =>
+    (bar * this.beats * this.subs + b * this.subs + s) * this.delta;
 }

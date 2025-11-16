@@ -38,8 +38,20 @@ export class Song {
   beat: Beat;
   sound: LJS.SoundWave;
   soundInstance?: LJS.SoundInstance;
+
+  /** Whether the song's audio should loop. */
   loop: boolean;
+
+  /**
+   * Timestamp for loop start. Defaults to 0.
+   * Effective only when `loop` is set.
+   */
   loopStart?: number;
+
+  /**
+   * Timestamp for loop end. Defaults to audio's duration.
+   * Effective only when `loop` is set.
+   */
   loopEnd?: number;
 
   // choreography
@@ -71,8 +83,8 @@ export class Song {
       onLoad = () => {},
       onEnd = () => {},
       loop = false,
-      loopStart = 0,
-      loopEnd = 0,
+      loopStart = undefined as number | undefined,
+      loopEnd = undefined as number | undefined,
       choreography = [] as Pattern<number>,
     } = {}
   ) {
@@ -94,6 +106,9 @@ export class Song {
     this.author = author;
     this.year = year;
     this.href = href;
+
+    this.loopStart = loopStart;
+    this.loopEnd = loopEnd;
 
     const metronomePos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.9));
     this.metronome = new Metronome(metronomePos, this.beat);
@@ -125,8 +140,7 @@ export class Song {
 
     if (songSrc && loop) {
       songSrc.loopStart = this.loopStart ?? 0;
-      songSrc.loopEnd =
-        this.loopEnd ?? (songSrc.buffer && songSrc.buffer.duration) ?? 0;
+      songSrc.loopEnd = this.loopEnd ?? songSrc.buffer?.duration ?? 0;
     }
 
     this.beat.at([0, 0, this.choreography.length], this.onEnd);

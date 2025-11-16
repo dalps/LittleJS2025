@@ -1,4 +1,4 @@
-import { frameRate, vec2 } from "littlejsengine";
+import { frameRate, LOG, vec2 } from "littlejsengine";
 import { type Pattern } from "./beat";
 import { MicrobeAction } from "./entities/microbe";
 import { center, defaultSpeechBubblePos as defaultBubblePos } from "./main";
@@ -92,7 +92,7 @@ export function initSongs() {
     ];
 
     paarynasAllrite = new Song("./songs/paarynas-allrite.mp3", {
-      bpm: 102.45,
+      bpm: 102.453,
       title: "Paaryna's allrite",
       author: "DIZZY / CNDC",
       year: "1995",
@@ -153,6 +153,10 @@ export function initSongs() {
     color: rgba(6, 135, 66, 1),
     choreography: tutorialChoreo1,
   });
+
+  myFirstConsoleTutorial.loopStart = myFirstConsoleTutorial.beat.getTime([
+    0, 0, 2,
+  ]); // 3.333, 3 bar 1 beat 1 sub
 
   {
     const end = [
@@ -281,11 +285,14 @@ export function initSongs() {
 
   goodEnoughTune = new Song("", { bpm: 0 });
 
-  superbTune = new Song("./songs/hlorophobia_snip.mp3", {
+  superbTune = new Song("./songs/_hlorophobia_.mp3", {
+    bpm: 93.75,
     title: "!!! hlorofobia !!!",
     author: "klaf",
     href: "https://modarchive.org/index.php?request=view_by_moduleid&query=106734",
   });
+
+  superbTune.loopStart = superbTune.beat.getTime([0, 0, 4]); // 10.24, 5 bar 1 beat 1 sub
 }
 
 export const tutorialChoreo1 = [repeat(I_I_, 2), repeat(S_S_, 8)].flat();

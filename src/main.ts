@@ -10,6 +10,7 @@ import {
   createLevelsMenu,
   initLevels,
   levelMFC,
+  levelSM,
   levelsMenu,
   levelWS,
   pauseBtn,
@@ -136,8 +137,8 @@ let matrixParticles: LJS.ParticleEmitter;
 let musicVolume = 1;
 let musicLoaded = false;
 let percentLoaded = 0;
-let player: Player;
-let row: Microbe[] = [];
+export let player: Player;
+export let row: Microbe[] = [];
 
 // ui
 export let titleMenu: LJS.UIObject;
@@ -381,7 +382,9 @@ function gameInit() {
 
   toggleVisible(loadingText, pauseMenu, pauseBtn, titleMenu, levelsMenu);
 
-  DEBUG && titleScreen();
+  // DEBUG && titleScreen();
+  // levelSM.start()
+  // levelSM.end()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
