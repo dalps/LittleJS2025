@@ -263,7 +263,7 @@ export async function titleScreen(levels = false) {
   setCurrentSong(songs.paarynasAllrite);
 
   row.forEach((m) => m.setCollision(false, false));
-  for (let i = 0; i < 10; i++)
+  for (let i = 0; i < 0; i++)
     currentSong.beat.at(beatCount({ bar: 8 + i * 4, beat: 1 }), () => {
       const m = new Microbe(polar(35 * DEG2RAD * (i + 1), 8), {
         song: currentSong,

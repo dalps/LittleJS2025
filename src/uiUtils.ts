@@ -133,3 +133,8 @@ export const uitext = (
   t.hoverColor = t.color = LJS.CLEAR_WHITE;
   return t;
 };
+
+export function setInteractiveRec(obj: LJS.UIObject, value = false) {
+  obj.interactive = value;
+  obj.children.forEach((o) => setInteractiveRec(o, value));
+}

@@ -3,7 +3,7 @@ import { changeBackground, sleep } from "./animUtils";
 import { PatternWrapping, type TimingInfo } from "./beat";
 import type { Microbe } from "./entities/microbe";
 import { goodThreshold, type Player } from "./entities/player";
-import { pauseBtn, tutorialLevel } from "./levels";
+import { hideLevels, levelsMenu, pauseBtn, tutorialLevel } from "./levels";
 import {
   center,
   currentSong,
@@ -24,8 +24,9 @@ import {
   tutorialChoreo3,
 } from "./songs";
 import { Tween } from "./tween";
-import { speech } from "./uiUtils";
+import { setInteractiveRec, setVisible, speech } from "./uiUtils";
 import { startBtn } from "./ui";
+import { sfx } from "./sfx";
 const { vec2, rgb, tile } = LJS;
 
 export let beginTutorial = true;
@@ -40,11 +41,13 @@ let t2: LJS.UIText;
 
 export async function tutorial() {
   startBtn.interactive = false; // important
+
   await vignette.fade({ duration: 60 });
 
-  setGameState(GameState.Tutorial);
+  hideLevels();
+  setVisible(false, levelsMenu, titleText, titleMenu, pauseBtn);
 
-  titleText.visible = titleMenu.visible = pauseBtn.visible = false;
+  setGameState(GameState.Tutorial);
 
   changeBackground(tutorialLevel.color);
 
@@ -151,7 +154,7 @@ function testPlayer(
 
   pauseBtn.visible = player.interactive = true;
 
-  player.onClick = ({ accuracy, count: [currentBeat] }: TimingInfo) => {
+  player.onClick = async ({ accuracy, count: [currentBeat] }: TimingInfo) => {
     const correctBeat = beats.find((b) => b === currentBeat);
     // LOG(`${currentBeat} vs ${beats}: ${correctBeat}`);
 
@@ -164,6 +167,15 @@ function testPlayer(
       if (--beatsLeft < 0) {
         currentSong.stop();
         pauseBtn.visible = player.interactive = tutorialMessage.visible = false;
+
+        // ding ding ding
+        sfx.ding.play(undefined, 1, 2);
+        await sleep(10);
+        sfx.ding.play(undefined, 1, 2);
+        await sleep(10);
+        sfx.ding.play(undefined, 1, 2);
+        await sleep(50);
+
         onComplete(score / beatsToHit);
       }
     }

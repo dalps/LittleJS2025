@@ -45,7 +45,7 @@ import {
   UIProgressbar,
   type UIShadowConfig,
 } from "./ui";
-import { setVisible, uitext } from "./uiUtils";
+import { ScreenButton, setInteractiveRec, setVisible, uitext } from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -157,7 +157,9 @@ export class Level {
         }))
       );
 
-      this.scoreBar.color = setHSLA(btn.color, { l: 0.15 });
+      this.scoreBar.color = this.scoreBar.hoverColor = setHSLA(btn.color, {
+        l: 0.15,
+      });
       this.scoreBar.lineWidth = 2;
       this.scoreText.textLineWidth = 4;
       this.scoreBar.cornerRadius = 5;
@@ -177,6 +179,7 @@ export class Level {
       this.lockedTile!.onClick = btn.onClick = () => {
         shake(btn.localPos);
         levelsMessage.text = this.lockMessage;
+        sfx.bell_error.play();
         return;
       };
 
@@ -187,9 +190,10 @@ export class Level {
       btn.textColor = rgba(115, 115, 115, 1);
       btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.1 });
     } else {
-      this.scoreBar!.onClick = btn.onClick = () => {
-        hideLevels();
-        levelsMenu.visible = false;
+      this.scoreBar!.onClick = btn.onClick = async () => {
+        sfx.bell_church.play();
+        setInteractiveRec(levelsMenu);
+
         this.start();
       };
 
@@ -227,6 +231,9 @@ export class Level {
 
     await vignette.fade({ duration: 60 });
 
+    hideLevels();
+    levelsMenu.visible = false;
+
     setGameState(GameState.Game);
 
     setCurrentSong(this.song);
@@ -258,7 +265,7 @@ export class Level {
 
     currentSong.stop();
     currentSong.hide();
-    let finalScore = currentSong.getFinalScore();
+    let finalScore = 0.5; // currentSong.getFinalScore();
 
     let resultsObj = new LJS.UIObject(center.add(vec2(0, -30)), vec2(580, 300));
     let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm score:`);
@@ -323,7 +330,7 @@ export class Level {
     cameraZoom({ delta: -2 });
     currentSong.metronome.hide();
 
-    sfx.blink.play(undefined, 1);
+    sfx.blink.play();
 
     // const scoreTimerDelta = 1 / LJS.lerp(3, 10, finalScore);
     // let scoreTimer = new LJS.Timer(scoreTimerDelta);
@@ -346,15 +353,17 @@ export class Level {
     // starEmitter.emitTime = 20;
 
     let prevT = 0;
+    let intT = 0;
     await new Tween(
       (t) => {
         // play beep sound with pitch function of t
-        let intT = (t * 100) >> 0;
+        intT = (t * 100) >> 0;
         scoreBar.value = t;
         scoreBar.barColor = LJS.WHITE.lerp(LJS.YELLOW, t);
+
         if (intT > prevT) {
           // starEmitter.emitRate = intT * 2;
-          sfx.blink.play(undefined, 0.5, LJS.clamp(1 + t, 0, 2));
+          sfx.blink.play(undefined, 0.2, LJS.clamp(1 + t, 0, 2));
           scoreText.text = `${intT}%`;
           prevT = intT;
         }
@@ -364,10 +373,25 @@ export class Level {
       LJS.lerp(100, 250, finalScore) >> 0
     );
 
+    if (80 <= intT && intT < 100) {
+    } else if (intT === 100) {
+      sfx.bell_church.play(undefined, 0.3);
+      sfx.bell_g5.play(undefined, 0.3);
+      // sfx.bell_church.play(undefined, 0.2, 0.5);
+      // sfx.bell_g5.play(undefined, 0.2, 0.5);
+      // await sleep(8);
+      // sfx.bell_church.play(undefined, 0.2);
+      // sfx.bell_g5.play(undefined, 0.2);
+      // await sleep(8);
+      // sfx.bell_church.play(undefined, 0.2, 1.5);
+      // sfx.bell_g5.play(undefined, 0.2, 1.5);
+      // await sleep(8);
+      // sfx.bell_church.play(undefined, 0.2, 2);
+      // sfx.bell_g5.play(undefined, 0.2, 2);
+    }
+
     // show rating
     await sleep(100);
-
-    sfx.blink.play(undefined, 1, LJS.clamp(1 + finalScore, 0, 2));
 
     const { message, color1, color2 } = Object.values(ratings).find(
       ({ threshold }) => threshold <= finalScore
@@ -434,6 +458,14 @@ export class Level {
       });
 
       bgStars.emitRate = 10;
+    } else if (finalScore >= ratings.ok.threshold) {
+      sfx.bell.play(undefined, 0.2);
+      await sleep(8);
+      sfx.bell.play(undefined, 0.2, 2);
+    } else {
+      sfx.bell_error.play(undefined, undefined, 1.2);
+      await sleep(8);
+      sfx.bell_error.play();
     }
 
     this.completed = finalScore >= ratings.ok.threshold;
@@ -566,6 +598,8 @@ export function createLevelsMenu() {
 
 export const showLevels = () => {
   let startPos = levelBtnSpacing.multiply(vec2(-(LEVELS.length - 1) * 0.5, 0));
+
+  setInteractiveRec(levelsMenu, true);
 
   LEVELS.forEach((lvl) => {
     lvl.show(startPos);
