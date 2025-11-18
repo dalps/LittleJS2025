@@ -10,7 +10,7 @@ import {
   type AtlasKey,
 } from "./main";
 import { LOG, rgba, setAlpha } from "./mathUtils";
-import { uitext as uiText } from "./uiUtils";
+import { setVisible, UIInput, uitext as uiText } from "./uiUtils";
 import { Tween } from "./tween";
 import { uiShadow } from "./levels";
 const { vec2, rgb, hsl } = LJS;
@@ -18,6 +18,7 @@ const { vec2, rgb, hsl } = LJS;
 export let colorPickerMenu: LJS.UIObject;
 export let colorPickerBtn: LJS.UIObject;
 export let startBtn: LJS.UIButton;
+export let nameTextBox: UIInput;
 
 export class IconButton extends LJS.UIButton {
   icon: LJS.UITile;
@@ -69,7 +70,7 @@ export function createTitleMenu() {
   colorPickerBtn = new IconButton(vec2(100 + 60, y), "microbe_bw", {
     onClick: () => {
       colorPickerMenu.visible = true;
-      titleText.visible = titleMenu.visible = false;
+      setVisible(false, titleText, titleMenu);
       colorPickerBtn.lineColor = LJS.BLACK;
     },
     onEnter: () => {
@@ -107,7 +108,7 @@ function createColorPickerUI() {
   const btnSize = 50;
   const btnPadding = 5;
 
-  colorPickerMenu = new LJS.UIObject(LJS.mainCanvasSize.scale(0.5));
+  colorPickerMenu = new LJS.UIObject(center);
   colorPickerMenu.visible = false;
 
   colorPickerMenu.color = playerColor;
@@ -160,17 +161,45 @@ function createColorPickerUI() {
     return btn;
   };
 
-  let cue = new LJS.UIText(vec2(0, -100), vec2(1000, 50), "Player color");
-  setShadow(cue, uiShadow);
-  cue.textColor = LJS.WHITE;
+  let title = new LJS.UIText(vec2(0, -200), vec2(1000, 50), "Wardrobe");
+  let t2 = uiText("Customize your microbe's in-game look.", {
+    pos: vec2(0, 50),
+  });
+  setShadow(title, uiShadow);
+  setShadow(t2, uiShadow);
+  title.textColor = LJS.WHITE;
+  title.addChild(t2);
 
+  nameTextBox = new UIInput(vec2(0, -80), {
+    maxLength: 10,
+    placeholder: "_",
+  });
+  const c = rgba(226, 226, 226, 1);
+  nameTextBox.addChild(
+    uiText("Enter microbe name", {
+      pos: vec2(0, 50),
+      textColor: c,
+      shadow: uiShadow,
+    })
+  );
+  colorPickerMenu.addChild(nameTextBox);
+
+  colorPickerMenu.addChild(
+    uiText("Select tummy color", {
+      pos: vec2(0, 200),
+      textColor: c,
+      shadow: uiShadow,
+    })
+  );
+
+  let startY = 100;
   let randomColorBtn = mkColorBtn(
-    vec2(-btnSize - btnPadding, 50 + -btnSize - btnPadding * 2),
+    vec2(-btnSize - btnPadding, startY + -btnSize - btnPadding * 2),
     undefined,
     "die"
   );
 
-  colorPickerMenu.addChild(cue);
+  colorPickerMenu.addChild(title);
   colorPickerMenu.addChild(randomColorBtn);
 
   const colorOpts = [
@@ -193,7 +222,7 @@ function createColorPickerUI() {
     i++, x += btnSize + btnPadding
   ) {
     for (
-      let j = i === 0 ? 1 : 0, y = 50 + btnSize;
+      let j = i === 0 ? 1 : 0, y = startY + btnSize;
       j < 3;
       j++, y -= btnSize + btnPadding
     ) {

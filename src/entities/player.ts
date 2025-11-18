@@ -6,6 +6,7 @@ import { MyParticle } from "../particleUtils";
 import { sfx } from "../sfx";
 import { Microbe, MicrobeAction, swimAccel } from "./microbe";
 import { PatternWrapping, type TimingInfo } from "../beat";
+import { nameTextBox } from "../ui";
 
 const { vec2, rgb } = LJS;
 
@@ -88,7 +89,7 @@ export class Player extends Microbe {
       wrapping,
     });
 
-    this.name = "player";
+    this.name = nameTextBox.value ?? "You";
 
     // this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
     //   note && this.idle();
@@ -155,6 +156,6 @@ export class Player extends Microbe {
   render(): void {
     super.render();
 
-    LJS.drawText("You", this.pos.add(vec2(0, 1.2)), 0.5);
+    LJS.drawText(this.name, this.pos.add(vec2(0, 1.2)), 0.5);
   }
 }

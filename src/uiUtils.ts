@@ -1,8 +1,9 @@
 import * as LJS from "littlejsengine";
 import { blink, sleep } from "./animUtils";
 import { center, spriteAtlas } from "./main";
-import { DEG2RAD, LOG, setAlpha } from "./mathUtils";
+import { DEG2RAD, LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import { sfx } from "./sfx";
+import { setShadow, type UIShadowConfig } from "./ui";
 const { vec2, rgb, tile } = LJS;
 
 export const toggleVisible = (...objs: LJS.UIObject[]) =>
@@ -125,16 +126,64 @@ export const uitext = (
     fontStyle = "",
     textColor = LJS.WHITE,
     align = "center" as CanvasTextAlign,
+    shadow = undefined as UIShadowConfig | undefined,
   } = {}
 ) => {
   let t = new LJS.UIText(pos, vec2(1000, fontSize), text, align);
   t.textColor = textColor;
   t.fontStyle = fontStyle;
   t.hoverColor = t.color = LJS.CLEAR_WHITE;
+  shadow && setShadow(t, shadow);
   return t;
 };
 
 export function setInteractiveRec(obj: LJS.UIObject, value = false) {
   obj.interactive = value;
   obj.children.forEach((o) => setInteractiveRec(o, value));
+}
+
+export class UIInput extends LJS.UIText {
+  blinker: LJS.UIText;
+  maxLength: number;
+  value?: string;
+
+  constructor(
+    pos: LJS.Vector2,
+    { textHeight = 40, placeholder = "_", maxLength = 16 } = {}
+  ) {
+    super(pos, vec2(maxLength * textHeight * 0.5 + textHeight, textHeight + 10));
+
+    this.maxLength = maxLength;
+    this.blinker = new LJS.UIText(
+      vec2(), // this.size.multiply(vec2(0, -0.1)),
+      vec2(this.size.y),
+      placeholder
+      // "left"
+    );
+    this.addChild(this.blinker);
+
+    blink(this.blinker.textColor);
+
+    this.interactive =
+      this.blinker.interactive =
+      this.canBeHover =
+      this.blinker.canBeHover =
+        true;
+
+    this.fontStyle = this.blinker.fontStyle = "italic";
+    this.textHeight = this.blinker.textHeight = 32;
+    this.blinker.hoverColor = LJS.CLEAR_WHITE;
+    this.lineWidth = 5;
+    this.lineColor = LJS.BLACK;
+    this.cornerRadius = 5;
+    this.color = rgba(233, 233, 233, 1);
+    this.hoverColor = rgba(215, 215, 215, 1);
+
+    this.onClick = this.blinker.onClick = () => {
+      let input = prompt();
+      if (!input) return;
+      this.blinker.visible = false;
+      this.value = this.text = input.slice(0, maxLength);
+    };
+  }
 }

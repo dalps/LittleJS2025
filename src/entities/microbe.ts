@@ -1,21 +1,19 @@
 import * as LJS from "littlejsengine";
 import { Animation } from "../animation";
-import { PatternWrapping, Beat, type BeatCount } from "../beat";
+import { PatternWrapping, type BeatCount } from "../beat";
 import { spriteAtlas, tileSize } from "../main";
 import {
   DEG2RAD,
   formatPolar,
-  formatDegrees,
   lerpVec2,
   LOG,
   polar2cart,
-  setAlpha,
   rgba,
+  setAlpha,
 } from "../mathUtils";
-import { sfx } from "../sfx";
 import type { Song } from "../music";
 import { emitter, MyParticle } from "../particleUtils";
-import { Ease, Tween } from "../tween";
+import { sfx } from "../sfx";
 const { vec2, rgb } = LJS;
 
 export enum MicrobeAction {
@@ -53,7 +51,7 @@ export class Microbe extends LJS.EngineObject {
   song?: Song;
   wrapping: PatternWrapping;
 
-  name?: string;
+  name: string;
   leader?: Microbe;
   rowIdx: number;
 
