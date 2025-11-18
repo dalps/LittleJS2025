@@ -9,8 +9,6 @@ import { Player } from "./entities/player";
 import {
   createLevelsMenu,
   initLevels,
-  levelMFC,
-  levelSM,
   levelsMenu,
   pauseBtn,
   showLevels,
@@ -25,16 +23,16 @@ import { beginTutorial, tutorial } from "./tutorial";
 import { Tween } from "./tween";
 import {
   CircleVignette,
+  colorPickerBtn,
   createPauseMenu,
   createTitleMenu,
   pauseMenu,
   startBtn,
 } from "./ui";
 import { ScreenButton, toggleVisible } from "./uiUtils";
-import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 export const ratings = {
   superb: {
@@ -347,17 +345,10 @@ function gameInit() {
     "center"
   );
 
+  titleText.addChild(subtitle);
+  titleText.textColor = subtitle.textColor = LJS.WHITE;
   titleText.textLineColor = LJS.WHITE;
   titleText.textLineWidth = 2;
-  titleText.textColor = subtitle.textColor = LJS.WHITE;
-  subtitle.shadowColor = titleText.shadowColor = setAlpha(
-    rgba(15, 38, 95, 1),
-    0.5
-  );
-  subtitle.shadowOffset = titleText.shadowOffset = vec2(0, 10);
-
-  titleText.addChild(subtitle);
-  // titleMenu.addChild(titleText);
 
   loadingText = new LJS.UIText(
     LJS.mainCanvasSize.multiply(vec2(0.5, 0.8)),
@@ -367,6 +358,17 @@ function gameInit() {
 
   loadingText.textColor = LJS.WHITE.copy();
   loadingText.textHeight = 42;
+
+  subtitle.shadowColor =
+    titleText.shadowColor =
+    loadingText.shadowColor =
+      setAlpha(rgba(15, 38, 95, 1), 0.5);
+  subtitle.shadowOffset =
+    titleText.shadowOffset =
+    loadingText.shadowOffset =
+      vec2(0, 10);
+
+  // titleMenu.addChild(titleText);
 
   defaultSpeechBubblePos = center.multiply(vec2(1, 0.3));
 
@@ -378,10 +380,11 @@ function gameInit() {
 
   toggleVisible(loadingText, pauseMenu, pauseBtn, titleMenu, levelsMenu);
 
-  // DEBUG && titleScreen();
+  // titleScreen();
   // levelSM.start()
   // levelSM.end()
   // levelMFC.start()
+  // colorPickerBtn.onClick();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

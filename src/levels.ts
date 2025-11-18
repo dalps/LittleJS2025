@@ -273,7 +273,7 @@ export class Level {
 
     currentSong.stop();
     currentSong.hide();
-    let finalScore = 0.5; // currentSong.getFinalScore();
+    let finalScore = currentSong.getFinalScore();
 
     let resultsObj = new LJS.UIObject(center.add(vec2(0, -30)), vec2(580, 300));
     let title = new LJS.UIText(vec2(0, -100), vec2(1000, 60), `Rhythm score:`);
@@ -285,7 +285,7 @@ export class Level {
     let scoreText = new LJS.UIText(vec2(), vec2(200, 60), `0%`);
     let ratingText = new LJS.UIText(vec2(100), vec2(500, 48), ``);
     let backToTitleBtn = new LJS.UIButton(
-      center.multiply(vec2(0, 0.9)),
+      center.multiply(vec2(0, 0.925)),
       LJS.mainCanvasSize,
       "Back to title",
       rgba(0, 0, 0, 0)

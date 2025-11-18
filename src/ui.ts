@@ -62,7 +62,7 @@ export function createTitleMenu() {
 
   const y = 150;
   const startBtnSize = vec2(200, 50);
-  startBtn = new LJS.UIButton(vec2(0, y), startBtnSize, "Start", LJS.CYAN);
+  startBtn = new LJS.UIButton(vec2(0, y), startBtnSize, "Play", LJS.CYAN);
   startBtn.hoverColor = LJS.WHITE;
 
   // startBtn.pos = LJS.mainCanvasSize.multiply(vec2(0.5, 0.8));
@@ -161,16 +161,23 @@ function createColorPickerUI() {
     return btn;
   };
 
-  let title = new LJS.UIText(vec2(0, -200), vec2(1000, 50), "Wardrobe");
+  const [titlePos, posTextBox, posColors] =
+    LJS.mainCanvasSize.y > 500
+      ? [vec2(0, -200), vec2(0, -80), vec2(0, 100)]
+      : [vec2(0, -140), vec2(-200, 10), vec2(200, 50)];
+
+  let title = new LJS.UIText(titlePos, vec2(1000, 50), "Wardrobe");
   let t2 = uiText("Customize your microbe's in-game look.", {
     pos: vec2(0, 50),
   });
   setShadow(title, uiShadow);
   setShadow(t2, uiShadow);
+
+  colorPickerMenu.addChild(title);
   title.textColor = LJS.WHITE;
   title.addChild(t2);
 
-  nameTextBox = new UIInput(vec2(0, -80), {
+  nameTextBox = new UIInput(posTextBox, {
     maxLength: 10,
     placeholder: "_",
   });
@@ -184,23 +191,24 @@ function createColorPickerUI() {
   );
   colorPickerMenu.addChild(nameTextBox);
 
-  colorPickerMenu.addChild(
+  const colorsObj = new LJS.UIObject(posColors);
+  colorPickerMenu.addChild(colorsObj);
+
+  colorsObj.addChild(
     uiText("Select tummy color", {
-      pos: vec2(0, 200),
+      pos: vec2(0, 100),
       textColor: c,
       shadow: uiShadow,
     })
   );
 
-  let startY = 100;
   let randomColorBtn = mkColorBtn(
-    vec2(-btnSize - btnPadding, startY + -btnSize - btnPadding * 2),
+    vec2(-btnSize - btnPadding, -btnSize - btnPadding * 2),
     undefined,
     "die"
   );
 
-  colorPickerMenu.addChild(title);
-  colorPickerMenu.addChild(randomColorBtn);
+  colorsObj.addChild(randomColorBtn);
 
   const colorOpts = [
     LJS.GREEN,
@@ -222,11 +230,11 @@ function createColorPickerUI() {
     i++, x += btnSize + btnPadding
   ) {
     for (
-      let j = i === 0 ? 1 : 0, y = startY + btnSize;
+      let j = i === 0 ? 1 : 0, y = btnSize;
       j < 3;
       j++, y -= btnSize + btnPadding
     ) {
-      colorPickerMenu.addChild(
+      colorsObj.addChild(
         mkColorBtn(vec2(x, y), colorOpts[i * 3 + (j - 1)]) // hsl((i * 3 + j) / 8, 0.75, 0.5)
       );
     }
@@ -259,6 +267,7 @@ export function createPauseMenu() {
     uiText(`(no resume for now, sorry!)`, {
       pos: vec2(0, -60),
       fontSize: 20,
+      shadow: uiShadow,
     })
   );
   pauseMenu.addChild(title);
