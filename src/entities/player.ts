@@ -4,7 +4,7 @@ import { LOG, rgba, setAlpha } from "../mathUtils";
 import type { Song } from "../music";
 import { MyParticle } from "../particleUtils";
 import { sfx } from "../sfx";
-import { Microbe, swimAccel } from "./microbe";
+import { Microbe, MicrobeAction, swimAccel } from "./microbe";
 import { PatternWrapping, type TimingInfo } from "../beat";
 
 const { vec2, rgb } = LJS;
@@ -67,6 +67,8 @@ export const firework = (
 
 export class Player extends Microbe {
   interactive = true;
+  bumpSoundTimer: LJS.Timer;
+  private readonly bumpSoundCooldown = 0.1;
 
   onClick?: (timing: TimingInfo) => void;
 
@@ -92,7 +94,12 @@ export class Player extends Microbe {
     //   note && this.idle();
     // });
 
-    this.actions[1] = () => {};
+    this.actions[MicrobeAction.Swim] = () => {};
+    this.actions[MicrobeAction.Ding] = () => {
+      this.idle();
+      sfx.bell_g5.play(this.pos);
+    };
+    this.bumpSoundTimer = new LJS.Timer(this.bumpSoundCooldown);
   }
 
   bump(other: Microbe): void {
@@ -101,7 +108,10 @@ export class Player extends Microbe {
     // if other's rowIdx is bigger, move to next phi
     // otherwise return to current phi
 
-    sfx.boo.play(this.pos);
+    if (this.bumpSoundTimer.elapsed()) {
+      sfx.bloop.play(this.pos);
+      this.bumpSoundTimer.set(this.bumpSoundCooldown);
+    }
 
     this.applyForce(swimAccel.scale((other.phi > this.phi ? -1 : 1) * 0.2));
   }

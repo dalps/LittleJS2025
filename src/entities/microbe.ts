@@ -59,7 +59,7 @@ export class Microbe extends LJS.EngineObject {
 
   bumpTimer: LJS.Timer;
 
-  private readonly bumpCooldown = 0.2;
+  private readonly bumpCooldown = 0.5;
 
   constructor(
     public polarPos: LJS.Vector2,
@@ -87,7 +87,8 @@ export class Microbe extends LJS.EngineObject {
     this.color = LJS.randColor();
     this.turnPhi = this.phi;
 
-    this.actions[MicrobeAction.Idle] = this.idle;
+    this.actions[MicrobeAction.Idle] = this.actions[MicrobeAction.Ding] =
+      this.idle;
     this.actions[MicrobeAction.Swim] = () => {
       this.isLeader() && (this.song!.swimCount += 1);
       this.swim();
@@ -96,10 +97,6 @@ export class Microbe extends LJS.EngineObject {
     this.actions[MicrobeAction.Turn] = () => {
       this.newCenter();
       this.swim();
-    };
-    this.actions[MicrobeAction.Ding] = () => {
-      this.idle();
-      sfx.ding.play();
     };
 
     this.bubbleEmitter = emitter({
