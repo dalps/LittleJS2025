@@ -192,18 +192,19 @@ export function initSongs() {
         ],
         [end, empty],
       ].flat(),
+      onStart: () => {
+        let { beat } = myFirstConsole;
+
+        beat.at(
+          [3, 0, 32],
+          () =>
+            new SpeechBubble(defaultBubblePos, `Hold it!`, {
+              duration: beat.delta * 3 * frameRate,
+              clickMode: false,
+            })
+        );
+      },
     });
-
-    let { beat } = myFirstConsole;
-
-    beat.at(
-      [3, 0, 32],
-      () =>
-        new SpeechBubble(defaultBubblePos, `Hold it!`, {
-          duration: beat.delta * 3 * frameRate,
-          clickMode: false,
-        })
-    );
   }
 
   {
@@ -254,27 +255,28 @@ export function initSongs() {
         // ],
         [end, empty],
       ].flat(),
+      onStart: () => {
+        let { beat } = woodenShoes;
+
+        beat.at(
+          [3, 0, 26],
+          () =>
+            new SpeechBubble(defaultBubblePos, `Hold it!`, {
+              duration: beat.delta * 3 * frameRate,
+              clickMode: false,
+            })
+        );
+
+        beat.at(
+          [3, 0, 36],
+          () =>
+            new SpeechBubble(defaultBubblePos, `One more time!`, {
+              duration: beat.delta * 3 * frameRate,
+              clickMode: false,
+            })
+        );
+      },
     });
-
-    let { beat } = woodenShoes;
-
-    beat.at(
-      [3, 0, 26],
-      () =>
-        new SpeechBubble(defaultBubblePos, `Hold it!`, {
-          duration: beat.delta * 3 * frameRate,
-          clickMode: false,
-        })
-    );
-
-    beat.at(
-      [3, 0, 36],
-      () =>
-        new SpeechBubble(defaultBubblePos, `One more time!`, {
-          duration: beat.delta * 3 * frameRate,
-          clickMode: false,
-        })
-    );
   }
 
   tryAgainTune = new Song("./songs/0_percent_oxygen.mp3", {

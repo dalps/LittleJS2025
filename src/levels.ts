@@ -21,7 +21,7 @@ import {
   titleMenu,
   titleScreen,
   titleText,
-  vignette,
+  vignette
 } from "./main";
 import { DEG2RAD, LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import type { Song } from "./music";
@@ -45,7 +45,11 @@ import {
   UIProgressbar,
   type UIShadowConfig,
 } from "./ui";
-import { ScreenButton, setInteractiveRec, setVisible, uitext } from "./uiUtils";
+import {
+  setInteractiveRec,
+  setVisible,
+  uitext
+} from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -73,7 +77,7 @@ export class Level {
 
   locked = true;
   lockMessage: string;
-  unlockFn: () => boolean;
+  lockPred: () => boolean;
 
   private _highScore = 0;
 
@@ -102,12 +106,16 @@ export class Level {
   constructor(
     public name: string,
     public song: Song,
-    { locked = true, lockMessage = "", unlockFn = () => false } = {}
+    {
+      locked = true,
+      lockMessage = "",
+      lockPred = (() => false) as () => boolean,
+    } = {}
   ) {
     this.color = song.color;
     this.locked = locked;
     this.lockMessage = lockMessage;
-    this.unlockFn = unlockFn;
+    this.lockPred = lockPred;
 
     this.completed =
       localStorage.getItem(this.getStoreKey("completed")) === "true";
@@ -175,7 +183,7 @@ export class Level {
       this.lockedTile.color = LJS.GRAY;
     }
 
-    if ((this.locked = this.unlockFn())) {
+    if ((this.locked = this.lockPred())) {
       this.lockedTile!.onClick = btn.onClick = () => {
         shake(btn.localPos);
         levelsMessage.text = this.lockMessage;
@@ -503,16 +511,16 @@ export function initLevels() {
 
   levelSM = new Level("Stardust\nMemories", stardustMemories, {
     lockMessage: `Do the tutorial!`,
-    unlockFn: () => !tutorialLevel.completed,
+    lockPred: () => !tutorialLevel.completed,
   });
   levelMFC = new Level("My First\nConsole", myFirstConsole, {
     // just pass a whole level as a prerequisite instead of these
     lockMessage: printRequirement(levelSM.name),
-    unlockFn: () => !levelSM.completed,
+    lockPred: () => !levelSM.completed,
   });
   levelWS = new Level("Wooden\nShoes", woodenShoes, {
     lockMessage: printRequirement(levelMFC.name),
-    unlockFn: () => !levelMFC.completed,
+    lockPred: () => !levelMFC.completed,
   });
 
   LEVELS.push(

@@ -83,39 +83,21 @@ export function createTitleMenu() {
   colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor;
   colorPickerBtn.cornerRadius = 10;
 
-  let credits = new LJS.UIText(
-    center.multiply(vec2(0, 1.1)),
-    vec2(100, 15),
-    `dalps 2025`
-  );
-
-  let onClick = () => {
-    open(`https://github.com/dalps/LittleJS2025`, `_blank`);
-  };
   let sourcecodeBtn = new IconButton(
     center.subtract(vec2(50)).multiply(vec2(1, -1)),
     "github",
     {
-      onClick,
+      onClick: () => {
+        open(`https://github.com/dalps/LittleJS2025`, `_blank`);
+      },
     }
   );
+
   // sourcecodeBtn.lineWidth = 3;
   sourcecodeBtn.cornerRadius = 10;
   sourcecodeBtn.lineColor = sourcecodeBtn.hoverColor = LJS.BLACK;
+  sourcecodeBtn.hoverColor = sourcecodeBtn.color = rgba(235, 235, 235, 1);
 
-  // credits.addChild(sourcecodeBtn);
-
-  sourcecodeBtn.hoverColor =
-    sourcecodeBtn.color =
-    credits.textColor =
-      rgba(235, 235, 235, 1);
-
-  credits.hoverColor = LJS.CLEAR_WHITE;
-
-  credits.interactive = credits.canBeHover = true;
-
-  credits.onClick = onClick;
-  titleMenu.addChild(credits);
   titleMenu.addChild(sourcecodeBtn);
   titleMenu.addChild(startBtn);
   titleMenu.addChild(colorPickerBtn);
@@ -275,6 +257,13 @@ export class CircleVignette {
       "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); image-rendering: pixelated;";
 
     document.body.appendChild(cvs);
+
+    window.addEventListener("resize", () => {
+      const { innerWidth: w, innerHeight: h } = window;
+      cvs.width = w;
+      cvs.height = h;
+      this.canvasSize.set(w, h);
+    });
   }
 
   fade({

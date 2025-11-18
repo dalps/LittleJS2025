@@ -2,24 +2,20 @@
 
 // import LittleJS module
 import * as LJS from "littlejsengine";
-import {
-  cameraZoom,
-  changeBackground,
-  pulse,
-  uiBopScale
-} from "./animUtils";
+import { cameraZoom, changeBackground, pulse, uiBopScale } from "./animUtils";
 import { beatCount, PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
 import { Player } from "./entities/player";
 import {
   createLevelsMenu,
   initLevels,
+  levelMFC,
   levelSM,
   levelsMenu,
   pauseBtn,
   showLevels,
   storeKey,
-  tutorialLevel
+  tutorialLevel,
 } from "./levels";
 import { DEG2RAD, getQuadrant, polar, rgba, setAlpha } from "./mathUtils";
 import type { Song } from "./music";
@@ -35,9 +31,10 @@ import {
   startBtn,
 } from "./ui";
 import { ScreenButton, toggleVisible } from "./uiUtils";
+import { sfx } from "./sfx";
 const { vec2, rgb, tile, time } = LJS;
 
-export const DEBUG = false;
+export const DEBUG = true;
 
 export const ratings = {
   superb: {
@@ -321,6 +318,7 @@ function gameInit() {
 
   LJS.setFontDefault(font);
   LJS.uiSystem.defaultFont = font;
+  // LJS.uiSystem.defaultSoundClick = sfx.bip;
 
   let storedColor = localStorage.getItem(storeKey("player", "color"));
   playerColor = storedColor
@@ -345,7 +343,7 @@ function gameInit() {
   let subtitle = new LJS.UIText(
     vec2(0, 70),
     vec2(900, 20),
-    "Rhythm Heaven copycat · made for LittleJS 2025",
+    "Rhythm Heaven copycat · made by dalps for LittleJS 2025",
     "center"
   );
 
@@ -383,6 +381,7 @@ function gameInit() {
   // DEBUG && titleScreen();
   // levelSM.start()
   // levelSM.end()
+  // levelMFC.start()
 }
 
 ///////////////////////////////////////////////////////////////////////////////

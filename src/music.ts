@@ -67,6 +67,7 @@ export class Song {
   unlocked = false;
   color: LJS.Color;
 
+  onStart: () => any;
   onEnd: () => any;
 
   constructor(
@@ -80,17 +81,19 @@ export class Song {
       bpm = 144,
       beats = 4,
       subs = 1,
-      onLoad = () => {},
-      onEnd = () => {},
       loop = false,
       loopStart = undefined as number | undefined,
       loopEnd = undefined as number | undefined,
       choreography = [] as Pattern<number>,
+      onStart = () => {},
+      onLoad = () => {},
+      onEnd = () => {},
     } = {}
   ) {
     this.beat = new Beat(bpm, beats, subs);
     this.loop = loop;
     this.setChoreography(choreography);
+    this.onStart = onStart.bind(this);
     this.totalSwims = countSwimActions(choreography);
     this.color = color;
 
@@ -144,6 +147,7 @@ export class Song {
     }
 
     this.beat.at([0, 0, this.choreography.length], this.onEnd);
+    this.onStart();
 
     LOG(`Now playing: ${this}`);
     this.beat.play();
