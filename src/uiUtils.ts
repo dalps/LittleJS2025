@@ -1,7 +1,7 @@
 import * as LJS from "littlejsengine";
-import { blink, sleep } from "./animUtils";
+import { blink, shake, sleep } from "./animUtils";
 import { center, spriteAtlas } from "./main";
-import { DEG2RAD, LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
+import { DEG2RAD, LOG, rgba, setAlpha, setHSLA, type Maybe } from "./mathUtils";
 import { sfx } from "./sfx";
 import { setShadow, type UIShadowConfig } from "./ui";
 const { vec2, rgb, tile } = LJS;
@@ -151,7 +151,10 @@ export class UIInput extends LJS.UIText {
     pos: LJS.Vector2,
     { textHeight = 40, placeholder = "_", maxLength = 16 } = {}
   ) {
-    super(pos, vec2(maxLength * textHeight * 0.5 + textHeight, textHeight + 10));
+    super(
+      pos,
+      vec2(maxLength * textHeight * 0.5 + textHeight, textHeight + 10)
+    );
 
     this.maxLength = maxLength;
     this.blinker = new LJS.UIText(
@@ -185,5 +188,98 @@ export class UIInput extends LJS.UIText {
       this.blinker.visible = false;
       this.value = this.text = input.slice(0, maxLength);
     };
+  }
+}
+
+export class LockButton extends LJS.UIButton {
+  locked: boolean;
+  lockPred: () => boolean;
+  lockMessage: string;
+  lockTile: LJS.UITile;
+  /**
+   * Callback for click while locked
+   */
+  onClickLocked: Function;
+  /**
+   * Callback for click while unlocked
+   */
+  onClickUnlocked: Function;
+  /**
+   * Callback for optional unlock effects
+   */
+  onUnlock: Function;
+
+  constructor(
+    pos: LJS.Vector2,
+    {
+      size = vec2(200, 200),
+      text = undefined as Maybe<string>,
+      color = undefined as Maybe<LJS.Color>,
+      locked = true,
+      lockMessage = "",
+      lockTileOffset = vec2(),
+      lockTileSize = vec2(50),
+      lockPred = (() => false) as () => boolean,
+      onClickLocked = () => {},
+      onClickUnlocked = () => {},
+      onUnlock = () => {},
+    } = {}
+  ) {
+    super(pos, size, text, color);
+
+    this.locked = locked;
+    this.lockMessage = lockMessage;
+    this.lockPred = lockPred;
+    this.onClickLocked = onClickLocked;
+    this.onClickUnlocked = onClickUnlocked;
+    this.onUnlock = onUnlock;
+
+    this.addChild(
+      (this.lockTile = new LJS.UITile(
+        lockTileOffset,
+        lockTileSize,
+        spriteAtlas.lock
+      ))
+    );
+
+    this.lockTile.interactive = this.lockTile.canBeHover = true;
+    this.lockTile.shadowColor = setAlpha(LJS.BLACK, 0.5);
+    this.lockTile.shadowOffset = vec2(0, 5);
+    this.lockTile.color = LJS.GRAY;
+
+    this.check();
+  }
+
+  check() {
+    this.lockPred() ? this.lock() : this.unlock();
+  }
+
+  lock() {
+    // make sure lock tile is always on top of everything inside the button
+    this.removeChild(this.lockTile);
+    this.addChild(this.lockTile);
+
+    this.lockTile.visible = this.locked = true;
+    this.lockTile.onClick = this.onClick = () => {
+      shake(this.localPos);
+      this.onClickLocked();
+    };
+
+    this.color = this.hoverColor = setHSLA(this.color, {
+      s: 0.5,
+      l: 0.2,
+    });
+    this.textColor = rgba(115, 115, 115, 1);
+    this.lineColor = setHSLA(this.color, { s: 0.5, l: 0.1 });
+  }
+
+  unlock() {
+    this.lockTile.visible = this.locked = false;
+    this.onClick = this.onClickUnlocked.bind(this);
+
+    this.color = this.color;
+    this.hoverColor = setHSLA(this.color, { s: 0.5, l: 0.4 });
+
+    this.onUnlock();
   }
 }

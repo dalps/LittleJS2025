@@ -2,6 +2,8 @@ import * as LJS from "littlejsengine";
 import { DEBUG, tileSize } from "./main";
 const { vec2, rgb, tile } = LJS;
 
+export type Maybe<T> = T | undefined
+
 export const DEG2RAD = Math.PI / 180;
 export const RAD2DEG = 180 / Math.PI;
 

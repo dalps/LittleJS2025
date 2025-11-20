@@ -45,7 +45,7 @@ import {
   UIProgressbar,
   type UIShadowConfig,
 } from "./ui";
-import { setInteractiveRec, setVisible, uitext } from "./uiUtils";
+import { LockButton, setInteractiveRec, setVisible, uitext } from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -92,11 +92,10 @@ export class Level {
   onEnd?: Function;
 
   // ui
-  btn?: LJS.UIButton;
+  btn?: LockButton;
   scoreText?: LJS.UIText;
   scoreBar?: UIProgressbar;
   completedTile?: LJS.UITile;
-  lockedTile?: LJS.UITile;
   color: LJS.Color;
 
   constructor(
@@ -125,7 +124,25 @@ export class Level {
 
     if (!btn) {
       // init UI
-      btn = new LJS.UIButton(pos, levelBtnSize, this.name, this.color);
+      btn = new LockButton(pos, {
+        size: levelBtnSize,
+        text: this.name,
+        color: this.color,
+        lockPred: this.lockPred,
+        onClickUnlocked: () => {
+          sfx.bell_church.play();
+          setInteractiveRec(levelsMenu);
+          this.start();
+        },
+        onClickLocked: () => {
+          levelsMessage.text = this.lockMessage;
+          sfx.bell_error.play();
+        },
+        onUnlock: () => {
+          btn!.textColor = LJS.WHITE;
+          btn!.lineColor = setHSLA(this.color, { s: 0.5, l: 0.6 });
+        },
+      });
 
       this.btn = btn;
       levelsMenu.addChild(btn);
@@ -168,48 +185,10 @@ export class Level {
       this.scoreText.textLineWidth = 4;
       this.scoreBar.cornerRadius = 5;
       this.scoreBar.value = this.highScore ?? 0;
-
-      btn.addChild(
-        (this.lockedTile = new LJS.UITile(vec2(), vec2(50), spriteAtlas.lock))
-      );
-
-      this.lockedTile.interactive = this.lockedTile.canBeHover = true;
-      this.lockedTile.shadowColor = setAlpha(LJS.BLACK, 0.5);
-      this.lockedTile.shadowOffset = vec2(0, 5);
-      this.lockedTile.color = LJS.GRAY;
-    }
-
-    if ((this.locked = this.lockPred())) {
-      this.lockedTile!.onClick = btn.onClick = () => {
-        shake(btn.localPos);
-        levelsMessage.text = this.lockMessage;
-        sfx.bell_error.play();
-        return;
-      };
-
-      btn.color = btn.hoverColor = setHSLA(this.color, {
-        s: 0.5,
-        l: 0.2,
-      });
-      btn.textColor = rgba(115, 115, 115, 1);
-      btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.1 });
-    } else {
-      this.scoreBar!.onClick = btn.onClick = async () => {
-        sfx.bell_church.play();
-        setInteractiveRec(levelsMenu);
-
-        this.start();
-      };
-
-      btn.color = this.color;
-      btn.hoverColor = setHSLA(this.color, { s: 0.5, l: 0.4 });
-      btn.textColor = LJS.WHITE;
-      btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.6 });
-      // btn.onEnter = () => (this.scoreBar!.color = btn.hoverColor);
-      // this.scoreBar!.lineColor = btn.lineColor;
     }
 
     btn.visible = true;
+    btn.check();
     setVisible(!this.locked, this.completedTile!);
     setVisible(
       this.highScore !== undefined && !this.locked,
@@ -217,7 +196,7 @@ export class Level {
       this.scoreBar!,
       this.completedTile!
     );
-    this.lockedTile!.visible = this.locked;
+    this.scoreBar!.onClick = btn.onClickUnlocked;
     this.completedTile!.visible = this.completed && !this.locked;
     this.highScore !== undefined &&
       (this.scoreText!.text = `${(this.highScore * 100) >> 0}%`);
