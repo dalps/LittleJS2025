@@ -114,6 +114,18 @@ function createColorPickerUI() {
   colorPickerMenu.color = playerColor;
   colorPickerMenu.lineColor = LJS.BLACK;
 
+  let backToTitleBtn = new IconButton(center.scale(-1).add(vec2(60)), "play", {
+    btnSize: vec2(50),
+    iconAngle: Math.PI,
+    iconColor: LJS.BLACK,
+    onClick: () => {
+      colorPickerMenu.visible = false;
+      titleText.visible = titleMenu.visible = true;
+    },
+  });
+
+  colorPickerMenu.addChild(backToTitleBtn);
+
   let mkColorBtn = (
     pos: LJS.Vector2,
     color?: LJS.Color,

@@ -21,7 +21,7 @@ import {
   titleMenu,
   titleScreen,
   titleText,
-  vignette
+  vignette,
 } from "./main";
 import { DEG2RAD, LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import type { Song } from "./music";
@@ -45,11 +45,7 @@ import {
   UIProgressbar,
   type UIShadowConfig,
 } from "./ui";
-import {
-  setInteractiveRec,
-  setVisible,
-  uitext
-} from "./uiUtils";
+import { setInteractiveRec, setVisible, uitext } from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -273,6 +269,7 @@ export class Level {
 
     currentSong.stop();
     currentSong.hide();
+    player.interactive = false;
     let finalScore = currentSong.getFinalScore();
 
     let resultsObj = new LJS.UIObject(center.add(vec2(0, -30)), vec2(580, 300));
