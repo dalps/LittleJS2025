@@ -9,7 +9,7 @@ import {
   titleText,
   type AtlasKey,
 } from "./main";
-import { LOG, rgba, setAlpha } from "./mathUtils";
+import { LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
 import { setVisible, UIInput, uitext as uiText } from "./uiUtils";
 import { Tween } from "./tween";
 import { uiShadow } from "./levels";
@@ -254,7 +254,8 @@ function createColorPickerUI() {
 }
 
 export let pauseMenu: LJS.UIObject;
-export let quitBtn: LJS.UIObject;
+export let quitBtn: LJS.UIButton;
+export let restartBtn: LJS.UIButton;
 export let resumeBtn: LJS.UIObject;
 
 export function createPauseMenu() {
@@ -266,25 +267,26 @@ export function createPauseMenu() {
   });
   setShadow(title, uiShadow);
 
-  // resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
-  quitBtn = new LJS.UIButton(
-    vec2(0, 150),
-    vec2(200, 50),
-    "Quit",
-    rgba(255, 56, 56, 1)
-  );
-  quitBtn.hoverColor = rgba(255, 128, 128, 1);
+  const restartBtnColor = LJS.CYAN;
+  const quitBtnColor = rgba(255, 56, 56, 1);
 
-  quitBtn.addChild(
-    uiText(`(no resume for now, sorry!)`, {
-      pos: vec2(0, -60),
-      fontSize: 20,
-      shadow: uiShadow,
-    })
+  // resumeBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Resume", LJS.GRAY);
+
+  restartBtn = new LJS.UIButton(
+    vec2(0, 80),
+    vec2(200, 50),
+    "Restart",
+    restartBtnColor
   );
+  restartBtn.hoverColor = LJS.WHITE;
+
+  quitBtn = new LJS.UIButton(vec2(0, 150), vec2(200, 50), "Quit", quitBtnColor);
+  quitBtn.hoverColor = setHSLA(quitBtnColor, { l: 0.7 });
+
   pauseMenu.addChild(title);
   pauseMenu.addChild(quitBtn);
   // pauseMenu.addChild(resumeBtn);
+  pauseMenu.addChild(restartBtn);
 }
 
 const defaultFadeDuration = 30;

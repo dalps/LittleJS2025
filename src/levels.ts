@@ -41,7 +41,9 @@ import {
   IconButton,
   pauseMenu,
   quitBtn,
+  restartBtn,
   setShadow,
+  startBtn,
   UIProgressbar,
   type UIShadowConfig,
 } from "./ui";
@@ -192,7 +194,7 @@ export class Level {
     btn.visible = true;
     btn.check();
     setVisible(!this.locked, this.completedTile!);
-    console.log(`${this.name} locked ${this.locked} ${this.btn?.locked}`);
+    LOG(`${this.name} locked ${this.locked} ${this.btn?.locked}`);
     setVisible(
       this.highScore !== undefined && !this.locked,
       this.scoreText!,
@@ -213,12 +215,11 @@ export class Level {
   load() {}
 
   async start() {
-    // currentSong.stop();
-
     await vignette.fade({ duration: 60 });
 
     hideLevels();
-    levelsMenu.visible = false;
+    setVisible(false, pauseMenu, levelsMenu);
+    setInteractiveRec(pauseMenu, true);
 
     setGameState(GameState.Game);
 
@@ -240,6 +241,12 @@ export class Level {
         endRadius: LJS.mainCanvasSize.x,
       })
       .setEase(Ease.POWER(5));
+
+    restartBtn.onClick = () => {
+      setInteractiveRec(pauseMenu);
+      sfx.bell_church.play();
+      this.start();
+    };
 
     player.interactive = true;
     currentSong.addMetronome();
@@ -566,7 +573,8 @@ export function createLevelsMenu() {
   );
 
   quitBtn.onClick = () => {
-    quitBtn.interactive = false;
+    setInteractiveRec(pauseMenu, false);
+    sfx.bloop.play(undefined, undefined, 0.5);
     titleScreen();
   };
 
