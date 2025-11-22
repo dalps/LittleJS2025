@@ -209,6 +209,8 @@ export class LockButton extends LJS.UIButton {
    */
   onUnlock: Function;
 
+  private unlockedColor: LJS.Color;
+
   constructor(
     pos: LJS.Vector2,
     {
@@ -233,6 +235,7 @@ export class LockButton extends LJS.UIButton {
     this.onClickLocked = onClickLocked;
     this.onClickUnlocked = onClickUnlocked;
     this.onUnlock = onUnlock;
+    this.unlockedColor = (color || this.color).copy();
 
     this.addChild(
       (this.lockTile = new LJS.UITile(
@@ -254,8 +257,8 @@ export class LockButton extends LJS.UIButton {
     this.lockPred() ? this.lock() : this.unlock();
   }
 
-  lock() {
-    // make sure lock tile is always on top of everything inside the button
+  private lock() {
+    // make sure lock tile is always on top of everything else inside the button
     this.removeChild(this.lockTile);
     this.addChild(this.lockTile);
 
@@ -273,11 +276,11 @@ export class LockButton extends LJS.UIButton {
     this.lineColor = setHSLA(this.color, { s: 0.5, l: 0.1 });
   }
 
-  unlock() {
+  private unlock() {
     this.lockTile.visible = this.locked = false;
     this.onClick = this.onClickUnlocked.bind(this);
 
-    this.color = this.color;
+    this.color = this.unlockedColor.copy();
     this.hoverColor = setHSLA(this.color, { s: 0.5, l: 0.4 });
 
     this.onUnlock();

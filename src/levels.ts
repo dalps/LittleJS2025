@@ -120,11 +120,11 @@ export class Level {
     storeKey(this.name, ...parts.map((p) => p.toString()));
 
   show(pos = center) {
-    let btn = this.btn;
+    let { btn } = this;
 
     if (!btn) {
       // init UI
-      btn = new LockButton(pos, {
+      this.btn = btn = new LockButton(pos, {
         size: levelBtnSize,
         text: this.name,
         color: this.color,
@@ -138,13 +138,8 @@ export class Level {
           levelsMessage.text = this.lockMessage;
           sfx.bell_error.play();
         },
-        onUnlock: () => {
-          btn!.textColor = LJS.WHITE;
-          btn!.lineColor = setHSLA(this.color, { s: 0.5, l: 0.6 });
-        },
       });
 
-      this.btn = btn;
       levelsMenu.addChild(btn);
 
       btn.cornerRadius = 5;
@@ -187,15 +182,23 @@ export class Level {
       this.scoreBar.value = this.highScore ?? 0;
     }
 
+    btn.onUnlock = () => {
+      this.locked = btn.locked;
+      btn.textColor = LJS.WHITE;
+      btn.lineColor = setHSLA(this.color, { s: 0.5, l: 0.6 });
+    };
+
+    this.locked = btn.locked;
     btn.visible = true;
     btn.check();
     setVisible(!this.locked, this.completedTile!);
+    console.log(`${this.name} locked ${this.locked} ${this.btn?.locked}`);
     setVisible(
       this.highScore !== undefined && !this.locked,
       this.scoreText!,
-      this.scoreBar!,
-      this.completedTile!
+      this.scoreBar!
     );
+
     this.scoreBar!.onClick = btn.onClickUnlocked;
     this.completedTile!.visible = this.completed && !this.locked;
     this.highScore !== undefined &&
