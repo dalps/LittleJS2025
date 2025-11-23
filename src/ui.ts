@@ -2,8 +2,11 @@ import * as LJS from "littlejsengine";
 import {
   center,
   currentSong,
+  defaultMicrobeColor,
   playerColor,
+  playerName,
   setPlayerColor,
+  setPlayerName,
   spriteAtlas,
   titleMenu,
   titleText,
@@ -13,6 +16,7 @@ import { LOG, rgba, setAlpha, setHSLA, type Maybe } from "./mathUtils";
 import { setVisible, UIInput, uitext as uiText } from "./uiUtils";
 import { Tween } from "./tween";
 import { uiShadow } from "./levels";
+import { player } from "./entities/row";
 const { vec2, rgb, hsl } = LJS;
 
 export let colorPickerMenu: LJS.UIObject;
@@ -81,7 +85,10 @@ export function createTitleMenu() {
     },
   });
 
-  colorPickerBtn.hoverColor = colorPickerBtn.color = playerColor;
+  colorPickerBtn.hoverColor =
+    colorPickerBtn.color =
+    colorPickerBtn.color =
+      playerColor ?? defaultMicrobeColor;
   colorPickerBtn.cornerRadius = 10;
 
   let sourcecodeBtn = new IconButton(
@@ -111,7 +118,7 @@ function createColorPickerUI() {
   colorPickerMenu = new LJS.UIObject(center);
   colorPickerMenu.visible = false;
 
-  colorPickerMenu.color = playerColor;
+  colorPickerMenu.color = player?.color || defaultMicrobeColor;
   colorPickerMenu.lineColor = LJS.BLACK;
 
   let backToTitleBtn = new IconButton(center.scale(-1).add(vec2(60)), "play", {
@@ -192,6 +199,8 @@ function createColorPickerUI() {
   nameTextBox = new UIInput(posTextBox, {
     maxLength: 10,
     placeholder: "_",
+    initialValue: playerName,
+    onInput: setPlayerName,
   });
   const c = rgba(226, 226, 226, 1);
   nameTextBox.addChild(

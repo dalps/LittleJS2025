@@ -1,7 +1,7 @@
 import * as LJS from "littlejsengine";
 import { blink, shake, sleep } from "./animUtils";
 import { center, spriteAtlas } from "./main";
-import { DEG2RAD, LOG, rgba, setAlpha, setHSLA, type Maybe } from "./mathUtils";
+import { DEG2RAD, rgba, setAlpha, setHSLA, type Maybe } from "./mathUtils";
 import { sfx } from "./sfx";
 import { setShadow, type UIShadowConfig } from "./ui";
 const { vec2, rgb, tile } = LJS;
@@ -146,10 +146,17 @@ export class UIInput extends LJS.UIText {
   blinker: LJS.UIText;
   maxLength: number;
   value?: string;
+  onInput: (v: string) => void;
 
   constructor(
     pos: LJS.Vector2,
-    { textHeight = 40, placeholder = "_", maxLength = 16 } = {}
+    {
+      textHeight = 40,
+      placeholder = "_",
+      initialValue = undefined as Maybe<string>,
+      maxLength = 16,
+      onInput = (() => {}) as (v: string) => void,
+    } = {}
   ) {
     super(
       pos,
@@ -157,6 +164,8 @@ export class UIInput extends LJS.UIText {
     );
 
     this.maxLength = maxLength;
+    this.value = initialValue;
+    this.text = initialValue ?? "";
     this.blinker = new LJS.UIText(
       vec2(), // this.size.multiply(vec2(0, -0.1)),
       vec2(this.size.y),
@@ -165,7 +174,11 @@ export class UIInput extends LJS.UIText {
     );
     this.addChild(this.blinker);
 
-    blink(this.blinker.textColor);
+    if (initialValue) {
+      this.blinker.visible = false;
+    } else {
+      blink(this.blinker.textColor);
+    }
 
     this.interactive =
       this.blinker.interactive =
@@ -182,9 +195,11 @@ export class UIInput extends LJS.UIText {
     this.color = rgba(233, 233, 233, 1);
     this.hoverColor = rgba(215, 215, 215, 1);
 
+    this.onInput = onInput;
     this.onClick = this.blinker.onClick = () => {
       let input = prompt();
       if (!input) return;
+      onInput(input);
       this.blinker.visible = false;
       this.value = this.text = input.slice(0, maxLength);
     };

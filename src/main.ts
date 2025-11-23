@@ -87,11 +87,19 @@ export function setGameState(state: GameState) {
 }
 
 export let playerColor: LJS.Color;
+export let playerName: string;
 export let defaultSpeechBubblePos: LJS.Vector2;
 
 export function setPlayerColor(color: LJS.Color) {
-  player && (player.color = color);
+  playerColor = color;
+  if (player) player.color = color;
   localStorage.setItem(storeKey("player", "color"), color.toString());
+}
+
+export function setPlayerName(name: string) {
+  playerName = name;
+  if (player) player.name = name;
+  localStorage.setItem(storeKey("player", "name"), name);
 }
 
 export let titleSong: keyof typeof songs = "paarynasAllrite";
@@ -280,6 +288,8 @@ function levelSelection() {
   titleText.visible = titleMenu.visible = false;
 }
 
+export const defaultMicrobeColor = rgba(255, 85, 85, 1);
+
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
   new LJS.UISystemPlugin();
@@ -290,9 +300,15 @@ function gameInit() {
   // LJS.uiSystem.defaultSoundClick = sfx.bip;
 
   let storedColor = localStorage.getItem(storeKey("player", "color"));
-  playerColor = storedColor
-    ? new LJS.Color().setHex(storedColor)
-    : rgba(255, 85, 85, 1);
+  setPlayerColor(
+    storedColor ? new LJS.Color().setHex(storedColor) : defaultMicrobeColor
+  );
+
+  let storedName = localStorage.getItem(storeKey("player", "name"));
+  storedName && setPlayerName(storedName);
+
+  LOG(`stored color ${storedColor}`);
+  LOG(`stored name ${storedName}`);
 
   startCameraScale = LJS.cameraScale;
 
@@ -352,10 +368,6 @@ function gameInit() {
   toggleVisible(loadingText, pauseMenu, pauseBtn, titleMenu, levelsMenu);
 
   // titleScreen();
-  // levelSM.start()
-  // levelSM.end()
-  // levelMFC.start()
-  // colorPickerBtn.onClick();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

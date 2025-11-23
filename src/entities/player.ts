@@ -1,12 +1,17 @@
 import * as LJS from "littlejsengine";
-import { currentSong, spriteAtlas, tileSize } from "../main";
-import { LOG, rgba, setAlpha } from "../mathUtils";
+import { PatternWrapping, type TimingInfo } from "../beat";
+import {
+  currentSong,
+  defaultMicrobeColor,
+  playerColor,
+  playerName,
+  spriteAtlas
+} from "../main";
+import { rgba, setAlpha, type Maybe } from "../mathUtils";
 import type { Song } from "../music";
 import { MyParticle } from "../particleUtils";
 import { sfx } from "../sfx";
 import { Microbe, MicrobeAction, swimAccel } from "./microbe";
-import { PatternWrapping, type TimingInfo } from "../beat";
-import { nameTextBox } from "../ui";
 
 const { vec2, rgb } = LJS;
 
@@ -61,12 +66,23 @@ export const firework = (
   }
 };
 
+const defaultPlayerName = "You";
 export class Player extends Microbe {
   interactive = true;
   bumpSoundTimer: LJS.Timer;
   private readonly bumpSoundCooldown = 0.1;
 
   onClick?: (timing: TimingInfo) => void;
+
+  // set color(color: LJS.Color) {
+  //   this.color = color;
+  //   localStorage.setItem(storeKey("player", "color"), color.toString());
+  // }
+
+  // set name(name: string) {
+  //   this.name = name;
+  //   localStorage.setItem(storeKey("player", "name"), name);
+  // }
 
   constructor(
     pos: LJS.Vector2,
@@ -84,11 +100,8 @@ export class Player extends Microbe {
       wrapping,
     });
 
-    this.name = nameTextBox.value ?? "You";
-
-    // this.song?.beat.onpattern(defaultMetronomePattern, (note) => {
-    //   note && this.idle();
-    // });
+    this.name = playerName ?? defaultPlayerName;
+    this.color = playerColor ?? defaultMicrobeColor;
 
     this.actions[MicrobeAction.Swim] = () => {};
     this.actions[MicrobeAction.Ding] = () => {
