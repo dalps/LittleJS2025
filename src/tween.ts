@@ -1,4 +1,4 @@
-import { engineAddPlugin } from "littlejsengine";
+import { engineAddPlugin, LOG } from "littlejsengine";
 
 type n = number;
 type t = number;
@@ -13,6 +13,7 @@ type f = (x: n) => any;
  */
 export class Tween {
   static active: Tween[] = [];
+  id: string;
   life: t;
   delta: number;
   fn: (x: t) => any;
@@ -42,10 +43,11 @@ export class Tween {
 
     /**
      * Duration of the tween. MUST BE INTEGER!
-     */
-    public duration = 100
+    */
+   public duration = 100
   ) {
     // Properties for the Tween to function
+    this.id = crypto.randomUUID();
     this.life = this.duration >> 0;
     this.delta = this.end - this.start;
     this.fn = fn;
@@ -59,6 +61,17 @@ export class Tween {
   interp(life: t) {
     const y = this.ease((this.duration - life) / this.duration);
     return y * this.delta + this.start;
+  }
+
+  cancel() {
+    LOG(`cancelling tween with id ${this.id}`);
+    Tween.cancel(this.id);
+  }
+
+  static cancel(handle: string) {
+    let idx = Tween.active.findIndex((t) => t.id === handle);
+    LOG(`cancelling tween with idx ${idx}`);
+    idx >= 0 && Tween.active.splice(idx, 1);
   }
 
   static update() {

@@ -15,7 +15,15 @@ import {
   storeKey,
   tutorialLevel,
 } from "./levels";
-import { DEG2RAD, getQuadrant, polar, rgba, setAlpha } from "./mathUtils";
+import {
+  DEG2RAD,
+  getQuadrant,
+  LOG,
+  polar,
+  rgba,
+  setAlpha,
+  type Maybe,
+} from "./mathUtils";
 import type { Song } from "./music";
 import { emitter } from "./particleUtils";
 import * as songs from "./songs";
@@ -26,7 +34,7 @@ import {
   createPauseMenu,
   createTitleMenu,
   pauseMenu,
-  startBtn
+  startBtn,
 } from "./ui";
 import { ScreenButton, toggleVisible } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
@@ -127,9 +135,15 @@ export const spriteAtlas: Record<
 export let vignette: CircleVignette;
 export const font = "Averia Sans Libre";
 export const tileSize = vec2(100);
-export const angleDelta = 35 * DEG2RAD;
 export let startCameraScale: number;
 export let center: LJS.Vector2;
+
+export let titleCameraTween: Maybe<Tween>;
+
+export function clearTitleCameraTween() {
+  titleCameraTween?.cancel();
+  titleCameraTween = undefined;
+}
 
 let matrixParticles: LJS.ParticleEmitter;
 let musicVolume = 1;
@@ -201,6 +215,20 @@ export async function titleScreen(levels = false) {
 
   setCurrentSong(songs.paarynasAllrite);
 
+  LJS.setCameraScale(23);
+
+  cameraZoom({ delta: 2 }).then(() =>
+    currentSong.beat.at(beatCount({ bar: 8 }), () => {
+      titleCameraTween = new Tween(
+        (t) => LJS.setCameraScale(t),
+        LJS.cameraScale,
+        40,
+        2000
+      ).then(Tween.PingPong);
+      LOG(`now titleCameraTween has id ${titleCameraTween.id}`);
+    })
+  );
+
   row.forEach((m) => m.setCollision(false, false));
   for (let i = 0; i < 0; i++)
     currentSong.beat.at(beatCount({ bar: 8 + i * 4, beat: 1 }), () => {
@@ -217,7 +245,6 @@ export async function titleScreen(levels = false) {
   uiBopScale(startBtn, { delta: 0.1 });
 
   changeBackground();
-  cameraZoom({ delta: 2 });
 
   makeRow({ wrapping: PatternWrapping.Loop });
 

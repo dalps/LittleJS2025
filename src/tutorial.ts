@@ -3,9 +3,10 @@ import { changeBackground, sleep } from "./animUtils";
 import { PatternWrapping, type TimingInfo } from "./beat";
 import type { Microbe } from "./entities/microbe";
 import { goodThreshold, type Player } from "./entities/player";
+import { makeRow } from "./entities/row";
 import { hideLevels, levelsMenu, pauseBtn, tutorialLevel } from "./levels";
 import {
-  center,
+  clearTitleCameraTween,
   currentSong,
   defaultSpeechBubblePos,
   GameState,
@@ -17,16 +18,14 @@ import {
   vignette,
 } from "./main";
 import { LOG } from "./mathUtils";
+import { sfx } from "./sfx";
 import {
   myFirstConsoleTutorial,
   tutorialChoreo2,
   tutorialChoreo3,
 } from "./songs";
-import { Tween } from "./tween";
-import { setInteractiveRec, setVisible, speech } from "./uiUtils";
 import { startBtn } from "./ui";
-import { sfx } from "./sfx";
-import { makeRow } from "./entities/row";
+import { setVisible, speech } from "./uiUtils";
 const { vec2, rgb, tile } = LJS;
 
 export let beginTutorial = true;
@@ -45,10 +44,12 @@ export async function tutorial() {
   await vignette.fade({ duration: 60 });
 
   hideLevels();
+  clearTitleCameraTween();
   setVisible(false, levelsMenu, titleText, titleMenu, pauseBtn);
 
   setGameState(GameState.Tutorial);
 
+  LJS.setCameraScale(32);
   changeBackground(tutorialLevel.color);
 
   setCurrentSong(myFirstConsoleTutorial);

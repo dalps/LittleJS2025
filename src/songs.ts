@@ -92,7 +92,7 @@ export function initSongs() {
     ];
 
     paarynasAllrite = new Song("./songs/paarynas-allrite.mp3", {
-      bpm: 102.453,
+      bpm: 102.45,
       title: "Paaryna's allrite",
       author: "DIZZY / CNDC",
       year: "1995",
@@ -112,6 +112,7 @@ export function initSongs() {
         repeat([S_S_, SS__], 7).flat(),
         [_T_S],
         repeat([S_S_, SS__], 7).flat(),
+        // todo: fill in a few more bars
       ].flat(),
     });
   }

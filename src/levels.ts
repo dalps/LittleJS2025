@@ -4,11 +4,13 @@ import {
   changeBackground,
   pulse,
   sleep,
-  uiBopScale
+  uiBopScale,
 } from "./animUtils";
 import type { Player } from "./entities/player";
+import { makeRow, player } from "./entities/row";
 import {
   center,
+  clearTitleCameraTween,
   currentSong,
   GameState,
   ratings,
@@ -41,10 +43,9 @@ import {
   restartBtn,
   setShadow,
   UIProgressbar,
-  type UIShadowConfig
+  type UIShadowConfig,
 } from "./ui";
 import { LockButton, setInteractiveRec, setVisible, uitext } from "./uiUtils";
-import { makeRow, player } from "./entities/row";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;
@@ -90,6 +91,9 @@ export class Level {
   onClick?: Function;
   onEnd?: Function;
 
+  startAngle: number;
+  startCameraZoom: number;
+
   // ui
   btn?: LockButton;
   scoreText?: LJS.UIText;
@@ -104,12 +108,17 @@ export class Level {
       locked = true,
       lockMessage = "",
       lockPred = (() => false) as () => boolean,
+      startAngle = 0,
+      startCameraZoom = 32,
     } = {}
   ) {
     this.color = song.color;
     this.locked = locked;
     this.lockMessage = lockMessage;
     this.lockPred = lockPred;
+
+    this.startAngle = startAngle;
+    this.startCameraZoom = startCameraZoom;
 
     this.completed =
       localStorage.getItem(this.getStoreKey("completed")) === "true";
@@ -215,6 +224,7 @@ export class Level {
     await vignette.fade({ duration: 60 });
 
     hideLevels();
+    clearTitleCameraTween();
     setVisible(false, pauseMenu, levelsMenu);
     setInteractiveRec(pauseMenu, true);
 
@@ -223,7 +233,7 @@ export class Level {
     setCurrentSong(this.song);
     currentSong.onEnd = this.end.bind(this);
 
-    let row = makeRow({ playerIdx: 1 });
+    let row = makeRow({ playerIdx: 1, startAngle: this.startAngle });
     let player = row[1] as Player;
     player.color = colorPickerBtn.color;
     player.interactive = false;
@@ -231,6 +241,7 @@ export class Level {
     titleText.visible = titleMenu.visible = false;
     pauseBtn.visible = true;
 
+    LJS.setCameraScale(this.startCameraZoom);
     changeBackground(this.color);
 
     await vignette
@@ -495,15 +506,21 @@ export function initLevels() {
   levelSM = new Level("Stardust\nMemories", stardustMemories, {
     lockMessage: `Do the tutorial!`,
     lockPred: () => !tutorialLevel.completed,
+    startAngle: 135 * DEG2RAD,
+    startCameraZoom: 30,
   });
   levelMFC = new Level("My First\nConsole", myFirstConsole, {
     // just pass a whole level as a prerequisite instead of these
     lockMessage: printRequirement(levelSM.name),
     lockPred: () => !levelSM.completed,
+    startAngle: 270 * DEG2RAD,
+    startCameraZoom: 29,
   });
   levelWS = new Level("Wooden\nShoes", woodenShoes, {
     lockMessage: printRequirement(levelMFC.name),
     lockPred: () => !levelMFC.completed,
+    startAngle: 35 * DEG2RAD,
+    startCameraZoom: 27,
   });
 
   LEVELS.push(
