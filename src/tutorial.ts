@@ -9,7 +9,6 @@ import {
   currentSong,
   defaultSpeechBubblePos,
   GameState,
-  makeRow,
   setCurrentSong,
   setGameState,
   titleMenu,
@@ -27,6 +26,7 @@ import { Tween } from "./tween";
 import { setInteractiveRec, setVisible, speech } from "./uiUtils";
 import { startBtn } from "./ui";
 import { sfx } from "./sfx";
+import { makeRow } from "./entities/row";
 const { vec2, rgb, tile } = LJS;
 
 export let beginTutorial = true;

@@ -5,7 +5,7 @@ import * as LJS from "littlejsengine";
 import { cameraZoom, changeBackground, pulse, uiBopScale } from "./animUtils";
 import { beatCount, PatternWrapping } from "./beat";
 import { Microbe } from "./entities/microbe";
-import { Player } from "./entities/player";
+import { makeRow, player, row } from "./entities/row";
 import {
   createLevelsMenu,
   initLevels,
@@ -23,11 +23,10 @@ import { beginTutorial, tutorial } from "./tutorial";
 import { Tween } from "./tween";
 import {
   CircleVignette,
-  colorPickerBtn,
   createPauseMenu,
   createTitleMenu,
   pauseMenu,
-  startBtn,
+  startBtn
 } from "./ui";
 import { ScreenButton, toggleVisible } from "./uiUtils";
 const { vec2, rgb, tile, time } = LJS;
@@ -131,14 +130,11 @@ export const tileSize = vec2(100);
 export const angleDelta = 35 * DEG2RAD;
 export let startCameraScale: number;
 export let center: LJS.Vector2;
-let leader: Microbe | undefined;
 
 let matrixParticles: LJS.ParticleEmitter;
 let musicVolume = 1;
 let musicLoaded = false;
 let percentLoaded = 0;
-export let player: Player;
-export let row: Microbe[] = [];
 
 // ui
 export let titleMenu: LJS.UIObject;
@@ -188,58 +184,6 @@ function awaitClick() {
     loadingText.destroy();
     titleScreen();
   });
-}
-
-export function makeRow({
-  angleDelta = 35 * DEG2RAD,
-  startAngle = 0,
-  startDist = 5,
-  playerIdx = -1,
-  length = 3,
-  wrapping = PatternWrapping.End,
-} = {}) {
-  clearRow();
-
-  leader = new Microbe(vec2(0, startDist), {
-    rowIdx: 0,
-    song: currentSong,
-    wrapping,
-  });
-  row.push(leader);
-
-  for (let rowIdx = 1; rowIdx < length; rowIdx++) {
-    const startPos = polar(startAngle + angleDelta * -rowIdx, startDist);
-
-    const m =
-      rowIdx === playerIdx
-        ? (player = new Player(startPos, {
-            leader,
-            rowIdx: rowIdx,
-            song: currentSong,
-            wrapping,
-          }))
-        : new Microbe(startPos, {
-            leader,
-            rowIdx: rowIdx,
-            song: currentSong,
-            wrapping,
-          });
-
-    row.push(m);
-  }
-
-  // persistent blink animation
-  row.forEach((m) =>
-    new Tween((t) => t === 1 && m.wink(), 0, 1, 360).then(Tween.Loop)
-  );
-
-  return row;
-}
-
-export function clearRow() {
-  row.forEach((m) => m.destroy());
-  row.splice(0);
-  leader = undefined;
 }
 
 export async function titleScreen(levels = false) {

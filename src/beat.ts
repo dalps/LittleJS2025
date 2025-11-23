@@ -15,8 +15,8 @@ export const beatCount = ({ bar = 0, beat = 0, sub = 0 } = {}): BeatCount => [
 
 export type BeatListener = ([beat, sub, bar]: BeatCount) => void;
 
-export type Pattern<T> = (T | undefined)[][][]; // bar, beat, sub-beat
-export type PatternListener<T> = (note: T | undefined) => void;
+export type Pattern<T> = Maybe<T>[][][]; // bar, beat, sub-beat
+export type PatternListener<T> = (note: Maybe<T>) => void;
 export enum PatternWrapping {
   Loop,
   HoldLast,

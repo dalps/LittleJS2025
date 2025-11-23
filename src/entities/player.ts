@@ -15,12 +15,7 @@ export const goodThreshold = 0.15;
 
 export const firework = (
   pos: LJS.Vector2,
-  {
-    accuracy = 0,
-    n = 5,
-    color = undefined as LJS.Color | undefined,
-    spin = 0,
-  } = {}
+  { accuracy = 0, n = 5, color = undefined as Maybe<LJS.Color>, spin = 0 } = {}
 ) => {
   const lifeTime = 1;
   const r1 = 5;
@@ -77,8 +72,8 @@ export class Player extends Microbe {
     pos: LJS.Vector2,
     {
       rowIdx = 0,
-      leader = undefined as Microbe | undefined,
-      song = undefined as Song | undefined,
+      leader = undefined as Maybe<Microbe>,
+      song = undefined as Maybe<Song>,
       wrapping = PatternWrapping.End,
     } = {}
   ) {

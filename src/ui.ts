@@ -9,7 +9,7 @@ import {
   titleText,
   type AtlasKey,
 } from "./main";
-import { LOG, rgba, setAlpha, setHSLA } from "./mathUtils";
+import { LOG, rgba, setAlpha, setHSLA, type Maybe } from "./mathUtils";
 import { setVisible, UIInput, uitext as uiText } from "./uiUtils";
 import { Tween } from "./tween";
 import { uiShadow } from "./levels";
@@ -30,7 +30,7 @@ export class IconButton extends LJS.UIButton {
       btnSize = vec2(50, 50),
       iconPos = vec2(),
       iconSize = vec2(40),
-      iconColor = undefined as LJS.Color | undefined,
+      iconColor = undefined as Maybe<LJS.Color>,
       iconAngle = 0,
       onClick = () => {},
       onEnter = () => {},

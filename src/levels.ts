@@ -3,17 +3,14 @@ import {
   cameraZoom,
   changeBackground,
   pulse,
-  shake,
   sleep,
-  uiBopScale,
+  uiBopScale
 } from "./animUtils";
 import type { Player } from "./entities/player";
 import {
   center,
   currentSong,
   GameState,
-  makeRow,
-  player,
   ratings,
   setCurrentSong,
   setGameState,
@@ -43,11 +40,11 @@ import {
   quitBtn,
   restartBtn,
   setShadow,
-  startBtn,
   UIProgressbar,
-  type UIShadowConfig,
+  type UIShadowConfig
 } from "./ui";
 import { LockButton, setInteractiveRec, setVisible, uitext } from "./uiUtils";
+import { makeRow, player } from "./entities/row";
 const { vec2, rgb, tile } = LJS;
 
 export let pauseBtn: LJS.UIObject;

@@ -63,8 +63,8 @@ export class Microbe extends LJS.EngineObject {
     public polarPos: LJS.Vector2,
     {
       rowIdx = 0,
-      leader = undefined as Microbe | undefined,
-      song = undefined as Song | undefined,
+      leader = undefined as Maybe<Microbe>,
+      song = undefined as Maybe<Song>,
       wrapping = PatternWrapping.End,
       startSwim = false,
     } = {}
